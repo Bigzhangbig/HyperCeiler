@@ -20,26 +20,26 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework
 
 import android.graphics.Canvas
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logI
-import de.robv.android.xposed.IXposedHookZygoteInit
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.StartupHook
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookBridge
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
-class BackgroundBlurDrawable : IXposedHookZygoteInit {
-    override fun initZygote(startupParam: IXposedHookZygoteInit.StartupParam) {
+class BackgroundBlurDrawable : StartupHook {
+    override fun initZygote(startupParam: StartupHook.StartupParam) {
         val classLoader = startupParam.javaClass.classLoader
         val mBackgroundBlurDrawableClass = classLoader?.let {
-            XposedHelpers.findClassIfExists(
+            ReflectionHelper.findClassIfExists(
                 "com.android.internal.graphics.drawable.BackgroundBlurDrawable",
                 it
             )
         } ?: return
         // 为 BackgroundBlurDrawable 应当增加一个判断
         // 此处应该可以为 AOSP 提交修复补丁
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             mBackgroundBlurDrawableClass,
             "draw",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val canvas = param.args[0] as Canvas
                     if (!canvas.isHardwareAccelerated) {

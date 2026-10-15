@@ -45,8 +45,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Objects;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SunlightModeHigh extends TileUtils {
     public static String path = null;
@@ -144,7 +144,7 @@ public class SunlightModeHigh extends TileUtils {
     }
 
     public void refreshState(Object o) {
-        XposedHelpers.callMethod(o, "refreshState");
+        ReflectionHelper.callMethod(o, "refreshState");
     }
 
     @Override
@@ -159,7 +159,7 @@ public class SunlightModeHigh extends TileUtils {
 
     @Override
     public void tileClick(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         try {
             if (shell) {
                 /*if (!isCustomSunshineMode) {
@@ -304,12 +304,12 @@ public class SunlightModeHigh extends TileUtils {
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         mContext.registerReceiver(broadcastReceiver, filter);
         // logE("setBroadcastReceiver: registerReceiver: " + broadcastReceiver + " filter: " + filter);
-        XposedHelpers.setAdditionalInstanceField(param.thisObject, "broadcastReceiver", broadcastReceiver);
+        ReflectionHelper.setAdditionalInstanceField(param.thisObject, "broadcastReceiver", broadcastReceiver);
         intentListening = true;
     }
 
     public void unBroadcastReceiver(Context mContext, MethodHookParam param) {
-        BroadcastReceiver broadcastReceiver = (BroadcastReceiver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "broadcastReceiver");
+        BroadcastReceiver broadcastReceiver = (BroadcastReceiver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "broadcastReceiver");
         // logE("unBroadcastReceiver: broadcastReceiver: " + broadcastReceiver);
         if (broadcastReceiver != null) {
             // logE("unBroadcastReceiver: unregisterReceiver: " + broadcastReceiver);
@@ -320,7 +320,7 @@ public class SunlightModeHigh extends TileUtils {
 
     @Override
     public void tileListening(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         boolean mListening = (boolean) param.args[0];
         // sLog("tileListening: mListening: " + mListening);
         if (mListening) {
@@ -345,13 +345,13 @@ public class SunlightModeHigh extends TileUtils {
             getCustomBrightnessMode(mContext);
             mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(screenBrightness), false, contentObserver);
             mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor(screenBrightnessCustomMode), false, contentObserver);
-            XposedHelpers.setAdditionalInstanceField(param.thisObject, "tileListener", contentObserver);
+            ReflectionHelper.setAdditionalInstanceField(param.thisObject, "tileListener", contentObserver);
         } else {
             // if (contentObserver != null) {
             //     sLog("tileListening: im unregisterContentObserver: " + contentObserver);
             //     mContext.getContentResolver().unregisterContentObserver(contentObserver);
             // }
-            ContentObserver contentObserver = (ContentObserver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "tileListener");
+            ContentObserver contentObserver = (ContentObserver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "tileListener");
             // sLog("tileListening: im unregisterContentObserver: " + contentObserver);
             mContext.getContentResolver().unregisterContentObserver(contentObserver);
         }
@@ -362,7 +362,7 @@ public class SunlightModeHigh extends TileUtils {
         int nowInt = 0;
         int nowSunlight;
         boolean isEnable = false;
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         try {
             Settings.System.getInt(mContext.getContentResolver(), sunlightMode);
             if (mMode) {

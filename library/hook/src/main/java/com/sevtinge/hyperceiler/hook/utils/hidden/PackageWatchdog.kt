@@ -27,14 +27,14 @@ import com.sevtinge.hyperceiler.hook.utils.callStaticMethodAs
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldAs
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logI
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 object PackageWatchdog {
     private lateinit var classLoader: ClassLoader
 
     private val PACKAGE_WATCHDOG by lazy {
         logI(classLoader.toString())
-        XposedHelpers.findClass("com.android.server.PackageWatchdog", classLoader)
+        ReflectionHelper.findClass("com.android.server.PackageWatchdog", classLoader)
     }
 
     fun getInstance(context: Context): Stub = Stub(

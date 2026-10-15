@@ -23,7 +23,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.*
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.findClass
 import com.sevtinge.hyperceiler.hook.utils.hookAfterAllMethods
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 
 object FolderVerticalSpacing : BaseHook() {
     override fun init() {
@@ -33,7 +33,7 @@ object FolderVerticalSpacing : BaseHook() {
         "com.miui.home.launcher.Folder".findClass().hookAfterAllMethods(
             "bind"
         ) {
-            val mContent = XposedHelpers.getObjectField(it.thisObject, "mContent") as GridView
+            val mContent = ReflectionHelper.getObjectField(it.thisObject, "mContent") as GridView
             mContent.verticalSpacing = dp2px(verticalSpacing.toFloat())
         }
 

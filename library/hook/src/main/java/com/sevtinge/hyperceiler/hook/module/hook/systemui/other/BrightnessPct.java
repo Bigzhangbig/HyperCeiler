@@ -25,7 +25,7 @@ import android.annotation.SuppressLint;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BrightnessPct extends BaseHook {
     @Override
@@ -49,7 +49,7 @@ public class BrightnessPct extends BaseHook {
                 if (pctTag == 0 || mPct == null) return;
                 int currentLevel = (int) param.args[3];
                 if (brightnessUtils != null) {
-                    int maxLevel = (int) XposedHelpers.getStaticObjectField(brightnessUtils, "GAMMA_SPACE_MAX");
+                    int maxLevel = (int) ReflectionHelper.getStaticObjectField(brightnessUtils, "GAMMA_SPACE_MAX");
                     mPct.setText(((currentLevel * 100) / maxLevel) + "%");
                 }
             }

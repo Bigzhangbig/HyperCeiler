@@ -26,7 +26,7 @@ import android.hardware.SensorManager;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.ShakeManager;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ShakeDevice extends BaseHook {
     @Override
@@ -36,10 +36,10 @@ public class ShakeDevice extends BaseHook {
         findAndHookMethod("com.miui.home.launcher.Launcher", "onResume", new MethodHook() {
             @Override
             protected void after(final MethodHookParam param) throws Throwable {
-                ShakeManager shakeMgr = (ShakeManager) XposedHelpers.getAdditionalInstanceField(param.thisObject, shakeMgrKey);
+                ShakeManager shakeMgr = (ShakeManager) ReflectionHelper.getAdditionalInstanceField(param.thisObject, shakeMgrKey);
                 if (shakeMgr == null) {
                     shakeMgr = new ShakeManager((Context) param.thisObject);
-                    XposedHelpers.setAdditionalInstanceField(param.thisObject, shakeMgrKey, shakeMgr);
+                    ReflectionHelper.setAdditionalInstanceField(param.thisObject, shakeMgrKey, shakeMgr);
                 }
                 Activity launcherActivity = (Activity) param.thisObject;
                 SensorManager sensorMgr = (SensorManager) launcherActivity.getSystemService(Context.SENSOR_SERVICE);
@@ -51,10 +51,10 @@ public class ShakeDevice extends BaseHook {
         findAndHookMethod("com.miui.home.launcher.Launcher", "onPause", new MethodHook() {
             @Override
             protected void after(final MethodHookParam param) throws Throwable {
-                if (XposedHelpers.getAdditionalInstanceField(param.thisObject, shakeMgrKey) == null) return;
+                if (ReflectionHelper.getAdditionalInstanceField(param.thisObject, shakeMgrKey) == null) return;
                 Activity launcherActivity = (Activity) param.thisObject;
                 SensorManager sensorMgr = (SensorManager) launcherActivity.getSystemService(Context.SENSOR_SERVICE);
-                sensorMgr.unregisterListener((ShakeManager) XposedHelpers.getAdditionalInstanceField(param.thisObject, shakeMgrKey));
+                sensorMgr.unregisterListener((ShakeManager) ReflectionHelper.getAdditionalInstanceField(param.thisObject, shakeMgrKey));
             }
         });
     }

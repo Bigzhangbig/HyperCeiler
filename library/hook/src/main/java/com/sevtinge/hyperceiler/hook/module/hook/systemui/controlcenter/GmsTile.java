@@ -29,8 +29,8 @@ import android.util.ArrayMap;
 import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.utils.TileUtils;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class GmsTile extends TileUtils {
     public final String CheckGms = "com.google.android.gms";
@@ -73,7 +73,7 @@ public class GmsTile extends TileUtils {
 
     @Override
     public void tileCheck(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         PackageManager packageManager = mContext.getPackageManager();
         try {
             packageManager.getPackageInfo(CheckGms, PackageManager.GET_ACTIVITIES);
@@ -106,7 +106,7 @@ public class GmsTile extends TileUtils {
 
     @Override
     public void tileClick(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         PackageManager packageManager = mContext.getPackageManager();
         int End = packageManager.getApplicationEnabledSetting(CheckGms);
         if (End == PackageManager.COMPONENT_ENABLED_STATE_DISABLED) {
@@ -119,7 +119,7 @@ public class GmsTile extends TileUtils {
                     logE(TAG, "com.android.systemui", "Don't have Gms app :" + GmsAppsSystem);
                 }
             }
-            XposedHelpers.callMethod(param.thisObject, "refreshState");
+            ReflectionHelper.callMethod(param.thisObject, "refreshState");
         } else if (End == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || End == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT) {
             for (String GmsAppsSystem : GmsAppsSystem) {
                 try {
@@ -130,7 +130,7 @@ public class GmsTile extends TileUtils {
                     logE(TAG, "com.android.systemui", "Don't have Gms app :" + GmsAppsSystem);
                 }
             }
-            XposedHelpers.callMethod(param.thisObject, "refreshState");
+            ReflectionHelper.callMethod(param.thisObject, "refreshState");
         }
 
     }
@@ -138,7 +138,7 @@ public class GmsTile extends TileUtils {
     @Override
     public ArrayMap<String, Integer> tileUpdateState(MethodHookParam param, Class<?> mResourceIcon, String tileName) {
         boolean isEnable;
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         PackageManager packageManager = mContext.getPackageManager();
         int End = packageManager.getApplicationEnabledSetting(CheckGms);
         isEnable = End == PackageManager.COMPONENT_ENABLED_STATE_ENABLED;

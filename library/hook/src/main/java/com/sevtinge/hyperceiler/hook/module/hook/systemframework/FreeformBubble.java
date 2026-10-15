@@ -22,7 +22,7 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class FreeformBubble extends BaseHook {
 
@@ -33,6 +33,6 @@ public class FreeformBubble extends BaseHook {
 
         mMiuiMultiWindowUtils = findClassIfExists("android.util.MiuiMultiWindowUtils");
 
-        findAndHookMethod(mMiuiMultiWindowUtils, "multiFreeFormSupported", Context.class, XC_MethodReplacement.returnConstant(true));
+        findAndHookMethod(mMiuiMultiWindowUtils, "multiFreeFormSupported", Context.class, HookReplacement.returnConstant(true));
     }
 }

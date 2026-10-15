@@ -35,8 +35,8 @@ import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.base.tool.OtherTool;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public abstract class TileUtils extends BaseHook {
     private static final String mQSFactoryClsName = "com.android.systemui.qs.tileimpl.MiuiQSFactory";
@@ -72,7 +72,7 @@ public abstract class TileUtils extends BaseHook {
             findAndHookMethod(myTile, "isAvailable", new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                    String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                     if (tileName != null) {
                         if (tileName.equals(customName())) {
                             tileCheck(param, tileName);
@@ -92,7 +92,7 @@ public abstract class TileUtils extends BaseHook {
             findAndHookMethod(myTile, "handleSetListening", boolean.class, new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                    String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                     if (tileName != null) {
                         if (tileName.equals(customName())) {
                             try {
@@ -117,7 +117,7 @@ public abstract class TileUtils extends BaseHook {
             findAndHookMethod(myTile, "getLongClickIntent", new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                    String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                     if (tileName != null) {
                         if (tileName.equals(customName())) {
                             tileLongClickIntent(param, tileName);
@@ -137,7 +137,7 @@ public abstract class TileUtils extends BaseHook {
         MethodHook handleLongClickHook = new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                 Intent intent = null;
                 if (tileName != null) {
                     if (tileName.equals(customName())) {
@@ -147,9 +147,9 @@ public abstract class TileUtils extends BaseHook {
                     intent = tileHandleLongClick(param, tileName);
                 }
                 if (intent != null) {
-                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                    Object o = XposedHelpers.callStaticMethod(findClassIfExists("com.android.systemui.controlcenter.utils.ControlCenterUtils"), "getSettingsSplitIntent", context, intent);
-                    XposedHelpers.callMethod(XposedHelpers.getObjectField(param.thisObject, "mActivityStarter"), "postStartActivityDismissingKeyguard", o, 0, null);
+                    Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                    Object o = ReflectionHelper.callStaticMethod(findClassIfExists("com.android.systemui.controlcenter.utils.ControlCenterUtils"), "getSettingsSplitIntent", context, intent);
+                    ReflectionHelper.callMethod(ReflectionHelper.getObjectField(param.thisObject, "mActivityStarter"), "postStartActivityDismissingKeyguard", o, 0, null);
                     param.setResult(null);
                 }
             }
@@ -169,7 +169,7 @@ public abstract class TileUtils extends BaseHook {
         MethodHook handleClickHook = new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                 if (tileName != null) {
                     if (tileName.equals(customName())) {
                         try {
@@ -189,7 +189,7 @@ public abstract class TileUtils extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 if (needAfter()) {
-                    String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                    String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                     tileClickAfter(param, tileName);
                 }
             }
@@ -210,7 +210,7 @@ public abstract class TileUtils extends BaseHook {
         hookAllMethods(myTile, "handleUpdateState", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                 if (tileName != null) {
                     if (tileName.equals(customName())) {
                         boolean isEnable = false;
@@ -220,15 +220,15 @@ public abstract class TileUtils extends BaseHook {
                             int code = tileResMap.get(customName() + "_Enable");
                             if (code == 1) isEnable = true;
                             Object booleanState = param.args[0];
-                            XposedHelpers.setObjectField(booleanState, "value", isEnable);
+                            ReflectionHelper.setObjectField(booleanState, "value", isEnable);
                             // 测试为开关状态控制，2为开，1为关
-                            XposedHelpers.setObjectField(booleanState, "state", isEnable ? 2 : 1);
-                            String tileLabel = (String) XposedHelpers.callMethod(param.thisObject, "getTileLabel");
-                            XposedHelpers.setObjectField(booleanState, "label", tileLabel);
-                            XposedHelpers.setObjectField(booleanState, "contentDescription", tileLabel);
-                            XposedHelpers.setObjectField(booleanState, "expandedAccessibilityClassName", Switch.class.getName());
-                            Object mIcon = XposedHelpers.callStaticMethod(mResourceIcon, "get", isEnable ? tileResMap.get(customName() + "_ON") : tileResMap.get(customName() + "_OFF"));
-                            XposedHelpers.setObjectField(booleanState, "icon", mIcon);
+                            ReflectionHelper.setObjectField(booleanState, "state", isEnable ? 2 : 1);
+                            String tileLabel = (String) ReflectionHelper.callMethod(param.thisObject, "getTileLabel");
+                            ReflectionHelper.setObjectField(booleanState, "label", tileLabel);
+                            ReflectionHelper.setObjectField(booleanState, "contentDescription", tileLabel);
+                            ReflectionHelper.setObjectField(booleanState, "expandedAccessibilityClassName", Switch.class.getName());
+                            Object mIcon = ReflectionHelper.callStaticMethod(mResourceIcon, "get", isEnable ? tileResMap.get(customName() + "_ON") : tileResMap.get(customName() + "_OFF"));
+                            ReflectionHelper.setObjectField(booleanState, "icon", mIcon);
                         }
                         param.setResult(null);
                     }
@@ -311,7 +311,7 @@ public abstract class TileUtils extends BaseHook {
                         if (!isListened[0]) {
                             isListened[0] = true;
                             // 获取 Context
-                            Context mContext = (Context) XposedHelpers.callMethod(param.thisObject, "getApplicationContext");
+                            Context mContext = (Context) ReflectionHelper.callMethod(param.thisObject, "getApplicationContext");
                             // 获取 miui_quick_settings_tiles_stock 字符串的值
                             @SuppressLint("DiscouragedApi") int stockTilesResId = mContext.getResources().getIdentifier("miui_quick_settings_tiles_stock", "string", lpparam.packageName);
                             String stockTiles = mContext.getString(stockTilesResId) + "," + custom; // 追加自定义的磁贴
@@ -342,9 +342,9 @@ public abstract class TileUtils extends BaseHook {
                 String tileName = (String) param.args[0];
                 if (tileName.equals(customName())) {
                     String myTileProvider = getCustomTileProvider()[0];
-                    Object provider = XposedHelpers.getObjectField(param.thisObject, myTileProvider);
-                    Object tile = XposedHelpers.callMethod(provider, "get");
-                    XposedHelpers.setAdditionalInstanceField(tile, "customName", tileName);
+                    Object provider = ReflectionHelper.getObjectField(param.thisObject, myTileProvider);
+                    Object tile = ReflectionHelper.callMethod(provider, "get");
+                    ReflectionHelper.setAdditionalInstanceField(tile, "customName", tileName);
                     param.setResult(tile);
                 }
             }
@@ -367,15 +367,15 @@ public abstract class TileUtils extends BaseHook {
                                 Object tile;
                                 try {
                                     QSFactory.getDeclaredField(myTileProvider);
-                                    provider = XposedHelpers.getObjectField(param.thisObject, myTileProvider);
-                                    tile = XposedHelpers.callMethod(provider, "get");
-                                    XposedHelpers.setAdditionalInstanceField(tile, "customName", tileName);
+                                    provider = ReflectionHelper.getObjectField(param.thisObject, myTileProvider);
+                                    tile = ReflectionHelper.callMethod(provider, "get");
+                                    ReflectionHelper.setAdditionalInstanceField(tile, "customName", tileName);
                                     if (tile != null) {
-                                        Object mHandler = XposedHelpers.getObjectField(tile, "mHandler");
-                                        XposedHelpers.callMethod(mHandler, "sendEmptyMessage", 12);
-                                        XposedHelpers.callMethod(mHandler, "sendEmptyMessage", 11);
+                                        Object mHandler = ReflectionHelper.getObjectField(tile, "mHandler");
+                                        ReflectionHelper.callMethod(mHandler, "sendEmptyMessage", 12);
+                                        ReflectionHelper.callMethod(mHandler, "sendEmptyMessage", 11);
                                         if (isMoreAndroidVersion(35)) {
-                                            XposedHelpers.callMethod(tile, "setTileSpec", tileName);
+                                            ReflectionHelper.callMethod(tile, "setTileSpec", tileName);
                                         }
 
                                         param.setResult(tile);
@@ -402,8 +402,8 @@ public abstract class TileUtils extends BaseHook {
                         @Override
                         protected void before(MethodHookParam param) {
                             try {
-                                XposedHelpers.callMethod(param.thisObject, "showStateMessage",
-                                    XposedHelpers.callMethod(param.thisObject, "getStateMessage"));
+                                ReflectionHelper.callMethod(param.thisObject, "showStateMessage",
+                                    ReflectionHelper.callMethod(param.thisObject, "getStateMessage"));
                             } catch (Throwable t) {
                                 // try {
                                 //     @SuppressLint("PrivateApi") Class<?> QSTileImpl = Class.forName("com.android.systemui.qs.tileimpl.QSTileImpl");
@@ -413,25 +413,25 @@ public abstract class TileUtils extends BaseHook {
                                 //     logE("showStateMessage", " Find class or call method error: " + e);
                                 // }
                                 String string;
-                                Object o = XposedHelpers.getObjectField(param.thisObject, "mState");
-                                int i = (int) XposedHelpers.getObjectField(o, "state");
-                                Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                                Object o = ReflectionHelper.getObjectField(param.thisObject, "mState");
+                                int i = (int) ReflectionHelper.getObjectField(o, "state");
+                                Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                                 if (i != 1) {
                                     if (i != 2) {
                                         string = null;
                                     } else {
                                         string = context.getResources().getString(
                                             R.string.quick_settings_state_change_message_on_my,
-                                            XposedHelpers.callMethod(param.thisObject, "getTileLabel"));
+                                            ReflectionHelper.callMethod(param.thisObject, "getTileLabel"));
                                     }
                                 } else {
                                     string = context.getResources().getString(
                                         R.string.quick_settings_state_change_message_off_my,
-                                        XposedHelpers.callMethod(param.thisObject, "getTileLabel"));
+                                        ReflectionHelper.callMethod(param.thisObject, "getTileLabel"));
                                 }
-                                XposedHelpers.callMethod(param.thisObject, "showStateMessage", string);
+                                ReflectionHelper.callMethod(param.thisObject, "showStateMessage", string);
                             }
-                            // XposedHelpers.callMethod(param.thisObject, "getTileLabel");
+                            // ReflectionHelper.callMethod(param.thisObject, "getTileLabel");
                             param.setResult(null);
                         }
                     }
@@ -456,10 +456,10 @@ public abstract class TileUtils extends BaseHook {
                 findAndHookMethod(myTile, "getTileLabel", new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) throws Throwable {
-                        String tileName = (String) XposedHelpers.getAdditionalInstanceField(param.thisObject, "customName");
+                        String tileName = (String) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "customName");
                         if (tileName != null) {
                             if (tileName.equals(custom)) {
-                                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                                 Resources modRes = OtherTool.getModuleRes(mContext);
                                 param.setResult(modRes.getString(customValue));
                             }

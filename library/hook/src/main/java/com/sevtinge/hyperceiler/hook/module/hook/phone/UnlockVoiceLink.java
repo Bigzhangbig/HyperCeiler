@@ -19,7 +19,7 @@
 
 package com.sevtinge.hyperceiler.hook.module.hook.phone;
 
-import static de.robv.android.xposed.XposedHelpers.setStaticBooleanField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setStaticBooleanField;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 

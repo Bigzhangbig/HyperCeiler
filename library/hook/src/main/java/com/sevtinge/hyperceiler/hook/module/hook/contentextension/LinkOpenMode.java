@@ -30,7 +30,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class LinkOpenMode extends BaseHook {
 
@@ -46,9 +46,9 @@ public class LinkOpenMode extends BaseHook {
             protected void before(MethodHookParam param) {
                 Context mContext = (Context) param.args[0];
                 Object o = param.args[1];
-                String detailUrl = (String) XposedHelpers.callMethod(o, "getIntent");
+                String detailUrl = (String) ReflectionHelper.callMethod(o, "getIntent");
                 if (TextUtils.isEmpty(detailUrl)) {
-                    detailUrl = (String) XposedHelpers.callMethod(o, "getDetailUrl");
+                    detailUrl = (String) ReflectionHelper.callMethod(o, "getDetailUrl");
                 }
                 Uri uri = Uri.parse(detailUrl);
                 setOpenIntent(mContext, uri, mode);

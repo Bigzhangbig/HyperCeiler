@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.various;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CollapseMiuiTitle extends BaseHook {
 
@@ -34,14 +34,14 @@ public class CollapseMiuiTitle extends BaseHook {
             hookAllConstructors(abvCls, new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) throws Throwable {
-                    XposedHelpers.setIntField(param.thisObject, "mExpandState", (int) XposedHelpers.getStaticObjectField(
+                    ReflectionHelper.setIntField(param.thisObject, "mExpandState", (int) ReflectionHelper.getStaticObjectField(
                             findClassIfExists("miui.app.ActionBar"),
                             "STATE_EXPAND"));
-                    XposedHelpers.setIntField(param.thisObject, "mInnerExpandState", (int) XposedHelpers.getStaticObjectField(
+                    ReflectionHelper.setIntField(param.thisObject, "mInnerExpandState", (int) ReflectionHelper.getStaticObjectField(
                             findClassIfExists("miui.app.ActionBar"),
                             "STATE_COLLAPSE"));
                     if (opt == 2)
-                        XposedHelpers.setBooleanField(param.thisObject, "mResizable", false);
+                        ReflectionHelper.setBooleanField(param.thisObject, "mResizable", false);
                 }
             });
 
@@ -61,11 +61,11 @@ public class CollapseMiuiTitle extends BaseHook {
 
     private void setExpandState(Object obj, boolean state) {
         if (state) {
-            XposedHelpers.callMethod(obj, "setExpandState", XposedHelpers.getObjectField(
+            ReflectionHelper.callMethod(obj, "setExpandState", ReflectionHelper.getObjectField(
                     findClassIfExists("miui.app.ActionBar"),
                     "STATE_COLLAPSE"));
         } else {
-            XposedHelpers.callMethod(obj, "setExpandState", XposedHelpers.getObjectField(
+            ReflectionHelper.callMethod(obj, "setExpandState", ReflectionHelper.getObjectField(
                     findClassIfExists("miui.app.ActionBar"),
                     "STATE_EXPAND"));
         }
@@ -73,9 +73,9 @@ public class CollapseMiuiTitle extends BaseHook {
 
     private void setResizable(Object obj, boolean state) {
         if (state) {
-            XposedHelpers.callMethod(obj, "setResizable", false);
+            ReflectionHelper.callMethod(obj, "setResizable", false);
         } else {
-            XposedHelpers.callMethod(obj, "setResizable", true);
+            ReflectionHelper.callMethod(obj, "setResizable", true);
         }
     }
 }

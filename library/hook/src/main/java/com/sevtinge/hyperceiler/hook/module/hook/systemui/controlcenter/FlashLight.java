@@ -47,8 +47,8 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FlashLight extends TileUtils {
     public final String mtk = "/sys/class/flashlight_core/flashlight/torchbrightness";
@@ -78,12 +78,12 @@ public class FlashLight extends TileUtils {
     }
 
     @Override
-    public ArrayMap<String, Integer> tileUpdateState(XC_MethodHook.MethodHookParam param, Class<?> mResourceIcon, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+    public ArrayMap<String, Integer> tileUpdateState(HookCallback.MethodHookParam param, Class<?> mResourceIcon, String tileName) {
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         if (param.args[1] != null) {
             boolean enabled = (boolean) param.args[1];
-            Object flash = XposedHelpers.getObjectField(param.thisObject, "flashlightController");
-            boolean isEnabled = (boolean) XposedHelpers.callMethod(flash, "isEnabled");
+            Object flash = ReflectionHelper.getObjectField(param.thisObject, "flashlightController");
+            boolean isEnabled = (boolean) ReflectionHelper.callMethod(flash, "isEnabled");
             if (enabled) {
                 if (!isFlashLightEnabled(mContext)) {
                     setFlashLightEnabled(mContext, 1);
@@ -102,14 +102,14 @@ public class FlashLight extends TileUtils {
                 new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) {
-                        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                         listening(mContext, param);
                     }
                 }
         );
     }
 
-    public void listening(Context mContext, XC_MethodHook.MethodHookParam param) {
+    public void listening(Context mContext, HookCallback.MethodHookParam param) {
         if (!isListening) {
             ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
                 @Override
@@ -124,7 +124,7 @@ public class FlashLight extends TileUtils {
                             int flash = FlashBrightness.getBrightness(object);
                             int slider = FlashBrightness.getSlider(object);
                             try {
-                                XposedHelpers.callMethod(param.thisObject, "animateSliderTo", slider);
+                                ReflectionHelper.callMethod(param.thisObject, "animateSliderTo", slider);
                             } catch (Throwable e) {
                                 sliderAnimator(slider, param);
                             }
@@ -172,7 +172,7 @@ public class FlashLight extends TileUtils {
                     @Override
                     protected void before(MethodHookParam param) {
                         if (isHook) {
-                            Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                            Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                             if (lastFlash != -1) {
                                 JSONObject object = new FlashBrightness((int) param.args[0], lastFlash).toJSON();
                                 setFlashBrightness(mContext, object.toString());
@@ -183,28 +183,28 @@ public class FlashLight extends TileUtils {
         );
     }
 
-    private void sliderAnimator(int i, XC_MethodHook.MethodHookParam param) {
-        boolean isUserSliding = (boolean) XposedHelpers.getObjectField(param.thisObject, "isUserSliding");
-        Object toggleSliderBase = XposedHelpers.getObjectField(param.thisObject, "mControl");
-        Object mControl = XposedHelpers.getObjectField(param.thisObject, "mControl");
+    private void sliderAnimator(int i, HookCallback.MethodHookParam param) {
+        boolean isUserSliding = (boolean) ReflectionHelper.getObjectField(param.thisObject, "isUserSliding");
+        Object toggleSliderBase = ReflectionHelper.getObjectField(param.thisObject, "mControl");
+        Object mControl = ReflectionHelper.getObjectField(param.thisObject, "mControl");
         if (!isUserSliding && toggleSliderBase != null) {
-            boolean mControlValueInitialized = (boolean) XposedHelpers.getObjectField(param.thisObject,
+            boolean mControlValueInitialized = (boolean) ReflectionHelper.getObjectField(param.thisObject,
                     "mControlValueInitialized");
             if (!mControlValueInitialized) {
-                XposedHelpers.callMethod(toggleSliderBase, "setValue", i);
-                XposedHelpers.setObjectField(param.thisObject, "mControlValueInitialized", true);
+                ReflectionHelper.callMethod(toggleSliderBase, "setValue", i);
+                ReflectionHelper.setObjectField(param.thisObject, "mControlValueInitialized", true);
             }
-            ValueAnimator ofInt = ValueAnimator.ofInt((int) XposedHelpers.callMethod(mControl,
+            ValueAnimator ofInt = ValueAnimator.ofInt((int) ReflectionHelper.callMethod(mControl,
                     "getValue"), i);
-            XposedHelpers.setObjectField(param.thisObject, "mSliderAnimator", ofInt);
+            ReflectionHelper.setObjectField(param.thisObject, "mSliderAnimator", ofInt);
             ofInt.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                 @Override
                 public void onAnimationUpdate(@NonNull ValueAnimator animation) {
-                    XposedHelpers.setObjectField(param.thisObject, "mExternalChange", true);
+                    ReflectionHelper.setObjectField(param.thisObject, "mExternalChange", true);
                     if (mControl != null) {
-                        XposedHelpers.callMethod(mControl, "setValue", animation.getAnimatedValue());
+                        ReflectionHelper.callMethod(mControl, "setValue", animation.getAnimatedValue());
                     }
-                    XposedHelpers.setObjectField(param.thisObject, "mExternalChange", false);
+                    ReflectionHelper.setObjectField(param.thisObject, "mExternalChange", false);
                 }
             });
             ofInt.setDuration(3000);
@@ -250,13 +250,13 @@ public class FlashLight extends TileUtils {
                             min = Math.round(min * 500);
                             max = Math.round(max * 500);
                             float exp;
-                            Class<?> BrightnessUtils = XposedHelpers.findClass("com.android.systemui.controlcenter.policy.BrightnessUtils",
+                            Class<?> BrightnessUtils = ReflectionHelper.findClass("com.android.systemui.controlcenter.policy.BrightnessUtils",
                                     lpparam.classLoader);
-                            int GAMMA_SPACE_MAX = XposedHelpers.getStaticIntField(BrightnessUtils, "GAMMA_SPACE_MAX");
-                            float R = XposedHelpers.getStaticFloatField(BrightnessUtils, "R");
-                            float A = XposedHelpers.getStaticFloatField(BrightnessUtils, "A");
-                            float B = XposedHelpers.getStaticFloatField(BrightnessUtils, "B");
-                            float C = XposedHelpers.getStaticFloatField(BrightnessUtils, "C");
+                            int GAMMA_SPACE_MAX = ReflectionHelper.getStaticIntField(BrightnessUtils, "GAMMA_SPACE_MAX");
+                            float R = ReflectionHelper.getStaticFloatField(BrightnessUtils, "R");
+                            float A = ReflectionHelper.getStaticFloatField(BrightnessUtils, "A");
+                            float B = ReflectionHelper.getStaticFloatField(BrightnessUtils, "B");
+                            float C = ReflectionHelper.getStaticFloatField(BrightnessUtils, "C");
                             float norm = MathUtils.norm(0.0f, GAMMA_SPACE_MAX, (int) param.args[b ? 0 : 2]);
                             if (norm <= R) {
                                 exp = MathUtils.sq(norm / R);

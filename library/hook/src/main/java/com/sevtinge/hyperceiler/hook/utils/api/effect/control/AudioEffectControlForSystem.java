@@ -20,9 +20,13 @@ package com.sevtinge.hyperceiler.hook.utils.api.effect.control;
 
 import static com.hchen.hooktool.core.CoreTool.callMethod;
 import static com.hchen.hooktool.core.CoreTool.callStaticMethod;
-import static com.hchen.hooktool.core.CoreTool.existsClass;
+import static com.hchen.hooktool.core.CoreTool.hasClass;
 import static com.hchen.hooktool.core.CoreTool.findClass;
-import static com.hchen.hooktool.core.CoreTool.findMethodPro;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import static com.hchen.hooktool.core.CoreTool.hookMethod;
 import static com.hchen.hooktool.core.CoreTool.newInstance;
 import static com.hchen.hooktool.log.XposedLog.logI;
@@ -37,7 +41,7 @@ import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logE;
 
 import android.content.Context;
 
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.utils.api.effect.callback.IControlForSystem;
 
 import java.util.Objects;
@@ -66,7 +70,7 @@ public class AudioEffectControlForSystem extends BaseEffectControl implements IC
     public void init() {
         mAudioManagerClass = findClass("android.media.AudioManager");
         mMiSoundClass = findClass("android.media.audiofx.MiSound");
-        if (existsClass("com.dolby.dax.DolbyAudioEffect")) {
+        if (hasClass("com.dolby.dax.DolbyAudioEffect")) {
             mDolbyClass = findClass("com.dolby.dax.DolbyAudioEffect");
             isIntactDolbyClass = true;
         } else
@@ -75,7 +79,7 @@ public class AudioEffectControlForSystem extends BaseEffectControl implements IC
         hookMethod("android.media.audiofx.AudioEffect",
             "setEnabled",
             boolean.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     observeCall();
@@ -102,7 +106,7 @@ public class AudioEffectControlForSystem extends BaseEffectControl implements IC
         hookMethod("android.media.Spatializer",
             "setEnabled",
             boolean.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getEarPhoneStateFinal()) {
@@ -116,7 +120,7 @@ public class AudioEffectControlForSystem extends BaseEffectControl implements IC
         hookMethod("android.media.audiofx.MiSound",
             "set3dSurround",
             int.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getEarPhoneStateFinal()) {
@@ -146,11 +150,14 @@ public class AudioEffectControlForSystem extends BaseEffectControl implements IC
     private void setEnableEffect(Object instance, boolean enable) {
         if (instance == null || instance.getClass().getSuperclass() == null) return;
         callMethod(instance, "checkState", "setEnabled()");
-        findMethodPro(instance.getClass())
-            .withSuper(true)
-            .withMethodName("native_setEnabled")
-            .single()
-            .returnResult(enable);
+        List<Method> matches = new ArrayList<>();
+        for (Class<?> type = instance.getClass(); type != null; type = type.getSuperclass()) {
+            for (Method method : type.getDeclaredMethods()) {
+                if (method.getName().equals("native_setEnabled")) matches.add(method);
+            }
+        }
+        if (matches.size() != 1) throw new IllegalStateException("Expected one native_setEnabled method");
+        HookBridge.hookMethod(matches.get(0), HookReplacement.returnConstant(enable));
         // super private
     }
 

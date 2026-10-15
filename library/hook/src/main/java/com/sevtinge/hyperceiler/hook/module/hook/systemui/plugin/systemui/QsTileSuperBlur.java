@@ -26,8 +26,8 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author 焕晨HChen
  */
-public class QsTileSuperBlur extends HCBase {
+public class QsTileSuperBlur extends NativeFeatureModule {
     private static int[] listItemsBlendColors = null;
     private static int[] seekbarFgBlendColors = null;
     private static int[] ringerIconBlendColors = null;
@@ -58,7 +58,7 @@ public class QsTileSuperBlur extends HCBase {
     }
 
     public static void initQsTileSuperBlur(@NonNull ClassLoader classLoader) {
-        isOS1 = !existsClass("miui.systemui.controlcenter.panel.main.MainPanelController$Mode", classLoader);
+        isOS1 = !hasClass("miui.systemui.controlcenter.panel.main.MainPanelController$Mode", classLoader);
         modeClass = findClass("miui.systemui.controlcenter.panel.main." + (isOS1 ? os1 : os2), classLoader);
 
         miBlurCompatClass = findClass("miui.systemui.util.MiBlurCompat", classLoader);
@@ -68,7 +68,7 @@ public class QsTileSuperBlur extends HCBase {
 
         hookConstructor("miui.systemui.controlcenter.qs.tileview.QSTileItemView", classLoader,
             Context.class, AttributeSet.class, int.class, int.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void after() {
                     initRes((Context) getArg(0));
@@ -88,7 +88,7 @@ public class QsTileSuperBlur extends HCBase {
         hookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemView", classLoader,
             "onModeChanged",
             "miui.systemui.controlcenter.panel.main." + (isOS1 ? os1 : os2), boolean.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     Object mode = getArg(0);
@@ -124,7 +124,7 @@ public class QsTileSuperBlur extends HCBase {
 
         hookMethod("miui.systemui.controlcenter.panel.main.qs.QSItemViewHolder", classLoader,
             "updateBlendBlur",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     Object qsItemView = callThisMethod("getQsItemView");
@@ -146,7 +146,7 @@ public class QsTileSuperBlur extends HCBase {
         hookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemView", classLoader,
             "updateState",
             "com.android.systemui.plugins.qs.QSTile$State", boolean.class, boolean.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     setThisField("state", getArg(0));
@@ -172,7 +172,7 @@ public class QsTileSuperBlur extends HCBase {
 
         hookMethod("miui.systemui.controlcenter.panel.main.qs.QSCardViewHolder", classLoader,
             "updateBlendBlur",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     Object qsItemView = callThisMethod("getQsItemView");
@@ -192,7 +192,7 @@ public class QsTileSuperBlur extends HCBase {
 
         hookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader,
             "updateBackground",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void after() {
                     initRes((Context) callThisMethod("getContext"));
@@ -213,7 +213,7 @@ public class QsTileSuperBlur extends HCBase {
 
         hookMethod("com.android.systemui.miui.volume.MiuiRingerModeLayout$RingerButtonHelper", classLoader,
             "updateState",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     ImageView mIcon = (ImageView) getThisField("mIcon");
@@ -230,7 +230,7 @@ public class QsTileSuperBlur extends HCBase {
         hookMethod("com.android.systemui.miui.volume.Util", classLoader,
             "setMiViewBlurAndBlendColor",
             View.class, boolean.class, Context.class, int.class, int[].class, boolean.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getArg(0) instanceof LinearLayout view) {
@@ -251,7 +251,7 @@ public class QsTileSuperBlur extends HCBase {
         hookMethod("com.android.systemui.miui.volume.Util", classLoader,
             "setMiViewBlurAndBlendColor",
             View.class, int.class, int[].class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getArg(0) instanceof ImageView imageView && (int) getArg(1) == 0) {

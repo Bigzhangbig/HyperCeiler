@@ -21,27 +21,27 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework.network;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FlightModeHotSpot extends BaseHook {
-    XC_MethodHook.Unhook clHook;
+    HookCallback.Unhook clHook;
 
     @Override
     public void init() {
         try {
-            clHook = XposedHelpers.findAndHookMethod("com.android.server.SystemServiceManager", lpparam.classLoader,
-                    "loadClassFromLoader", String.class, ClassLoader.class, new XC_MethodHook() {
+            clHook = ReflectionHelper.findAndHookMethod("com.android.server.SystemServiceManager", lpparam.classLoader,
+                    "loadClassFromLoader", String.class, ClassLoader.class, new HookCallback() {
                         @Override
                         protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                             try {
                                 String clzName = (String) param.args[0];
                                 ClassLoader cl = (ClassLoader) param.args[1];
                                 if (clzName.equals("com.android.server.wifi.WifiService")) {
-                                    Class<?> cls = XposedHelpers.findClass("com.android.server.wifi.WifiServiceImpl$SoftApCallbackInternal", cl);
-                                    XposedHelpers.findAndHookMethod("com.android.server.wifi.sap.MiuiWifiApManager", cl, "resetSoftApStateIfNeeded",
+                                    Class<?> cls = ReflectionHelper.findClass("com.android.server.wifi.WifiServiceImpl$SoftApCallbackInternal", cl);
+                                    ReflectionHelper.findAndHookMethod("com.android.server.wifi.sap.MiuiWifiApManager", cl, "resetSoftApStateIfNeeded",
                                             cls, int.class, boolean.class, boolean.class,
-                                            new XC_MethodHook() {
+                                            new HookCallback() {
                                                 @Override
                                                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                                     param.setResult(false);

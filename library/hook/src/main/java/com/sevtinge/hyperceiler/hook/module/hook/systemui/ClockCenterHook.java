@@ -30,7 +30,7 @@ import android.widget.TextView;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ClockCenterHook extends BaseHook {
 
@@ -49,7 +49,7 @@ public class ClockCenterHook extends BaseHook {
         findAndHookMethod(mStatusBarView, "onViewCreated", View.class, Bundle.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                ViewGroup miuiPhoneStatusBarView = (ViewGroup) XposedHelpers.getObjectField(param.thisObject, "mStatusBar");
+                ViewGroup miuiPhoneStatusBarView = (ViewGroup) ReflectionHelper.getObjectField(param.thisObject, "mStatusBar");
                 Context context = miuiPhoneStatusBarView.getContext();
                 Resources res = miuiPhoneStatusBarView.getResources();
 

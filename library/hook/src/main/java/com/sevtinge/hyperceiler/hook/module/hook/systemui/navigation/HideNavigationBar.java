@@ -20,9 +20,9 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.navigation;
 
 import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.isMoreAndroidVersion;
 
-import static de.robv.android.xposed.XposedHelpers.callMethod;
-import static de.robv.android.xposed.XposedHelpers.getObjectField;
-import static de.robv.android.xposed.XposedHelpers.setObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setObjectField;
 
 import android.content.Context;
 import android.database.ContentObserver;

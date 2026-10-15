@@ -34,14 +34,14 @@ import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FlagSecure extends BaseHook {
 
     /*@Override
     public void init() {
-        findAndHookMethod("com.android.server.wm.WindowState", "isSecureLocked", XC_MethodReplacement.returnConstant(false));
+        findAndHookMethod("com.android.server.wm.WindowState", "isSecureLocked", HookReplacement.returnConstant(false));
     }*/
 
     private static Field captureSecureLayersField;
@@ -58,20 +58,20 @@ public class FlagSecure extends BaseHook {
     @Override
     public void init() {
         try {
-            deoptimizeMethods(XposedHelpers.findClass("com.android.server.wm.WindowStateAnimator", lpparam.classLoader), "createSurfaceLocked");
+            deoptimizeMethods(ReflectionHelper.findClass("com.android.server.wm.WindowStateAnimator", lpparam.classLoader), "createSurfaceLocked");
 
-                /*deoptimizeMethods(XposedHelpers.findClass("com.android.server.display.DisplayManagerService", lpparam.classLoader),
+                /*deoptimizeMethods(ReflectionHelper.findClass("com.android.server.display.DisplayManagerService", lpparam.classLoader),
                     "setUserPreferredModeForDisplayLocked", "setUserPreferredDisplayModeInternal");
 
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                    Class<?> insetsPolicyListenerClass = XposedHelpers.findClass("com.android.server.wm.InsetsPolicy$InsetsPolicyAnimationControlListener", lpparam.classLoader);
+                    Class<?> insetsPolicyListenerClass = ReflectionHelper.findClass("com.android.server.wm.InsetsPolicy$InsetsPolicyAnimationControlListener", lpparam.classLoader);
                     deoptimizeConstructors(insetsPolicyListenerClass);
                 }
 
-                deoptimizeMethods(XposedHelpers.findClass("com.android.server.wm.InsetsPolicy", lpparam.classLoader),
+                deoptimizeMethods(ReflectionHelper.findClass("com.android.server.wm.InsetsPolicy", lpparam.classLoader),
                     "startAnimation", "controlAnimationUnchecked");*/
 
-            deoptimizeMethods(XposedHelpers.findClass("com.android.server.wm.WindowManagerService", lpparam.classLoader), "relayoutWindow");
+            deoptimizeMethods(ReflectionHelper.findClass("com.android.server.wm.WindowManagerService", lpparam.classLoader), "relayoutWindow");
 
             for (int i = 0; i < 20; i++) {
                 try {
@@ -96,8 +96,8 @@ public class FlagSecure extends BaseHook {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
             // Screen record detection (V)
             try {
-                var windowManagerServiceClazz = XposedHelpers.findClass("com.android.server.wm.WindowManagerService", lpparam.classLoader);
-                var iScreenRecordingCallbackClazz = XposedHelpers.findClass("android.window.IScreenRecordingCallback", lpparam.classLoader);
+                var windowManagerServiceClazz = ReflectionHelper.findClass("com.android.server.wm.WindowManagerService", lpparam.classLoader);
+                var iScreenRecordingCallbackClazz = ReflectionHelper.findClass("android.window.IScreenRecordingCallback", lpparam.classLoader);
                 var method = windowManagerServiceClazz.getDeclaredMethod("registerScreenRecordingCallback", iScreenRecordingCallbackClazz);
                 hookMethod(method, MethodHook.returnConstant(false));
             } catch (Throwable t) {
@@ -107,13 +107,13 @@ public class FlagSecure extends BaseHook {
 
         // Screenshot detection (U~Baklava)
         try {
-            XposedHelpers.findAndHookMethod(
+            ReflectionHelper.findAndHookMethod(
                 "com.android.server.wm.ActivityTaskManagerService",
                 lpparam.classLoader,
                 "registerScreenCaptureObserver",
-                XposedHelpers.findClass("android.os.IBinder", lpparam.classLoader),
-                XposedHelpers.findClass("android.app.IScreenCaptureObserver", lpparam.classLoader),
-                XC_MethodReplacement.DO_NOTHING);
+                ReflectionHelper.findClass("android.os.IBinder", lpparam.classLoader),
+                ReflectionHelper.findClass("android.app.IScreenCaptureObserver", lpparam.classLoader),
+                HookReplacement.DO_NOTHING);
         } catch (Throwable t) {
             logE(TAG, this.lpparam.packageName, "hook ActivityTaskManagerService failed", t);
         }
@@ -131,7 +131,7 @@ public class FlagSecure extends BaseHook {
 
         // ScreenCapture in WindowManagerService (S~Baklava)
         try {
-            var captureArgsClazz = XposedHelpers.findClass("android.window.ScreenCapture$CaptureArgs", lpparam.classLoader);
+            var captureArgsClazz = ReflectionHelper.findClass("android.window.ScreenCapture$CaptureArgs", lpparam.classLoader);
             captureSecureLayersField = captureArgsClazz.getDeclaredField("mCaptureSecureLayers");
             captureSecureLayersField.setAccessible(true);
             hookAllMethods("android.window.ScreenCapture", lpparam.classLoader, "nativeCaptureDisplay",
@@ -162,7 +162,7 @@ public class FlagSecure extends BaseHook {
 
         // WifiDisplay (S~Baklava) / OverlayDisplay (S~Baklava) / VirtualDisplay (U~Baklava)
         try {
-            var displayControlClazz = XposedHelpers.findClass("com.android.server.display.DisplayControl", lpparam.classLoader);
+            var displayControlClazz = ReflectionHelper.findClass("com.android.server.display.DisplayControl", lpparam.classLoader);
             var method = displayControlClazz.getDeclaredMethod(
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM ?
                     "createVirtualDisplay" :
@@ -208,7 +208,7 @@ public class FlagSecure extends BaseHook {
         // secureLocked flag
         try {
             // Screenshot
-            var windowStateClazz = XposedHelpers.findClass("com.android.server.wm.WindowState", lpparam.classLoader);
+            var windowStateClazz = ReflectionHelper.findClass("com.android.server.wm.WindowState", lpparam.classLoader);
             var isSecureLockedMethod = windowStateClazz.getDeclaredMethod("isSecureLocked");
             hookMethod(isSecureLockedMethod, new MethodHook() {
                 @Override

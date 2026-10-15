@@ -40,7 +40,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.isHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldAs
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.hook.utils.setBooleanField
-import de.robv.android.xposed.XC_MethodHook
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
 
@@ -82,7 +82,7 @@ object BlurButton : BaseHook() {
             }
     }
 
-    private fun systemBlur(param: XC_MethodHook.MethodHookParam) {
+    private fun systemBlur(param: HookParam) {
         val mLeftAffordanceView: ImageView =
             param.thisObject.getObjectFieldOrNullAs<ImageView>("mLeftButton")!!
         val mRightAffordanceView: ImageView =
@@ -106,7 +106,7 @@ object BlurButton : BaseHook() {
 
     }
 
-    private fun hyperBlur(param: XC_MethodHook.MethodHookParam) {
+    private fun hyperBlur(param: HookParam) {
         val mLeftAffordanceView: ImageView =
             param.thisObject.getObjectFieldOrNullAs<ImageView>("mLeftButton")!!
         val mRightAffordanceView: ImageView =

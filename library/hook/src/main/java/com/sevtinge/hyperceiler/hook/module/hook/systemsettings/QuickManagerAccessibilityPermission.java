@@ -34,7 +34,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class QuickManagerAccessibilityPermission extends BaseHook {
     @Override
@@ -48,8 +48,8 @@ public class QuickManagerAccessibilityPermission extends BaseHook {
                 String action = intent.getAction();
                 if (action != null && action.equals("android.settings.ACCESSIBILITY_SETTINGS")) {
                     //获取打开此Activity的应用包名
-                    String packageName = (String) XposedHelpers.getObjectField(intent, "mSenderPackageName");
-                    //XposedBridge.log("启动包名：" + packageName);
+                    String packageName = (String) ReflectionHelper.getObjectField(intent, "mSenderPackageName");
+                    //HookBridge.log("启动包名：" + packageName);
                     if (packageName == null) {
                         return;
                     }
@@ -58,7 +58,7 @@ public class QuickManagerAccessibilityPermission extends BaseHook {
                     String summary = null;
 
                     PackageManager packageManager = activity.getPackageManager();
-                    AccessibilityManager accessibilityManager = (AccessibilityManager) XposedHelpers.callStaticMethod(AccessibilityManager.class, "getInstance", new Class[]{Context.class}, activity);
+                    AccessibilityManager accessibilityManager = (AccessibilityManager) ReflectionHelper.callStaticMethod(AccessibilityManager.class, "getInstance", new Class[]{Context.class}, activity);
                     //遍历无障碍服务列表，直到与之相同的包名
                     List<AccessibilityServiceInfo> installedAccessibilityServiceList = accessibilityManager.getInstalledAccessibilityServiceList();
                     for (AccessibilityServiceInfo accessibilityServiceInfo : installedAccessibilityServiceList) {

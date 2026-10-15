@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.navigation;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BackGestureAreaWidth extends BaseHook {
     @Override
@@ -30,12 +30,12 @@ public class BackGestureAreaWidth extends BaseHook {
             protected void after(final MethodHookParam param) throws Throwable {
                 int pct = mPrefsMap.getInt("home_navigation_back_area_width", 100);
                 if (pct == 100) return;
-                int mGestureStubDefaultSize = XposedHelpers.getIntField(param.thisObject, "mGestureStubDefaultSize");
-                int mGestureStubSize  = XposedHelpers.getIntField(param.thisObject, "mGestureStubSize");
+                int mGestureStubDefaultSize = ReflectionHelper.getIntField(param.thisObject, "mGestureStubDefaultSize");
+                int mGestureStubSize  = ReflectionHelper.getIntField(param.thisObject, "mGestureStubSize");
                 mGestureStubDefaultSize = Math.round(mGestureStubDefaultSize * pct / 100f);
                 mGestureStubSize = Math.round(mGestureStubSize * pct / 100f);
-                XposedHelpers.setIntField(param.thisObject, "mGestureStubDefaultSize", mGestureStubDefaultSize);
-                XposedHelpers.setIntField(param.thisObject, "mGestureStubSize", mGestureStubSize);
+                ReflectionHelper.setIntField(param.thisObject, "mGestureStubDefaultSize", mGestureStubDefaultSize);
+                ReflectionHelper.setIntField(param.thisObject, "mGestureStubSize", mGestureStubSize);
             }
         });
 
@@ -44,7 +44,7 @@ public class BackGestureAreaWidth extends BaseHook {
             protected void before(final MethodHookParam param) throws Throwable {
                 int pct = mPrefsMap.getInt("home_navigation_back_area_width", 100);
                 if (pct == 100) return;
-                int mGestureStubDefaultSize = XposedHelpers.getIntField(param.thisObject, "mGestureStubDefaultSize");
+                int mGestureStubDefaultSize = ReflectionHelper.getIntField(param.thisObject, "mGestureStubDefaultSize");
                 if ((int)param.args[0] == mGestureStubDefaultSize) return;
                 param.args[0] = Math.round((int)param.args[0] * pct / 100f);
             }

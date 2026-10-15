@@ -28,7 +28,7 @@ import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
 import java.lang.reflect.Field;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AppDefaultSort extends BaseHook {
 
@@ -57,7 +57,7 @@ public class AppDefaultSort extends BaseHook {
                         @Override
                         protected void before(final MethodHookParam param) throws Throwable {
                             try {
-                                param.args[0] = checkBundle((Context) XposedHelpers.callMethod(param.thisObject, "getContext"), (Bundle) param.args[0]);
+                                param.args[0] = checkBundle((Context) ReflectionHelper.callMethod(param.thisObject, "getContext"), (Bundle) param.args[0]);
                             } catch (Throwable t) {
                                 logE("AppDefaultSortHook", "", t);
                             }

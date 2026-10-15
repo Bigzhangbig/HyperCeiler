@@ -41,9 +41,9 @@ import com.sevtinge.hyperceiler.hook.utils.blur.MiBlurUtilsKt.setMiBackgroundBlu
 import com.sevtinge.hyperceiler.hook.utils.blur.MiBlurUtilsKt.setMiViewBlurMode
 import com.sevtinge.hyperceiler.hook.utils.color.ColorUtils
 import com.sevtinge.hyperceiler.hook.utils.getValueByField
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookBridge
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import java.lang.reflect.Method
@@ -108,7 +108,7 @@ object BlurSecurity : BaseHook() {
         }
 
         // dock 应用栏
-        XposedBridge.hookAllConstructors(dockLayoutClass, object : XC_MethodHook() {
+        HookBridge.hookAllConstructors(dockLayoutClass, object : HookCallback() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val view = param.thisObject as View
                 view.addOnAttachStateChangeListener(
@@ -162,7 +162,7 @@ object BlurSecurity : BaseHook() {
             "com.miui.gamebooster.windowmanager.newbox.NewToolBoxTopView"
         ) ?: return
         // 游戏工具箱
-        XposedBridge.hookAllConstructors(newToolBoxTopViewClass, object : XC_MethodHook() {
+        HookBridge.hookAllConstructors(newToolBoxTopViewClass, object : HookCallback() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 val view = param.thisObject as View
                 view.addOnAttachStateChangeListener(
@@ -201,9 +201,9 @@ object BlurSecurity : BaseHook() {
         })
 
         // 隐藏视频/游戏工具箱顶部静态图
-        XposedBridge.hookAllConstructors(
+        HookBridge.hookAllConstructors(
             ImageView::class.java,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     (param.thisObject as? ImageView?)?.let {
                         if (it.id != View.NO_ID) {
@@ -278,10 +278,10 @@ object BlurSecurity : BaseHook() {
             val auditionViewClass =
                 findClassIfExists("com.miui.gamebooster.customview.AuditionView") ?: return
 
-            XposedBridge.hookAllMethods(
+            HookBridge.hookAllMethods(
                 detailSettingsLayoutClass,
                 "setFunctionType",
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val marqueeTextView = getValueByField(param.thisObject, "d")
                         if (marqueeTextView != null) {
@@ -292,10 +292,10 @@ object BlurSecurity : BaseHook() {
                         val listViewAdapterClassName = listView.adapter.javaClass.name
                         val listViewAdapterInnerClass =
                             findClassIfExists("$listViewAdapterClassName\$a") ?: return
-                        XposedBridge.hookAllMethods(
+                        HookBridge.hookAllMethods(
                             listViewAdapterInnerClass,
                             "a",
-                            object : XC_MethodHook() {
+                            object : HookCallback() {
                                 override fun afterHookedMethod(param: MethodHookParam) {
                                     val isSetupFunction =
                                         param.args[0].toString().contains("BaseModel")
@@ -335,10 +335,10 @@ object BlurSecurity : BaseHook() {
                     }
                 })
 
-            XposedHelpers.findAndHookMethod(
+            ReflectionHelper.findAndHookMethod(
                 srsLevelSeekBarProClass,
                 "b", Context::class.java,
-                AttributeSet::class.java, Int::class.java, object : XC_MethodHook() {
+                AttributeSet::class.java, Int::class.java, object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val bgColorField = srsLevelSeekBarProClass.getDeclaredField("j")
                         bgColorField.isAccessible = true
@@ -366,8 +366,8 @@ object BlurSecurity : BaseHook() {
                 }
             )
 
-            XposedHelpers.findAndHookMethod(srsLevelSeekBarInnerViewClass, "a", Context::class.java,
-                AttributeSet::class.java, Int::class.java, object : XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod(srsLevelSeekBarInnerViewClass, "a", Context::class.java,
+                AttributeSet::class.java, Int::class.java, object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val bgColorField = srsLevelSeekBarInnerViewClass.getDeclaredField("h")
                         bgColorField.isAccessible = true
@@ -380,11 +380,11 @@ object BlurSecurity : BaseHook() {
             )
 
             // 让图标颜色更深一点
-            XposedHelpers.findAndHookMethod(
+            ReflectionHelper.findAndHookMethod(
                 auditionViewClass,
                 "M",
                 Context::class.java,
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val view = getValueByField(param.thisObject, "d") as View
                         val parentView = view.parent

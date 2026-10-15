@@ -32,8 +32,8 @@ import androidx.annotation.Nullable;
 import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.utils.TileUtils;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class TaplusTile extends TileUtils {
     public final String mNightModeTile = "com.android.systemui.qs.tiles.NightModeTile";
@@ -78,7 +78,7 @@ public class TaplusTile extends TileUtils {
 
     @Override
     public void tileClick(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         boolean z = getTaplus(mContext);
         setTaplus(mContext, !z);
         /*Settings.System.putInt(mContext.getContentResolver(),
@@ -89,21 +89,21 @@ public class TaplusTile extends TileUtils {
 
     @Override
     public void tileListening(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         boolean mListening = (boolean) param.args[0];
         if (mListening) {
             ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
                 @Override
                 public void onChange(boolean selfChange, @Nullable Uri uri) {
-                    XposedHelpers.callMethod(param.thisObject, "refreshState");
+                    ReflectionHelper.callMethod(param.thisObject, "refreshState");
                 }
             };
             mContext.getContentResolver().registerContentObserver(
                 Settings.System.getUriFor("key_enable_taplus"),
                 false, contentObserver);
-            XposedHelpers.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
+            ReflectionHelper.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
         } else {
-            ContentObserver contentObserver = (ContentObserver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "taplusListener");
+            ContentObserver contentObserver = (ContentObserver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "taplusListener");
             mContext.getContentResolver().unregisterContentObserver(contentObserver);
         }
 
@@ -111,7 +111,7 @@ public class TaplusTile extends TileUtils {
 
     @Override
     public ArrayMap<String, Integer> tileUpdateState(MethodHookParam param, Class<?> mResourceIcon, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         boolean isEnable = getTaplus(mContext);
         ArrayMap<String, Integer> tileResMap = new ArrayMap<>();
         tileResMap.put("taplus_tile_Enable", isEnable ? 1 : 0);

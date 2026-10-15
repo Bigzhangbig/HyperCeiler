@@ -29,8 +29,8 @@ import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.statusbar.icon.Mo
 import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.statusbar.icon.MobilePrefs.card2
 import com.sevtinge.hyperceiler.hook.utils.getIntField
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 
 object MobilePublicHook : BaseHook() {
@@ -120,8 +120,8 @@ object MobilePublicHook : BaseHook() {
     }
 
     private fun hideIcons(param: MethodHookParam) {
-        val mSmallRoaming = XposedHelpers.getObjectField(param.thisObject, "mSmallRoaming") as View
-        val mMobileRoaming = XposedHelpers.getObjectField(param.thisObject, "mMobileRoaming") as View
+        val mSmallRoaming = ReflectionHelper.getObjectField(param.thisObject, "mSmallRoaming") as View
+        val mMobileRoaming = ReflectionHelper.getObjectField(param.thisObject, "mMobileRoaming") as View
 
         if (isHideRoaming) {
             if (!isEnableDouble) {
@@ -135,28 +135,28 @@ object MobilePublicHook : BaseHook() {
         // 隐藏网络类型图标
         val mMobileType: View = getMobileType(param)
         // 隐藏移动网络活动指示器
-        val mLeftInOut = XposedHelpers.getObjectField(param.thisObject, "mLeftInOut") as View
+        val mLeftInOut = ReflectionHelper.getObjectField(param.thisObject, "mLeftInOut") as View
         if (hideIndicator) {
-            val mRightInOut = XposedHelpers.getObjectField(param.thisObject, "mRightInOut") as View
+            val mRightInOut = ReflectionHelper.getObjectField(param.thisObject, "mRightInOut") as View
             mLeftInOut.visibility = View.GONE
             mRightInOut.visibility = View.GONE
         }
         if (mMobileType.isGone && mLeftInOut.isGone) {
             val mMobileLeftContainer =
-                XposedHelpers.getObjectField(param.thisObject, "mMobileLeftContainer") as View
+                ReflectionHelper.getObjectField(param.thisObject, "mMobileLeftContainer") as View
             mMobileLeftContainer.visibility = View.GONE
         }
     }
 
     private fun getMobileType(param: MethodHookParam): View {
-        val mMobileType = XposedHelpers.getObjectField(param.thisObject, "mMobileType") as View
-        val dataConnected = XposedHelpers.getObjectField(param.args[0], "dataConnected") as Boolean
-        val wifiAvailable = XposedHelpers.getObjectField(param.args[0], "wifiAvailable") as Boolean
+        val mMobileType = ReflectionHelper.getObjectField(param.thisObject, "mMobileType") as View
+        val dataConnected = ReflectionHelper.getObjectField(param.args[0], "dataConnected") as Boolean
+        val wifiAvailable = ReflectionHelper.getObjectField(param.args[0], "wifiAvailable") as Boolean
 
         if (qpt != 0) {
             val mMobileTypeSingle =
                 if (singleMobileType)
-                    XposedHelpers.getObjectField(param.thisObject, "mMobileTypeSingle") as TextView
+                    ReflectionHelper.getObjectField(param.thisObject, "mMobileTypeSingle") as TextView
                 else null
             val visibility =
                 if (qpt == 1 || (qpt == 2 && !wifiAvailable) || (qpt == 4 && dataConnected && !wifiAvailable)) View.VISIBLE else View.GONE

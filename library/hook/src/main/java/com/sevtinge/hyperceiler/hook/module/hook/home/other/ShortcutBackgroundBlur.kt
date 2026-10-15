@@ -31,7 +31,7 @@ import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getValueByField
 import com.sevtinge.hyperceiler.hook.utils.hookAfterAllMethods
 import com.sevtinge.hyperceiler.hook.utils.hookBeforeAllMethods
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 import kotlin.math.*
 
 
@@ -70,13 +70,13 @@ object ShortcutBackgroundBlur : BaseHook() {
 
         fun showBlurDrawable() {
             allBlurredDrawable.forEach { drawable ->
-                XposedHelpers.callMethod(drawable, "setVisible", true, false)
+                ReflectionHelper.callMethod(drawable, "setVisible", true, false)
             }
         }
 
         fun hideBlurDrawable() {
             allBlurredDrawable.forEach { drawable ->
-                XposedHelpers.callMethod(drawable, "setVisible", false, false)
+                ReflectionHelper.callMethod(drawable, "setVisible", false, false)
             }
         }
 
@@ -180,8 +180,8 @@ object ShortcutBackgroundBlur : BaseHook() {
         shortcutMenuLayerClass.hookBeforeAllMethods("hideShortcutMenu") {
             if (isShortcutMenuLayerBlurred) {
                 val shortcutMenuLayer = it.thisObject as FrameLayout
-                val mLauncher = XposedHelpers.callStaticMethod(applicationClass, "getLauncher")
-                val systemUiController = XposedHelpers.callMethod(mLauncher, "getSystemUiController")
+                val mLauncher = ReflectionHelper.callStaticMethod(applicationClass, "getLauncher")
+                val systemUiController = ReflectionHelper.callMethod(mLauncher, "getSystemUiController")
                 val mWindow = systemUiController.getObjectField("mWindow")
                 val targetBlurView = mLauncher.callMethod("getScreen") as View
                 val valueAnimator = ValueAnimator.ofInt(50, 0)
@@ -223,10 +223,10 @@ object ShortcutBackgroundBlur : BaseHook() {
         }
 
         if (shortcutMenuBackgroundAlpha != 255) {
-            XposedBridge.hookAllMethods(
+            HookBridge.hookAllMethods(
                 shortcutMenuClass,
                 "setMenuBg",
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!isShortcutMenuLayerBlurred) {
                             return
@@ -291,8 +291,8 @@ object ShortcutBackgroundBlur : BaseHook() {
                         }
                     }
                 })
-            XposedBridge.hookAllMethods(shortcutMenuClass, "addArrow",
-                object : XC_MethodHook() {
+            HookBridge.hookAllMethods(shortcutMenuClass, "addArrow",
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!isShortcutMenuLayerBlurred) {
                             return
@@ -365,7 +365,7 @@ object ShortcutBackgroundBlur : BaseHook() {
         blurUtilsClass.hookAfterAllMethods("fastBlurWhenEnterRecents") {
             val launcher = it.args[0]
             if (launcher != null) {
-                XposedHelpers.callMethod(launcher, "hideShortcutMenuWithoutAnim")
+                ReflectionHelper.callMethod(launcher, "hideShortcutMenuWithoutAnim")
             }
             hideBlurDrawable()
         }

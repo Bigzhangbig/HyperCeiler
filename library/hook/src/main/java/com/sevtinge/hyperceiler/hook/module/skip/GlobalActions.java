@@ -37,7 +37,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 // android
 @SuppressLint("UnspecifiedRegisterReceiverFlag")
@@ -86,7 +86,7 @@ public class GlobalActions extends BaseHook {
         public void onReceive(Context context, Intent intent) {
             try {
                 Class<?> clsWMG = findClass("android.view.WindowManagerGlobal", null);
-                Object wms = XposedHelpers.callStaticMethod(clsWMG, "getWindowManagerService");
+                Object wms = ReflectionHelper.callStaticMethod(clsWMG, "getWindowManagerService");
 
                 String action = intent.getAction();
 
@@ -97,31 +97,31 @@ public class GlobalActions extends BaseHook {
                         int conflictProp = (int) proxySystemProperties("getInt", "ro.df.effect.conflict", 0, null);
                         int conflictProp2 = (int) proxySystemProperties("getInt", "ro.vendor.df.effect.conflict", 0, null);
                         boolean hasConflict = conflictProp == 1 || conflictProp2 == 1;
-                        Object dfMgr = XposedHelpers.callStaticMethod(XposedHelpers.findClass("miui.hardware.display.DisplayFeatureManager", null), "getInstance");
+                        Object dfMgr = ReflectionHelper.callStaticMethod(ReflectionHelper.findClass("miui.hardware.display.DisplayFeatureManager", null), "getInstance");
                         if (hasConflict && opt == 0) {
-                            XposedHelpers.callMethod(dfMgr, "setScreenEffect", 15, 1);
+                            ReflectionHelper.callMethod(dfMgr, "setScreenEffect", 15, 1);
                         }
                         Settings.Secure.putInt(context.getContentResolver(), "accessibility_display_inversion_enabled", opt == 0 ? 1 : 0);
                         if (hasConflict && opt != 0) {
-                            XposedHelpers.callMethod(dfMgr, "setScreenEffect", 15, 0);
+                            ReflectionHelper.callMethod(dfMgr, "setScreenEffect", 15, 0);
                         }
                     }
 
                     case GlobalActionConstants.ACTION_LOCK_SCREEN -> {
-                        XposedHelpers.callMethod(context.getSystemService(Context.POWER_SERVICE), "goToSleep", SystemClock.uptimeMillis());
-                        XposedHelpers.callMethod(wms, "lockNow", (Object) null);
+                        ReflectionHelper.callMethod(context.getSystemService(Context.POWER_SERVICE), "goToSleep", SystemClock.uptimeMillis());
+                        ReflectionHelper.callMethod(wms, "lockNow", (Object) null);
                     }
 
                     case GlobalActionConstants.ACTION_GO_TO_SLEEP ->
-                        XposedHelpers.callMethod(context.getSystemService(Context.POWER_SERVICE), "goToSleep", SystemClock.uptimeMillis());
+                        ReflectionHelper.callMethod(context.getSystemService(Context.POWER_SERVICE), "goToSleep", SystemClock.uptimeMillis());
 
                     case GlobalActionConstants.ACTION_SCREEN_CAPTURE ->
                         context.sendBroadcast(new Intent("android.intent.action.CAPTURE_SCREENSHOT"));
 
                     case GlobalActionConstants.ACTION_OPEN_POWER_MENU -> {
                         clsWMG = findClass("android.view.WindowManagerGlobal");
-                        wms = XposedHelpers.callStaticMethod(clsWMG, "getWindowManagerService");
-                        XposedHelpers.callMethod(wms, "showGlobalActions");
+                        wms = ReflectionHelper.callStaticMethod(clsWMG, "getWindowManagerService");
+                        ReflectionHelper.callMethod(wms, "showGlobalActions");
                     }
 
                     case GlobalActionConstants.ACTION_LAUNCH_INTENT -> {
@@ -133,7 +133,7 @@ public class GlobalActions extends BaseHook {
                                 launchIntent.removeExtra("user");
                             }
                             if (user != 0) {
-                                XposedHelpers.callMethod(context, "startActivityAsUser", launchIntent, XposedHelpers.newInstance(UserHandle.class, user));
+                                ReflectionHelper.callMethod(context, "startActivityAsUser", launchIntent, ReflectionHelper.newInstance(UserHandle.class, user));
                             } else {
                                 context.startActivity(launchIntent);
                             }
@@ -153,7 +153,7 @@ public class GlobalActions extends BaseHook {
         hookAllMethods("com.android.server.policy.PhoneWindowManager", "init", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 IntentFilter intentfilter = new IntentFilter();
                 intentfilter.addAction(GlobalActionConstants.ACTION_RESTART_APPS);
                 mContext.registerReceiver(mRestartReceiver, intentfilter);
@@ -163,7 +163,7 @@ public class GlobalActions extends BaseHook {
 
     private static void forceStopPackage(Context context, String packageName) {
         ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        XposedHelpers.callMethod(am, "forceStopPackage", packageName);
+        ReflectionHelper.callMethod(am, "forceStopPackage", packageName);
     }
 
     private static final BroadcastReceiver mRestartReceiver = new BroadcastReceiver() {
@@ -272,7 +272,7 @@ public class GlobalActions extends BaseHook {
     public static boolean isMediaActionsAllowed(Context mContext) {
         AudioManager am = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         boolean isMusicActive = am.isMusicActive();
-        boolean isMusicActiveRemotely = (Boolean) XposedHelpers.callMethod(am, "isMusicActiveRemotely");
+        boolean isMusicActiveRemotely = (Boolean) ReflectionHelper.callMethod(am, "isMusicActiveRemotely");
         boolean isAllowed = isMusicActive || isMusicActiveRemotely;
         if (!isAllowed) {
             long mCurrentTime = currentTimeMillis();

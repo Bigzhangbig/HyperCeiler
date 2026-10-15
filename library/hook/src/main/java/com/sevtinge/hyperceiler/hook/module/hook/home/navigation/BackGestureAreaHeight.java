@@ -22,7 +22,7 @@ import android.view.WindowManager;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BackGestureAreaHeight extends BaseHook {
     @Override
@@ -33,9 +33,9 @@ public class BackGestureAreaHeight extends BaseHook {
                 protected Object replace(MethodHookParam param) throws Throwable {
                     Object obj = param.thisObject;
 
-                    int mRotation = XposedHelpers.getIntField(obj, "mRotation");
-                    int mScreenHeight = XposedHelpers.getIntField(obj, "mScreenHeight");
-                    int mScreenWidth = XposedHelpers.getIntField(obj, "mScreenWidth");
+                    int mRotation = ReflectionHelper.getIntField(obj, "mRotation");
+                    int mScreenHeight = ReflectionHelper.getIntField(obj, "mScreenHeight");
+                    int mScreenWidth = ReflectionHelper.getIntField(obj, "mScreenWidth");
 
                     float f = (float) mPrefsMap.getInt("home_navigation_back_area_height", 60) / 100;
 
@@ -45,7 +45,7 @@ public class BackGestureAreaHeight extends BaseHook {
                     } else {
                         gestureTouchHeight = (int) (mScreenWidth * f);
                     }
-                    XposedHelpers.setIntField(obj, "mGestureTouchHeight", gestureTouchHeight);
+                    ReflectionHelper.setIntField(obj, "mGestureTouchHeight", gestureTouchHeight);
 
                     return null;
                 }

@@ -29,9 +29,9 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * 绕过打开应用商店时强制使用小米应用商店
@@ -44,7 +44,7 @@ public class BypassForceMiAppStore extends BaseHook {
     public void init() throws NoSuchMethodException {
 
         try {
-            Class<?> cls = XposedHelpers.findClass(
+            Class<?> cls = ReflectionHelper.findClass(
                 "com.android.server.wm.ActivityTaskManagerService", lpparam.classLoader);
 
             for (Method method : cls.getDeclaredMethods()) {
@@ -63,7 +63,7 @@ public class BypassForceMiAppStore extends BaseHook {
                 if (intentIndex == -1) continue;
 
                 final int index = intentIndex;
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
+                HookBridge.hookMethod(method, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         try {

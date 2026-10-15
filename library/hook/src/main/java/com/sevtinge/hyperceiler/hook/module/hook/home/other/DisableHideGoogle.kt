@@ -21,7 +21,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.other
 import android.content.*
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.InvokeUtils
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 
 @Suppress("UNCHECKED_CAST")
 object DisableHideGoogle : BaseHook() {
@@ -29,12 +29,12 @@ object DisableHideGoogle : BaseHook() {
         if (InvokeUtils.getStaticField("miui.os.Build", "IS_INTERNATIONAL_BUILD"))
             return
 
-        XposedHelpers.findAndHookConstructor(
+        ReflectionHelper.findAndHookConstructor(
             "com.miui.home.launcher.AppFilter",
             lpparam.classLoader,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
-                    val skippedItem = XposedHelpers.getObjectField(
+                    val skippedItem = ReflectionHelper.getObjectField(
                         param.thisObject,
                         "mSkippedItems"
                     ) as HashSet<ComponentName>

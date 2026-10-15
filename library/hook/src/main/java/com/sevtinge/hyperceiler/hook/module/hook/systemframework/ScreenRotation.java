@@ -22,20 +22,20 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ScreenRotation extends BaseHook {
 
     @Override
     public void init() {
 
-        findAndHookMethod("com.android.internal.view.RotationPolicy", "areAllRotationsAllowed", Context.class, XC_MethodReplacement.returnConstant(mPrefsMap.getBoolean("system_framework_screen_all_rotations")));
+        findAndHookMethod("com.android.internal.view.RotationPolicy", "areAllRotationsAllowed", Context.class, HookReplacement.returnConstant(mPrefsMap.getBoolean("system_framework_screen_all_rotations")));
 
         hookAllConstructors("com.android.server.wm.DisplayRotation", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setIntField(param.thisObject, "mAllowAllRotations", mPrefsMap.getBoolean("system_framework_screen_all_rotations") ? 1 : 0);
+                ReflectionHelper.setIntField(param.thisObject, "mAllowAllRotations", mPrefsMap.getBoolean("system_framework_screen_all_rotations") ? 1 : 0);
             }
         });
 

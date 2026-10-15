@@ -45,7 +45,7 @@ import com.sevtinge.hyperceiler.hook.utils.getBooleanField
 import com.sevtinge.hyperceiler.hook.utils.getIntField
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldAs
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.android.util.ViewUtil.findViewByIdName
 import io.github.kyuubiran.ezxhelper.android.util.ViewUtil.getResourceIdByName
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
@@ -216,7 +216,7 @@ class DualRowSignalHookV : BaseHook() {
                     mobileSignal.layoutParams = mobileSignalLp
                     mobileSignal2.layoutParams = mobileSignalLp
 
-                    XposedHelpers.setAdditionalInstanceField(mobileSignal, "subId", subId)
+                    ReflectionHelper.setAdditionalInstanceField(mobileSignal, "subId", subId)
                 }
             }
     }
@@ -404,7 +404,7 @@ class DualRowSignalHookV : BaseHook() {
         mobileSignal: ImageView,
         tintLightColor: Triple<Boolean, Boolean, Int?>
     ) {
-        val subId = XposedHelpers.getAdditionalInstanceField(mobileSignal, "subId")
+        val subId = ReflectionHelper.getAdditionalInstanceField(mobileSignal, "subId")
         if (subId == null || subId != mobileInfo.subId) {
             return
         }

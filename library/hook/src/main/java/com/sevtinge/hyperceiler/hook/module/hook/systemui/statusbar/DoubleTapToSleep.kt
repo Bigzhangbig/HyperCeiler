@@ -24,7 +24,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
@@ -38,17 +38,17 @@ object DoubleTapToSleep : BaseHook() {
             .single().createHook {
                 before {
                     val view = it.thisObject as ViewGroup
-                    XposedHelpers.setAdditionalInstanceField(view, "currentTouchTime", 0L)
-                    XposedHelpers.setAdditionalInstanceField(view, "currentTouchX", 0f)
-                    XposedHelpers.setAdditionalInstanceField(view, "currentTouchY", 0f)
+                    ReflectionHelper.setAdditionalInstanceField(view, "currentTouchTime", 0L)
+                    ReflectionHelper.setAdditionalInstanceField(view, "currentTouchX", 0f)
+                    ReflectionHelper.setAdditionalInstanceField(view, "currentTouchY", 0f)
                     view.setOnTouchListener(View.OnTouchListener { v, event ->
                         if (event.action != MotionEvent.ACTION_DOWN) return@OnTouchListener false
                         var currentTouchTime =
-                            XposedHelpers.getAdditionalInstanceField(view, "currentTouchTime") as Long
+                            ReflectionHelper.getAdditionalInstanceField(view, "currentTouchTime") as Long
                         var currentTouchX =
-                            XposedHelpers.getAdditionalInstanceField(view, "currentTouchX") as Float
+                            ReflectionHelper.getAdditionalInstanceField(view, "currentTouchX") as Float
                         var currentTouchY =
-                            XposedHelpers.getAdditionalInstanceField(view, "currentTouchY") as Float
+                            ReflectionHelper.getAdditionalInstanceField(view, "currentTouchY") as Float
                         val lastTouchTime = currentTouchTime
                         val lastTouchX = currentTouchX
                         val lastTouchY = currentTouchY
@@ -58,7 +58,7 @@ object DoubleTapToSleep : BaseHook() {
                         if (currentTouchTime - lastTouchTime < 250L &&
                             abs(currentTouchX - lastTouchX) < 100f &&
                             abs(currentTouchY - lastTouchY) < 100f) {
-                            XposedHelpers.callMethod(
+                            ReflectionHelper.callMethod(
                                 v.context.getSystemService(Context.POWER_SERVICE),
                                 "goToSleep",
                                 SystemClock.uptimeMillis()
@@ -67,9 +67,9 @@ object DoubleTapToSleep : BaseHook() {
                             currentTouchX = 0f
                             currentTouchY = 0f
                         }
-                        XposedHelpers.setAdditionalInstanceField(view, "currentTouchTime", currentTouchTime)
-                        XposedHelpers.setAdditionalInstanceField(view, "currentTouchX", currentTouchX)
-                        XposedHelpers.setAdditionalInstanceField(view, "currentTouchY", currentTouchY)
+                        ReflectionHelper.setAdditionalInstanceField(view, "currentTouchTime", currentTouchTime)
+                        ReflectionHelper.setAdditionalInstanceField(view, "currentTouchX", currentTouchX)
+                        ReflectionHelper.setAdditionalInstanceField(view, "currentTouchY", currentTouchY)
                         v.performClick()
                         false
                     })

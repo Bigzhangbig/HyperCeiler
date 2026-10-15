@@ -25,22 +25,22 @@ import android.net.Uri;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 
 public class UseThirdPartyBrowser extends BaseHook {
 
     @Override
     public void init() {
-        // XposedBridge.log("Hook到传送门进程！");
-        final Class<?> clazz = XposedHelpers.findClass("com.miui.contentextension.utils.AppsUtils", lpparam.classLoader);
+        // HookBridge.log("Hook到传送门进程！");
+        final Class<?> clazz = ReflectionHelper.findClass("com.miui.contentextension.utils.AppsUtils", lpparam.classLoader);
         // getClassInfo(clazz);
 
-        XposedHelpers.findAndHookMethod(clazz, "getIntentWithBrowser", String.class, new XC_MethodReplacement() {
+        ReflectionHelper.findAndHookMethod(clazz, "getIntentWithBrowser", String.class, new HookReplacement() {
             @Override
-            protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected Object replaceHookedMethod(HookCallback.MethodHookParam param) throws Throwable {
                 logI(TAG, UseThirdPartyBrowser.this.lpparam.packageName, "hooked url " + param.args[0].toString());
                 Uri uri = Uri.parse(param.args[0].toString());
                 Intent intent = new Intent();
@@ -50,7 +50,7 @@ public class UseThirdPartyBrowser extends BaseHook {
             }
         });
 
-        XposedHelpers.findAndHookMethod(clazz, "openGlobalSearch", Context.class, String.class, String.class, new XC_MethodReplacement() {
+        ReflectionHelper.findAndHookMethod(clazz, "openGlobalSearch", Context.class, String.class, String.class, new HookReplacement() {
             @Override
             protected Object replaceHookedMethod(MethodHookParam param) throws Throwable {
                 logI(TAG, UseThirdPartyBrowser.this.lpparam.packageName, "hooked all-search on, word is " + param.args[1].toString() + ", from " + param.args[2].toString());

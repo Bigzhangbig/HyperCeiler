@@ -28,9 +28,9 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * 修复从快速分享查看下载的内容时跳转错误
@@ -43,7 +43,7 @@ public class BypassForceDownloadui extends BaseHook {
     public void init() throws NoSuchMethodException {
 
         try {
-            Class<?> cls = XposedHelpers.findClass(
+            Class<?> cls = ReflectionHelper.findClass(
                 "com.android.server.wm.ActivityStartController", lpparam.classLoader);
 
             for (Method method : cls.getDeclaredMethods()) {
@@ -62,7 +62,7 @@ public class BypassForceDownloadui extends BaseHook {
                 if (intentIndex == -1) continue;
 
                 final int index = intentIndex;
-                XposedBridge.hookMethod(method, new XC_MethodHook() {
+                HookBridge.hookMethod(method, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         try {

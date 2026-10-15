@@ -23,8 +23,8 @@ import android.view.Window;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BlurOverlay extends BaseHook {
 
@@ -51,7 +51,7 @@ public class BlurOverlay extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 if (v != null) {
-                    findAndHookMethod(v, "j", XC_MethodReplacement.returnConstant(true));
+                    findAndHookMethod(v, "j", HookReplacement.returnConstant(true));
                 }
             }
         });
@@ -65,7 +65,7 @@ public class BlurOverlay extends BaseHook {
                     hookAllConstructors(mF, new MethodHook() {
                         @Override
                         protected void before(MethodHookParam param) throws Throwable {
-                            window = (Window) XposedHelpers.getObjectField(param.thisObject, "b");
+                            window = (Window) ReflectionHelper.getObjectField(param.thisObject, "b");
                             window.setBackgroundBlurRadius((int) f);
                         }
                     });
@@ -77,8 +77,8 @@ public class BlurOverlay extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 /*Configuration configuration = (Configuration) param.args[0];
-                Configuration mConfiguration = (Configuration) XposedHelpers.getObjectField(param.thisObject, "mConfiguration");
-                Context mThemedContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mThemedContext");
+                Configuration mConfiguration = (Configuration) ReflectionHelper.getObjectField(param.thisObject, "mConfiguration");
+                Context mThemedContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mThemedContext");
 
                 if (mThemedContext instanceof ComponentCallbacks) {
                     ((ComponentCallbacks) mThemedContext).onConfigurationChanged(configuration);
@@ -91,7 +91,7 @@ public class BlurOverlay extends BaseHook {
 
                 if (z || z2) {
                     Class<?> mDensityScaleUtil = findClass("com.miui.personalassistant.device.DensityScaleUtil");
-                    XposedHelpers.callStaticMethod(mDensityScaleUtil, "scaleHostDensity", mThemedContext, 0);
+                    ReflectionHelper.callStaticMethod(mDensityScaleUtil, "scaleHostDensity", mThemedContext, 0);
 
                 }
 
@@ -103,10 +103,10 @@ public class BlurOverlay extends BaseHook {
                         param.args[0] = false;
                     }
                 });
-                int mCurrentBlurRadius = XposedHelpers.getIntField(param.thisObject, "mCurrentBlurRadius");
-                XposedHelpers.setIntField(param.thisObject, "mScreenSize", 5);
-                XposedHelpers.setIntField(param.thisObject, "mCurrentBlurRadius", 100);
-                XposedHelpers.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
+                int mCurrentBlurRadius = ReflectionHelper.getIntField(param.thisObject, "mCurrentBlurRadius");
+                ReflectionHelper.setIntField(param.thisObject, "mScreenSize", 5);
+                ReflectionHelper.setIntField(param.thisObject, "mCurrentBlurRadius", 100);
+                ReflectionHelper.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
             }
         });
 
@@ -114,10 +114,10 @@ public class BlurOverlay extends BaseHook {
         findAndHookMethod(mFoldableDeviceAdapter, "onOpened", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                int mCurrentBlurRadius = XposedHelpers.getIntField(param.thisObject, "mCurrentBlurRadius");
+                int mCurrentBlurRadius = ReflectionHelper.getIntField(param.thisObject, "mCurrentBlurRadius");
                 if (Float.compare(mCurrentBlurRadius, 100f) != 0) {
-                    XposedHelpers.setIntField(param.thisObject, "mCurrentBlurRadius", 100);
-                    XposedHelpers.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
+                    ReflectionHelper.setIntField(param.thisObject, "mCurrentBlurRadius", 100);
+                    ReflectionHelper.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
                 }
             }
         });
@@ -127,7 +127,7 @@ public class BlurOverlay extends BaseHook {
             protected void before(MethodHookParam param) throws Throwable {
                 float f = (float) param.args[0];
                 int i = (int) ((f - 0.49f) * 204.08163f);
-                int mCurrentBlurRadius = XposedHelpers.getIntField(param.thisObject, "mCurrentBlurRadius");
+                int mCurrentBlurRadius = ReflectionHelper.getIntField(param.thisObject, "mCurrentBlurRadius");
 
                 int i2 = mCurrentBlurRadius;
 
@@ -137,7 +137,7 @@ public class BlurOverlay extends BaseHook {
                     } else {
                         mCurrentBlurRadius = 0;
                     }
-                    XposedHelpers.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
+                    ReflectionHelper.callMethod(param.thisObject, "blurOverlayWindow", mCurrentBlurRadius);
                 }
             }
         });

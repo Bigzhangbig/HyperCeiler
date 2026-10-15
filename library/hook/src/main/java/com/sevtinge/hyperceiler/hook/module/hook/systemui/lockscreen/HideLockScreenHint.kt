@@ -22,7 +22,7 @@ import android.widget.ImageView
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClassOrNull
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
@@ -46,7 +46,7 @@ object HideLockScreenHint : BaseHook() {
                 .filterByName("updateDeviceEntryIndication")
                 .single().createHook {
                     after {
-                        XposedHelpers.setObjectField(it.thisObject, "mPersistentUnlockMessage", "")
+                        ReflectionHelper.setObjectField(it.thisObject, "mPersistentUnlockMessage", "")
                     }
                 }
 

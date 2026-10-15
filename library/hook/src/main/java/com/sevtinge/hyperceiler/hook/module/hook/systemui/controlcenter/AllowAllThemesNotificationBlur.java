@@ -24,16 +24,16 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AllowAllThemesNotificationBlur extends BaseHook {
     private final MethodHook FORCE_THEME_HOOK = new MethodHook() {
-        XC_MethodHook.Unhook isDefaultLockScreenThemeHook;
+        HookCallback.Unhook isDefaultLockScreenThemeHook;
 
         @Override
         protected void before(MethodHookParam param) throws Throwable {
-            XposedHelpers.setStaticBooleanField(findClass("com.miui.utils.MiuiThemeUtils"), "sDefaultSysUiTheme", true);
+            ReflectionHelper.setStaticBooleanField(findClass("com.miui.utils.MiuiThemeUtils"), "sDefaultSysUiTheme", true);
             isDefaultLockScreenThemeHook = findAndHookMethodUseUnhook(
                 "com.miui.systemui.util.CommonUtil",
                 lpparam.classLoader,
@@ -53,11 +53,11 @@ public class AllowAllThemesNotificationBlur extends BaseHook {
     };
 
     private final MethodHook BLUR_HOOK = new MethodHook() {
-        XC_MethodHook.Unhook isDefaultLockScreenThemeHook;
+        HookCallback.Unhook isDefaultLockScreenThemeHook;
 
         @Override
         protected void before(MethodHookParam param) throws Throwable {
-            XposedHelpers.setStaticBooleanField(findClass("com.miui.utils.MiuiThemeUtils"), "sDefaultSysUiTheme", true);
+            ReflectionHelper.setStaticBooleanField(findClass("com.miui.utils.MiuiThemeUtils"), "sDefaultSysUiTheme", true);
             isDefaultLockScreenThemeHook = findAndHookMethodUseUnhook(
                 "com.miui.systemui.util.CommonUtil",
                 lpparam.classLoader,

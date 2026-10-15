@@ -31,7 +31,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MoreNotificationSettings extends BaseHook {
 
@@ -49,7 +49,7 @@ public class MoreNotificationSettings extends BaseHook {
             protected void before(MethodHookParam param) throws Throwable {
                 Object pref = param.args[0];
                 if (pref != null) {
-                    String prefKey = (String) XposedHelpers.callMethod(pref, "getKey");
+                    String prefKey = (String) ReflectionHelper.callMethod(pref, "getKey");
                     if ("importance".equals(prefKey) || "badge".equals(prefKey) || "allow_keyguard".equals(prefKey)) {
                         param.args[1] = true;
                     }
@@ -61,21 +61,21 @@ public class MoreNotificationSettings extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 Context mContext = (Context)param.args[0];
-                Object entry = XposedHelpers.callMethod(XposedHelpers.getObjectField(param.thisObject, "mParent"), "getEntry");
-                String id = (String)XposedHelpers.callMethod(XposedHelpers.callMethod(entry, "getChannel"), "getId");
+                Object entry = ReflectionHelper.callMethod(ReflectionHelper.getObjectField(param.thisObject, "mParent"), "getEntry");
+                String id = (String)ReflectionHelper.callMethod(ReflectionHelper.callMethod(entry, "getChannel"), "getId");
                 if ("miscellaneous".equals(id)) return;
-                Object notification = XposedHelpers.callMethod(entry, "getSbn");
+                Object notification = ReflectionHelper.callMethod(entry, "getSbn");
                 Class<?> nuCls = findClassIfExists("com.android.systemui.miui.statusbar.notification.NotificationUtil", lpparam.classLoader);
                 if (nuCls != null) {
-                    boolean isHybrid = (boolean)XposedHelpers.callStaticMethod(nuCls, "isHybrid", notification);
+                    boolean isHybrid = (boolean)ReflectionHelper.callStaticMethod(nuCls, "isHybrid", notification);
                     if (isHybrid) return;
                 }
                 Intent intent = getIntent(notification, id);
                 try {
-                    XposedHelpers.callMethod(mContext, "startActivityAsUser", intent, android.os.Process.myUserHandle());
+                    ReflectionHelper.callMethod(mContext, "startActivityAsUser", intent, android.os.Process.myUserHandle());
                     param.setResult(null);
-                    Object ModalController = XposedHelpers.callStaticMethod(findClass("com.android.systemui.Dependency", mContext.getClassLoader()), "get", findClass("com.android.systemui.statusbar.notification.modal.ModalController", mContext.getClassLoader()));
-                    XposedHelpers.callMethod(ModalController, "animExitModelCollapsePanels");
+                    Object ModalController = ReflectionHelper.callStaticMethod(findClass("com.android.systemui.Dependency", mContext.getClassLoader()), "get", findClass("com.android.systemui.statusbar.notification.modal.ModalController", mContext.getClassLoader()));
+                    ReflectionHelper.callMethod(ModalController, "animExitModelCollapsePanels");
                 } catch (Throwable ignore) {
                     logE(TAG, lpparam.packageName, "onClickInfoItem hook error", ignore);
                 }
@@ -83,8 +83,8 @@ public class MoreNotificationSettings extends BaseHook {
 
             @NonNull
             private static Intent getIntent(Object notification, String id) {
-                String pkgName = (String)XposedHelpers.callMethod(notification, "getPackageName");
-                int user = (int)XposedHelpers.callMethod(notification, "getAppUid");
+                String pkgName = (String)ReflectionHelper.callMethod(notification, "getPackageName");
+                int user = (int)ReflectionHelper.callMethod(notification, "getAppUid");
 
                 Bundle bundle = new Bundle();
                 bundle.putString("android.provider.extra.CHANNEL_ID", id);
@@ -104,29 +104,29 @@ public class MoreNotificationSettings extends BaseHook {
         findAndHookMethod(mChannelNotificationSettings, "setupChannelDefaultPrefs", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Object pref = XposedHelpers.callMethod(param.thisObject, "findPreference", "importance");
-                XposedHelpers.setObjectField(param.thisObject, "mImportance", pref);
-                int mBackupImportance = (int) XposedHelpers.getObjectField(param.thisObject, "mBackupImportance");
+                Object pref = ReflectionHelper.callMethod(param.thisObject, "findPreference", "importance");
+                ReflectionHelper.setObjectField(param.thisObject, "mImportance", pref);
+                int mBackupImportance = (int) ReflectionHelper.getObjectField(param.thisObject, "mBackupImportance");
                 if (mBackupImportance > 0) {
-                    int index = (int) XposedHelpers.callMethod(pref, "findSpinnerIndexOfValue", String.valueOf(mBackupImportance));
+                    int index = (int) ReflectionHelper.callMethod(pref, "findSpinnerIndexOfValue", String.valueOf(mBackupImportance));
                     if (index > -1) {
-                        XposedHelpers.callMethod(pref, "setValueIndex", index);
+                        ReflectionHelper.callMethod(pref, "setValueIndex", index);
                     }
-                    Class<?> ImportanceListener = XposedHelpers.findClassIfExists("androidx.preference.Preference$OnPreferenceChangeListener", lpparam.classLoader);
+                    Class<?> ImportanceListener = ReflectionHelper.findClassIfExists("androidx.preference.Preference$OnPreferenceChangeListener", lpparam.classLoader);
                     InvocationHandler handler = new InvocationHandler() {
                         @Override
                         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                             if (method.getName().equals("onPreferenceChange")) {
                                 int mBackupImportance = Integer.parseInt((String) args[1]);
-                                XposedHelpers.setObjectField(param.thisObject, "mBackupImportance", mBackupImportance);
-                                NotificationChannel mChannel = (NotificationChannel) XposedHelpers.getObjectField(param.thisObject, "mChannel");
+                                ReflectionHelper.setObjectField(param.thisObject, "mBackupImportance", mBackupImportance);
+                                NotificationChannel mChannel = (NotificationChannel) ReflectionHelper.getObjectField(param.thisObject, "mChannel");
                                 mChannel.setImportance(mBackupImportance);
-                                XposedHelpers.callMethod(mChannel, "lockFields", 4);
-                                Object mBackend = XposedHelpers.getObjectField(param.thisObject, "mBackend");
-                                String mPkg = (String) XposedHelpers.getObjectField(param.thisObject, "mPkg");
-                                int mUid = (int) XposedHelpers.getObjectField(param.thisObject, "mUid");
-                                XposedHelpers.callMethod(mBackend, "updateChannel", mPkg, mUid, mChannel);
-                                XposedHelpers.callMethod(param.thisObject, "updateDependents", false);
+                                ReflectionHelper.callMethod(mChannel, "lockFields", 4);
+                                Object mBackend = ReflectionHelper.getObjectField(param.thisObject, "mBackend");
+                                String mPkg = (String) ReflectionHelper.getObjectField(param.thisObject, "mPkg");
+                                int mUid = (int) ReflectionHelper.getObjectField(param.thisObject, "mUid");
+                                ReflectionHelper.callMethod(mBackend, "updateChannel", mPkg, mUid, mChannel);
+                                ReflectionHelper.callMethod(param.thisObject, "updateDependents", false);
                             }
                             return true;
                         }
@@ -136,7 +136,7 @@ public class MoreNotificationSettings extends BaseHook {
                         new Class[]{ImportanceListener},
                         handler
                     );
-                    XposedHelpers.callMethod(pref, "setOnPreferenceChangeListener", mImportanceListener);
+                    ReflectionHelper.callMethod(pref, "setOnPreferenceChangeListener", mImportanceListener);
                 }
             }
         });

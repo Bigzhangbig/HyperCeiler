@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.packageinstaller;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MiuiPackageInstallModify extends BaseHook {
     @Override
@@ -31,17 +31,17 @@ public class MiuiPackageInstallModify extends BaseHook {
         findAndHookConstructor(mCloudParams, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setBooleanField(param.thisObject, "installNotAllow", false);
-                XposedHelpers.setBooleanField(param.thisObject, "showSafeModeTip", false);
-                XposedHelpers.setBooleanField(param.thisObject, "showAdsAfter", false);
-                XposedHelpers.setBooleanField(param.thisObject, "showAdsBefore", false);
-                XposedHelpers.setBooleanField(param.thisObject, "singletonAuthShowAdsAfter", true);
-                XposedHelpers.setBooleanField(param.thisObject, "singletonAuthShowAdsBefore", false);
-                XposedHelpers.setBooleanField(param.thisObject, "useSystemAppRules", true);
-                XposedHelpers.setBooleanField(param.thisObject, "skipInstallConfirm", true);
-                XposedHelpers.setBooleanField(param.thisObject, "allowHighLight", true);
-                XposedHelpers.setBooleanField(param.thisObject, "openButton", true);
-                XposedHelpers.setObjectField(param.thisObject, "safeType", "1");
+                ReflectionHelper.setBooleanField(param.thisObject, "installNotAllow", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "showSafeModeTip", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "showAdsAfter", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "showAdsBefore", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "singletonAuthShowAdsAfter", true);
+                ReflectionHelper.setBooleanField(param.thisObject, "singletonAuthShowAdsBefore", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "useSystemAppRules", true);
+                ReflectionHelper.setBooleanField(param.thisObject, "skipInstallConfirm", true);
+                ReflectionHelper.setBooleanField(param.thisObject, "allowHighLight", true);
+                ReflectionHelper.setBooleanField(param.thisObject, "openButton", true);
+                ReflectionHelper.setObjectField(param.thisObject, "safeType", "1");
             }
         });
 
@@ -51,7 +51,7 @@ public class MiuiPackageInstallModify extends BaseHook {
         findAndHookMethod("com.miui.packageInstaller.ui.listcomponets.g0", "a", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setBooleanField(param.thisObject, "l", false);
+                ReflectionHelper.setBooleanField(param.thisObject, "l", false);
             }
         });
     }

@@ -24,8 +24,8 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 public class UnlockIme extends BaseHook {
 
@@ -45,7 +45,7 @@ public class UnlockIme extends BaseHook {
         }
     }
 
-    private void startHook(XC_LoadPackage.LoadPackageParam param) {
+    private void startHook(PackageContext.LoadPackageParam param) {
         // 检查是否为小米定制输入法
         boolean isNonCustomize = true;
         for (String isMiui : miuiImeList) {
@@ -98,7 +98,7 @@ public class UnlockIme extends BaseHook {
      */
     private void hookSIsImeSupport(Class<?> clazz) {
         try {
-            XposedHelpers.setStaticObjectField(clazz, "sIsImeSupport", 1);
+            ReflectionHelper.setStaticObjectField(clazz, "sIsImeSupport", 1);
         } catch (Throwable throwable) {
             logE(TAG, "Hook field sIsImeSupport: " + throwable);
         }
@@ -157,7 +157,7 @@ public class UnlockIme extends BaseHook {
         try {
             if (navBarColor != 0) {
                 int color = -0x1 - navBarColor;
-                XposedHelpers.callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
+                ReflectionHelper.callStaticMethod(clazz, "customizeBottomViewColor", true, navBarColor, color | -0x1000000, color | 0x66000000);
             }
         } catch (Throwable e) {
             logE(TAG, "call customizeBottomViewColor: " + e);
@@ -190,9 +190,9 @@ public class UnlockIme extends BaseHook {
 
                     @Override
                     protected void before(MethodHookParam param) {
-                        List<?> getEnabledInputMethodList = (List<?>) XposedHelpers.callMethod(
-                            XposedHelpers.getObjectField(
-                                XposedHelpers.getStaticObjectField(
+                        List<?> getEnabledInputMethodList = (List<?>) ReflectionHelper.callMethod(
+                            ReflectionHelper.getObjectField(
+                                ReflectionHelper.getStaticObjectField(
                                     findClassIfExists("com.miui.inputmethod.InputMethodBottomManager", classLoader),
                                     "sBottomViewHelper"), "mImm"), "getEnabledInputMethodList");
                         param.setResult(getEnabledInputMethodList);

@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.isMoreHyperOSVersion;
 
@@ -37,7 +37,7 @@ public class FuckHpplay extends BaseHook {
     public void init() {
         if (!TARGET_PACKAGE.equals(lpparam.packageName)) return;
         logI(TAG, this.lpparam.packageName, "Target path = " + TARGET_PATH);
-        findAndHookMethod("com.hpplay.common.utils.ContextPath", lpparam.classLoader, "makeDir", String[].class, String.class, new XC_MethodHook() {
+        findAndHookMethod("com.hpplay.common.utils.ContextPath", lpparam.classLoader, "makeDir", String[].class, String.class, new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 final boolean isExternalStorage = ((String) param.args[1]).startsWith(TARGET_PATH);
@@ -53,7 +53,7 @@ public class FuckHpplay extends BaseHook {
         findAndHookMethod("com.xiaomi.aivsbluetoothsdk.utils.FileUtil", lpparam.classLoader,
                 "splicingFilePath",
                 String.class, String.class, String.class, String.class,
-                new XC_MethodHook() {
+                new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         if (((String)param.args[0]).startsWith("com.milink.service")) {

@@ -27,7 +27,7 @@ import com.sevtinge.hyperceiler.hook.module.base.tool.ResourcesTool;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
+import com.sevtinge.hyperceiler.hook.api.PackageContext.LoadPackageParam;
 
 public abstract class BaseHook extends HookTool {
     public String TAG = getClass().getSimpleName();

@@ -20,15 +20,14 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.widget
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XC_MethodHook
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 
 object AlwaysShowMiuiWidget : BaseHook() {
     override fun init() {
-        var hook1: XC_MethodHook.Unhook? = null
-        var hook2: XC_MethodHook.Unhook? = null
+        var hook1: io.github.libxposed.api.XposedInterface.HookHandle? = null
+        var hook2: io.github.libxposed.api.XposedInterface.HookHandle? = null
         try {
             loadClass("com.miui.home.launcher.widget.WidgetsVerticalAdapter").methodFinder()
                 .filterByName("buildAppWidgetsItems")

@@ -39,7 +39,7 @@ import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 object AllAppsContainerViewBlur : BaseHook() {
     override fun init() {
         Application::class.java.hookBeforeMethod("attach", Context::class.java) {
-            EzXposed.initHandleLoadPackage(lpparam)
+            io.github.kyuubiran.ezxhelper.core.EzXReflection.init(lpparam.classLoader)
             EzXposed.initAppContext(it.args[0] as Context)
 
             loadClass("com.miui.home.launcher.allapps.BaseAllAppsContainerView").methodFinder().filter {

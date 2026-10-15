@@ -51,7 +51,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 @SuppressLint("DiscouragedApi")
 public class AppDisable extends BaseHook {
@@ -76,18 +76,18 @@ public class AppDisable extends BaseHook {
                         dis.setIcon(act.getResources().getIdentifier("action_button_stop_svg", "drawable", lpparam.packageName));
                         dis.setEnabled(true);
                         dis.setShowAsAction(1);
-                        // XposedHelpers.setAdditionalInstanceField(param.thisObject, "mDisableButton", dis);
+                        // ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mDisableButton", dis);
                         PackageManager pm = act.getPackageManager();
                         PackageInfo mPackageInfo = null;
                         if (isNewSecurityCenter) {
-                            Object fragment = XposedHelpers.getObjectField(act, XposedHelpers.findFirstFieldByExactType(param.thisObject.getClass(), findClassIfExists(clazzName)).getName()); //XposedHelpers.getObjectField(act, "a");
+                            Object fragment = ReflectionHelper.getObjectField(act, ReflectionHelper.findFirstFieldByExactType(param.thisObject.getClass(), findClassIfExists(clazzName)).getName()); //ReflectionHelper.getObjectField(act, "a");
                             if (fragment == null) {
                                 return;
                             }
-                            Field piField = XposedHelpers.findFirstFieldByExactType(fragment.getClass(), PackageInfo.class);
+                            Field piField = ReflectionHelper.findFirstFieldByExactType(fragment.getClass(), PackageInfo.class);
                             mPackageInfo = (PackageInfo) piField.get(fragment);
                         } else {
-                            Field piField = XposedHelpers.findFirstFieldByExactType(act.getClass(), PackageInfo.class);
+                            Field piField = ReflectionHelper.findFirstFieldByExactType(act.getClass(), PackageInfo.class);
                             mPackageInfo = (PackageInfo) piField.get(act);
                         }
                         ApplicationInfo appInfo = pm.getApplicationInfo(mPackageInfo.packageName, PackageManager.GET_META_DATA);
@@ -144,15 +144,15 @@ public class AppDisable extends BaseHook {
                             Activity act = null;
                             Resources modRes = null;
                             if (isNewSecurityCenter) {
-                                act = (Activity) XposedHelpers.callMethod(param.thisObject, "getActivity");
+                                act = (Activity) ReflectionHelper.callMethod(param.thisObject, "getActivity");
                                 modRes = getModuleRes(act);
                                 Object fragment = param.thisObject;
-                                Field piField = XposedHelpers.findFirstFieldByExactType(fragment.getClass(), PackageInfo.class);
+                                Field piField = ReflectionHelper.findFirstFieldByExactType(fragment.getClass(), PackageInfo.class);
                                 mPackageInfo = (PackageInfo) piField.get(fragment);
                             } else {
                                 act = (Activity) param.thisObject;
                                 modRes = getModuleRes(act);
-                                Field piField = XposedHelpers.findFirstFieldByExactType(act.getClass(), PackageInfo.class);
+                                Field piField = ReflectionHelper.findFirstFieldByExactType(act.getClass(), PackageInfo.class);
                                 mPackageInfo = (PackageInfo) piField.get(act);
                             }
                             if (mMiuiCoreApps.contains(mPackageInfo.packageName)) {
@@ -179,9 +179,9 @@ public class AppDisable extends BaseHook {
                                     };
                                     Class<?> miuiDialog = findClassIfExists("miuix.appcompat.app.AlertDialog");
                                     Class<?> builder = findClassIfExists("miuix.appcompat.app.AlertDialog$Builder");
-                                    Object newBuilder = XposedHelpers.newInstance(builder, act);
-                                    /*XposedHelpers.callMethod(XposedHelpers.callMethod(XposedHelpers.callMethod(XposedHelpers.callMethod(
-                                                    XposedHelpers.callMethod(XposedHelpers.callMethod(newBuilder, "setTitle", title),
+                                    Object newBuilder = ReflectionHelper.newInstance(builder, act);
+                                    /*ReflectionHelper.callMethod(ReflectionHelper.callMethod(ReflectionHelper.callMethod(ReflectionHelper.callMethod(
+                                                    ReflectionHelper.callMethod(ReflectionHelper.callMethod(newBuilder, "setTitle", title),
                                                             "setMessage", text), "setPositiveButton", android.R.string.ok, onClickListener),
                                             "setNegativeButton", android.R.string.cancel, null), "create"), "show");*/
                                     new MiuiDialog.Builder(lpparam.classLoader, act)

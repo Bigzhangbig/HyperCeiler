@@ -40,7 +40,7 @@ import com.sevtinge.hyperceiler.hook.utils.ToastHelper;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * @author 焕晨HChen
@@ -77,7 +77,7 @@ public class UiLockApp extends BaseHook {
                                     isLock = getLockApp(context) != -1;
                                     if (getLockApp(context) != -1) {
                                         try {
-                                            XposedHelpers.callMethod(param.thisObject, "scheduleAutoHide");
+                                            ReflectionHelper.callMethod(param.thisObject, "scheduleAutoHide");
                                         } catch (Throwable e) {
 
                                         }
@@ -99,10 +99,10 @@ public class UiLockApp extends BaseHook {
                         @Override
                         protected void after(MethodHookParam param) {
                             try {
-                                Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                                Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                                 if (context == null) return;
 
-                                View view = (FrameLayout) XposedHelpers.getObjectField(param.thisObject, "mStatusBarWindowView");
+                                View view = (FrameLayout) ReflectionHelper.getObjectField(param.thisObject, "mStatusBarWindowView");
 
                                 if (!isObserver) {
                                     ContentObserver contentObserver = new ContentObserver(new Handler(context.getMainLooper())) {
@@ -133,7 +133,7 @@ public class UiLockApp extends BaseHook {
                         MotionEvent motionEvent = (MotionEvent) param.args[0];
                         View view = (View)param.thisObject;
                         // logE(TAG, "mo: " + motionEvent.getActionMasked());
-                        mContext = (Context) XposedHelpers.callMethod(param.thisObject, "getContext");
+                        mContext = (Context) ReflectionHelper.callMethod(param.thisObject, "getContext");
                         int action = motionEvent.getActionMasked();
                         int lockId = getLockApp(mContext);
                         setSystemLockApp(mContext);
@@ -158,14 +158,14 @@ public class UiLockApp extends BaseHook {
                             if (ActivityManagerWrapper != null) {
                                 try {
                                     ActivityManagerWrapper.getDeclaredMethod("getInstance");
-                                    Object getInstance = XposedHelpers.callStaticMethod(
+                                    Object getInstance = ReflectionHelper.callStaticMethod(
                                             ActivityManagerWrapper,
                                             "getInstance");
-                                    runningTaskInfo = (ActivityManager.RunningTaskInfo) XposedHelpers.callMethod(
+                                    runningTaskInfo = (ActivityManager.RunningTaskInfo) ReflectionHelper.callMethod(
                                             getInstance, "getRunningTask");
                                 } catch (NoSuchMethodException e) {
-                                    Object sInstance = XposedHelpers.getStaticObjectField(ActivityManagerWrapper, "sInstance");
-                                    runningTaskInfo = (ActivityManager.RunningTaskInfo) XposedHelpers.callMethod(
+                                    Object sInstance = ReflectionHelper.getStaticObjectField(ActivityManagerWrapper, "sInstance");
+                                    runningTaskInfo = (ActivityManager.RunningTaskInfo) ReflectionHelper.callMethod(
                                             sInstance, "getRunningTask");
                                 }
                             } else {
@@ -176,8 +176,8 @@ public class UiLockApp extends BaseHook {
                                 logE(TAG, "runningTaskInfo is null");
                                 return;
                             }
-                            // ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) XposedHelpers.callMethod(
-                            //     XposedHelpers.callStaticMethod(findClassIfExists("com.miui.home.recents.RecentsModel"), "getInstance",
+                            // ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) ReflectionHelper.callMethod(
+                            //     ReflectionHelper.callStaticMethod(findClassIfExists("com.miui.home.recents.RecentsModel"), "getInstance",
                             //         mContext), "getRunningTaskContainHome");
                             taskId = runningTaskInfo.taskId;
                             ComponentName topActivity = runningTaskInfo.topActivity;
@@ -190,7 +190,7 @@ public class UiLockApp extends BaseHook {
                             if (lockId == -1) {
                                 mHandler.sendMessageDelayed(mHandler.obtainMessage(WILL_LOCK_APP), 1000);
                                 mHandler.sendMessageDelayed(mHandler.obtainMessage(LOCK_APP, taskId), 1500);
-                                // XposedHelpers.callMethod(param.thisObject, "updateLayoutForCutout");
+                                // ReflectionHelper.callMethod(param.thisObject, "updateLayoutForCutout");
                             } else {
                                 if (lockId == taskId) {
                                     mHandler.sendMessageDelayed(mHandler.obtainMessage(WILL_UNLOCK_APP), 1000);
@@ -223,7 +223,7 @@ public class UiLockApp extends BaseHook {
             new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     if(getLockApp(context) != -1){
                         param.setResult(true);
                     }

@@ -23,7 +23,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockBlurSupported extends BaseHook {
     @Override
@@ -33,7 +33,7 @@ public class UnlockBlurSupported extends BaseHook {
                 new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        boolean isDefaultIcon = (boolean) XposedHelpers.callStaticMethod(
+                        boolean isDefaultIcon = (boolean) ReflectionHelper.callStaticMethod(
                                 findClassIfExists("com.miui.home.launcher.DeviceConfig"),
                                 "isDefaultIcon");
                         if (!isDefaultIcon)
@@ -49,9 +49,9 @@ public class UnlockBlurSupported extends BaseHook {
                         protected void before(MethodHookParam param) {
                             // Rect rect = (Rect) param.args[0];
                             View view = (View) param.thisObject;
-                            XposedHelpers.callMethod(view,
+                            ReflectionHelper.callMethod(view,
                                     "setPadding", 0,
-                                    XposedHelpers.callMethod(param.thisObject,
+                                    ReflectionHelper.callMethod(param.thisObject,
                                             "getMContainerPaddingTop"), 0, 0);
                             param.setResult(null);
                         }

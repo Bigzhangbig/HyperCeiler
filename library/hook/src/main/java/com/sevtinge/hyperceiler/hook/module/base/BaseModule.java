@@ -18,11 +18,12 @@
  */
 package com.sevtinge.hyperceiler.hook.module.base;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.HCInit;
+import com.hchen.hooktool.ModuleData;
 import com.sevtinge.hyperceiler.hook.XposedInit;
+import com.sevtinge.hyperceiler.hook.api.PackageContext.LoadPackageParam;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;
 import com.sevtinge.hyperceiler.hook.module.base.tool.AppsTool;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
 import com.sevtinge.hyperceiler.hook.safe.CrashData;
 import com.sevtinge.hyperceiler.hook.utils.ContextUtils;
 import com.sevtinge.hyperceiler.hook.utils.api.ProjectApi;
@@ -31,8 +32,6 @@ import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsMap;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
 import java.util.HashMap;
-
-import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public abstract class BaseModule {
     public LoadPackageParam mLoadPackageParam = null;
@@ -65,7 +64,7 @@ public abstract class BaseModule {
 
         mLoadPackageParam = lpparam;
         DexKit.ready(lpparam, TAG);
-        HCInit.initLoadPackageParam(lpparam);
+        ModuleData.setClassLoader(lpparam.classLoader);
         try {
             handleLoadPackage();
         } catch (Throwable e) {
@@ -122,7 +121,7 @@ public abstract class BaseModule {
 
     private void onCreate(Object hook) {
         if (hook instanceof BaseHook baseHook) baseHook.onCreate(mLoadPackageParam);
-        else if (hook instanceof HCBase HCBase) HCBase.onLoadPackage();
+        else if (hook instanceof NativeFeatureModule nativeModule) nativeModule.onCreate(mLoadPackageParam);
         else throw new RuntimeException("Unknown hook!");
     }
 }

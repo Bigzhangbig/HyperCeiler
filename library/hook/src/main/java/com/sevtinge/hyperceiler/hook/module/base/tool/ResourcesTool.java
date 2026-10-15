@@ -45,8 +45,8 @@ import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * 重写资源钩子，希望本钩子能有更好的生命力。
@@ -67,7 +67,7 @@ public class ResourcesTool {
     // 使用线程安全的 CopyOnWriteArrayList
     private final CopyOnWriteArrayList<Resources> resourcesArrayList = new CopyOnWriteArrayList<>();
     private final java.util.Set<Integer> resMap = ConcurrentHashMap.newKeySet();
-    private final CopyOnWriteArrayList<XC_MethodHook.Unhook> unhooks = new CopyOnWriteArrayList<>();
+    private final CopyOnWriteArrayList<HookCallback.Unhook> unhooks = new CopyOnWriteArrayList<>();
     private final ConcurrentHashMap<ResKey, Pair<ReplacementType, Object>> replacements = new ConcurrentHashMap<>();
 
     /**
@@ -271,12 +271,12 @@ public class ResourcesTool {
     }
 
     private void hookResMethod(String name, Object... args) {
-        XC_MethodHook.Unhook unhook = HookTool.findAndHookMethod(Resources.class, name, args);
+        HookCallback.Unhook unhook = HookTool.findAndHookMethod(Resources.class, name, args);
         unhooks.add(unhook);
     }
 
     private void hookTypedMethod(String name, Object... args) {
-        XC_MethodHook.Unhook unhook = HookTool.findAndHookMethod(TypedArray.class, name, args);
+        HookCallback.Unhook unhook = HookTool.findAndHookMethod(TypedArray.class, name, args);
         unhooks.add(unhook);
     }
 
@@ -285,7 +285,7 @@ public class ResourcesTool {
             isInit = false;
             return;
         }
-        for (XC_MethodHook.Unhook unhook : unhooks) {
+        for (HookCallback.Unhook unhook : unhooks) {
             unhook.unhook();
         }
         unhooks.clear();
@@ -297,12 +297,12 @@ public class ResourcesTool {
         @Override
         protected void before(MethodHookParam param) {
             int index = (int) param.args[0];
-            int[] mData = (int[]) XposedHelpers.getObjectField(param.thisObject, "mData");
+            int[] mData = (int[]) ReflectionHelper.getObjectField(param.thisObject, "mData");
             int type = mData[index];
             int id = mData[index + 3];
 
             if (id != 0 && (type != TypedValue.TYPE_NULL)) {
-                Resources mResources = (Resources) XposedHelpers.getObjectField(param.thisObject, "mResources");
+                Resources mResources = (Resources) ReflectionHelper.getObjectField(param.thisObject, "mResources");
                 Object value = getTypedArrayReplacement(mResources, id);
                 if (value != null) {
                     param.setResult(value);
@@ -490,11 +490,11 @@ public class ResourcesTool {
                     Object value;
                     try {
                         if ("getDrawable".equals(method) && args.length >= 2) {
-                            value = XposedHelpers.callMethod(resources, method, modResId, args[1]);
+                            value = ReflectionHelper.callMethod(resources, method, modResId, args[1]);
                         } else if (("getDrawableForDensity".equals(method) || "getFraction".equals(method)) && args.length >= 3) {
-                            value = XposedHelpers.callMethod(resources, method, modResId, args[1], args[2]);
+                            value = ReflectionHelper.callMethod(resources, method, modResId, args[1], args[2]);
                         } else {
-                            value = XposedHelpers.callMethod(resources, method, modResId);
+                            value = ReflectionHelper.callMethod(resources, method, modResId);
                         }
                     } finally {
                         resMap.remove(modResId);

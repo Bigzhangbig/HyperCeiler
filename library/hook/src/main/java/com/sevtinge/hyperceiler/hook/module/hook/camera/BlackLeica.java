@@ -43,7 +43,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BlackLeica extends BaseHook {
     Method method1 = null;
@@ -167,8 +167,8 @@ public class BlackLeica extends BaseHook {
             }
         });
 
-        XposedHelpers.setStaticIntField(field1.getDeclaringClass(), field1.getName(), Color.parseColor("#8CFFFFFF"));
-        XposedHelpers.setStaticIntField(field2.getDeclaringClass(), field2.getName(), Color.parseColor("#33FFFFFF"));
+        ReflectionHelper.setStaticIntField(field1.getDeclaringClass(), field1.getName(), Color.parseColor("#8CFFFFFF"));
+        ReflectionHelper.setStaticIntField(field2.getDeclaringClass(), field2.getName(), Color.parseColor("#33FFFFFF"));
         hookMethod(method1, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {

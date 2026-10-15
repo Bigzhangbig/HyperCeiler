@@ -18,13 +18,13 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.misound;
 
-import static com.hchen.hooktool.core.CoreTool.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
 import static com.hchen.hooktool.core.CoreTool.findClass;
 import static com.hchen.hooktool.core.CoreTool.getField;
 import static com.hchen.hooktool.core.CoreTool.hook;
 import static com.hchen.hooktool.core.CoreTool.hookAll;
 import static com.hchen.hooktool.core.CoreTool.hookMethod;
-import static com.hchen.hooktool.core.CoreTool.newInstance;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.newInstance;
 import static com.sevtinge.hyperceiler.hook.module.hook.misound.NewAutoSEffSwitch.getEarPhoneStateFinal;
 import static com.sevtinge.hyperceiler.hook.module.hook.misound.NewAutoSEffSwitch.isSupportFW;
 import static com.sevtinge.hyperceiler.hook.utils.api.effect.EffectItem.mEffectArray;
@@ -35,7 +35,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.IEffectInfo;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.IDexKit;
@@ -68,7 +68,7 @@ public class NewFWAudioEffectControl {
         hookMethod("android.media.audiofx.AudioEffectCenter",
                 "setEffectActive",
                 String.class, boolean.class,
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void before() {
                         if (getEarPhoneStateFinal()) {
@@ -120,7 +120,7 @@ public class NewFWAudioEffectControl {
 
             Class<?> preferenceCategoryClass = findClass("miuix.preference.PreferenceCategory");
             Class<?> preferenceClass = findClass("androidx.preference.Preference");
-            hook(create, new IHook() {
+            hook(create, new NativeFeatureHook() {
                 @Override
                 public void after() {
                     Context context = (Context) callThisMethod("requireContext");
@@ -138,14 +138,14 @@ public class NewFWAudioEffectControl {
                     callMethod(preferenceCategory, "addPreference", mPreference);
                     logI(TAG, "create pref category: " + preferenceCategory);
 
-                    mEffectSelectionPrefs = getField(thisObject(), prefsField);
+                    mEffectSelectionPrefs = getField(prefsField, thisObject());
                     updateEffectSelectionState();
                 }
             });
-            hookAll(new Member[]{refresh, onResume}, new IHook() {
+            hookAll(new java.lang.reflect.Executable[]{refresh, onResume}, new NativeFeatureHook() {
                 @Override
                 public void after() {
-                    mEffectSelectionPrefs = getField(thisObject(), prefsField);
+                    mEffectSelectionPrefs = getField(prefsField, thisObject());
                     updateEffectSelectionState();
                     updateAutoSEffSwitchInfo();
                 }

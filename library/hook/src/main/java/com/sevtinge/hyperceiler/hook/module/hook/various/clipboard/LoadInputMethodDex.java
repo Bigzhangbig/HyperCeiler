@@ -19,8 +19,8 @@
 
 package com.sevtinge.hyperceiler.hook.module.hook.various.clipboard;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 
 /**
  * 获取常用语的 classloader。
@@ -28,7 +28,7 @@ import com.hchen.hooktool.hook.IHook;
  *
  * @author 焕晨HChen
  */
-public class LoadInputMethodDex extends HCBase {
+public class LoadInputMethodDex extends NativeFeatureModule {
     private boolean isLoaded;
 
     @Override
@@ -36,7 +36,7 @@ public class LoadInputMethodDex extends HCBase {
         hookMethod("android.inputmethodservice.InputMethodModuleManager",
             "loadDex",
             ClassLoader.class, String.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void after() {
                     if (isLoaded) return;

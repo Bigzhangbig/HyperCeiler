@@ -1,8 +1,8 @@
 package com.sevtinge.hyperceiler.hook.module.hook.systemframework
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil
 
 object NoAccessDeviceLogsRequest : BaseHook() {
@@ -14,14 +14,14 @@ object NoAccessDeviceLogsRequest : BaseHook() {
             lpparam.classLoader
         )
 
-        XposedHelpers.findAndHookMethod(
+        ReflectionHelper.findAndHookMethod(
             "com.android.server.logcat.LogcatManagerService", lpparam.classLoader,
             "onStart",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     try {
                         mLogcatManagerService = param.thisObject
-                        mActivityManagerInternal = XposedHelpers.getObjectField(
+                        mActivityManagerInternal = ReflectionHelper.getObjectField(
                             mLogcatManagerService, "mActivityManagerInternal"
                         )
                     } catch (t: Throwable) {
@@ -31,19 +31,19 @@ object NoAccessDeviceLogsRequest : BaseHook() {
             }
         )
 
-        XposedHelpers.findAndHookMethod(
+        ReflectionHelper.findAndHookMethod(
             "com.android.server.logcat.LogcatManagerService", lpparam.classLoader,
             "processNewLogAccessRequest",
             logAccessClient,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     try {
                         val client = param.args[0]
                         if (client == null || mActivityManagerInternal == null) return
-                        val uid = XposedHelpers.getIntField(client, "mUid")
+                        val uid = ReflectionHelper.getIntField(client, "mUid")
                         val packageName =
-                            XposedHelpers.getObjectField(client, "mPackageName") as String
-                        XposedHelpers.callMethod(
+                            ReflectionHelper.getObjectField(client, "mPackageName") as String
+                        ReflectionHelper.callMethod(
                             mLogcatManagerService,
                             "onAccessApprovedForClient",
                             client
@@ -72,7 +72,7 @@ object NoAccessDeviceLogsRequest : BaseHook() {
                 name == "onLogAccessRequested"
             }.toList().createHooks {
                 before { param ->
-                    XposedHelpers.callMethod(param.thisObject, "declineRequest", param.args[0])
+                    ReflectionHelper.callMethod(param.thisObject, "declineRequest", param.args[0])
                     param.result = null
                 }
             }

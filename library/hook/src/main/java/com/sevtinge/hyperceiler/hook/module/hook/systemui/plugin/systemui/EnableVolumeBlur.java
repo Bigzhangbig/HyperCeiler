@@ -18,11 +18,11 @@
 */
 package com.sevtinge.hyperceiler.hook.module.hook.systemui.plugin.systemui;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class EnableVolumeBlur {
     public static void initEnableVolumeBlur(ClassLoader classLoader) {
-        XposedHelpers.findAndHookMethod("com.android.systemui.miui.volume.Util", classLoader, "isSupportBlurS", XC_MethodReplacement.returnConstant(true));
+        ReflectionHelper.findAndHookMethod("com.android.systemui.miui.volume.Util", classLoader, "isSupportBlurS", HookReplacement.returnConstant(true));
     }
 }

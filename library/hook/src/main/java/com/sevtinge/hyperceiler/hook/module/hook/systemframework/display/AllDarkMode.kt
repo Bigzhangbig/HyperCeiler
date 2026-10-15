@@ -20,9 +20,11 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework.display
 
 import android.content.pm.ApplicationInfo
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
+import com.sevtinge.hyperceiler.hook.api.HookBridge
+import com.sevtinge.hyperceiler.hook.api.HookCallback
 import com.sevtinge.hyperceiler.hook.utils.api.LazyClass.clazzMiuiBuild
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isInternational
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.setStaticObject
@@ -36,16 +38,19 @@ class AllDarkMode : BaseHook() {
         val clazzForceDarkAppListManager =
             loadClass("com.android.server.ForceDarkAppListManager")
         clazzForceDarkAppListManager.methodFinder().filterByName("getDarkModeAppList").toList()
-            .createHooks {
-                before {
-                    val originalValue = XposedHelpers.getStaticBooleanField(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD")
-                    setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", true)
-                    it.setObjectExtra("originalValue", originalValue)
-                }
-                after {
-                    val originalValue = it.getObjectExtra("originalValue")
-                    setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", originalValue)
-                }
+            .forEach { method ->
+                HookBridge.hookMethod(method, object : HookCallback() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val originalValue = ReflectionHelper.getStaticBooleanField(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD")
+                        setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", true)
+                        param.setObjectExtra("originalValue", originalValue)
+                    }
+
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val originalValue = param.getObjectExtra("originalValue")
+                        setStaticObject(clazzMiuiBuild, "IS_INTERNATIONAL_BUILD", originalValue)
+                    }
+                })
             }
         clazzForceDarkAppListManager.methodFinder().filterByName("shouldShowInSettings").toList()
             .createHooks {

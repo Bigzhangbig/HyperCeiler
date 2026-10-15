@@ -19,10 +19,10 @@
 package com.sevtinge.hyperceiler.hook.module.hook.systemframework.corepatch;
 
 import static com.sevtinge.hyperceiler.hook.BuildConfig.DEBUG;
-import static de.robv.android.xposed.XposedHelpers.findClassIfExists;
-import static de.robv.android.xposed.XposedHelpers.findMethodExactIfExists;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findClassIfExists;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findMethodExactIfExists;
 
-import android.app.AndroidAppHelper;
+import com.sevtinge.hyperceiler.hook.api.AppContext;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -47,13 +47,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.PackageHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
-public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackage {
+public class CorePatchForR extends XposedHelper implements PackageHook {
     private static final boolean isNotReleaseVersion = !ProjectApi.isRelease();
     public static final String TAG = "[CorePatchForR]";
 
@@ -61,7 +61,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         for (Method m : c.getDeclaredMethods()) {
             if (m.getName().equals(n) && PrefsUtils.deoptimizeMethod(m)) {
                 if (isNotReleaseVersion)
-                    XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": Deoptimized " + m.getName());
+                    HookBridge.log("[HyperCeiler][D][android]" + TAG + ": Deoptimized " + m.getName());
             }
         }
     }
@@ -69,15 +69,15 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
     final SharedPreferences prefs = PrefsUtils.getHookPreferences();
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void handleLoadPackage(PackageContext.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         if (isNotReleaseVersion) {
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": downgrade=" + prefs.getBoolean("prefs_key_system_framework_core_patch_downgr", true));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": authcreak=" + prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": digestCreak=" + prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": UsePreSig=" + prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + " exactSignatureCheck=" + prefs.getBoolean("prefs_key_system_framework_core_patch_exact_signature_check", false));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + " sharedUser=" + prefs.getBoolean("prefs_key_system_framework_core_patch_shared_user", false));
-            XposedBridge.log("[HyperCeiler][D][android]" + TAG + "disableVerificationAgent=" + prefs.getBoolean("prefs_key_system_framework_disable_verification_agent", true));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + ": downgrade=" + prefs.getBoolean("prefs_key_system_framework_core_patch_downgr", true));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + ": authcreak=" + prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + ": digestCreak=" + prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + ": UsePreSig=" + prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + " exactSignatureCheck=" + prefs.getBoolean("prefs_key_system_framework_core_patch_exact_signature_check", false));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + " sharedUser=" + prefs.getBoolean("prefs_key_system_framework_core_patch_shared_user", false));
+            HookBridge.log("[HyperCeiler][D][android]" + TAG + "disableVerificationAgent=" + prefs.getBoolean("prefs_key_system_framework_disable_verification_agent", true));
         }
 
         var pmService = findClassIfExists("com.android.server.pm.PackageManagerService",
@@ -88,7 +88,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                 "android.content.pm.PackageInfoLite");
             if (checkDowngrade != null) {
                 // 允许降级
-                XposedBridge.hookMethod(checkDowngrade, new ReturnConstant(prefs, "prefs_key_system_framework_core_patch_downgr", null));
+                HookBridge.hookMethod(checkDowngrade, new ReturnConstant(prefs, "prefs_key_system_framework_core_patch_downgr", null));
             }
         }
 
@@ -111,7 +111,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         // + " or newer for package " + apkPath
         findAndHookMethod("android.util.apk.ApkSignatureVerifier", loadPackageParam.classLoader, "getMinimumSignatureSchemeVersionForTargetSdk", int.class,
             new ReturnConstant(prefs, "prefs_key_system_framework_core_patch_auth_creak", 0));
-        var apkVerifierClass = XposedHelpers.findClassIfExists("com.android.apksig.ApkVerifier",
+        var apkVerifierClass = ReflectionHelper.findClassIfExists("com.android.apksig.ApkVerifier",
             loadPackageParam.classLoader);
         if (apkVerifierClass != null) {
             findAndHookMethod(apkVerifierClass, "getMinimumSignatureSchemeVersionForTargetSdk", loadPackageParam.classLoader, int.class,
@@ -120,56 +120,56 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
 
         // 当verifyV1Signature抛出转换异常时，替换一个签名作为返回值
         // 如果用户已安装apk，并且其定义了私有权限，则安装时会因签名与模块内硬编码的不一致而被拒绝。尝试从待安装apk中获取签名。如果其中apk的签名和已安装的一致（只动了内容）就没有问题。此策略可能有潜在的安全隐患。
-        Class<?> pkc = XposedHelpers.findClass("sun.security.pkcs.PKCS7", loadPackageParam.classLoader);
-        Constructor<?> constructor = XposedHelpers.findConstructorExact(pkc, byte[].class);
+        Class<?> pkc = ReflectionHelper.findClass("sun.security.pkcs.PKCS7", loadPackageParam.classLoader);
+        Constructor<?> constructor = ReflectionHelper.findConstructorExact(pkc, byte[].class);
         constructor.setAccessible(true);
-        Class<?> ASV = XposedHelpers.findClass("android.util.apk.ApkSignatureVerifier", loadPackageParam.classLoader);
-        Class<?> sJarClass = XposedHelpers.findClass("android.util.jar.StrictJarFile", loadPackageParam.classLoader);
-        Constructor<?> constructorExact = XposedHelpers.findConstructorExact(sJarClass, String.class, boolean.class, boolean.class);
+        Class<?> ASV = ReflectionHelper.findClass("android.util.apk.ApkSignatureVerifier", loadPackageParam.classLoader);
+        Class<?> sJarClass = ReflectionHelper.findClass("android.util.jar.StrictJarFile", loadPackageParam.classLoader);
+        Constructor<?> constructorExact = ReflectionHelper.findConstructorExact(sJarClass, String.class, boolean.class, boolean.class);
         constructorExact.setAccessible(true);
         Class<?> signingDetails = getSigningDetails(loadPackageParam.classLoader);
-        Constructor<?> findConstructorExact = XposedHelpers.findConstructorExact(signingDetails, Signature[].class, Integer.TYPE);
+        Constructor<?> findConstructorExact = ReflectionHelper.findConstructorExact(signingDetails, Signature[].class, Integer.TYPE);
         findConstructorExact.setAccessible(true);
-        Class<?> packageParserException = XposedHelpers.findClass("android.content.pm.PackageParser.PackageParserException", loadPackageParam.classLoader);
-        Field error = XposedHelpers.findField(packageParserException, "error");
+        Class<?> packageParserException = ReflectionHelper.findClass("android.content.pm.PackageParser.PackageParserException", loadPackageParam.classLoader);
+        Field error = ReflectionHelper.findField(packageParserException, "error");
         error.setAccessible(true);
         Object[] signingDetailsArgs = new Object[2];
         signingDetailsArgs[1] = 1;
         Class<?> parseResult = findClassIfExists("android.content.pm.parsing.result.ParseResult", loadPackageParam.classLoader);
-        hookAllMethods("android.util.jar.StrictJarVerifier", loadPackageParam.classLoader, "verifyBytes", new XC_MethodHook() {
+        hookAllMethods("android.util.jar.StrictJarVerifier", loadPackageParam.classLoader, "verifyBytes", new HookCallback() {
             public void afterHookedMethod(MethodHookParam param) throws Throwable {
                 super.afterHookedMethod(param);
                 if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true)) {
                     if (!prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
                         final Object block = constructor.newInstance(param.args[0]);
-                        Object[] infos = (Object[]) XposedHelpers.callMethod(block, "getSignerInfos");
+                        Object[] infos = (Object[]) ReflectionHelper.callMethod(block, "getSignerInfos");
                         Object info = infos[0];
                         @SuppressWarnings("unchecked")
-                        List<X509Certificate> verifiedSignerCertChain = (List<X509Certificate>) XposedHelpers.callMethod(info, "getCertificateChain", block);
+                        List<X509Certificate> verifiedSignerCertChain = (List<X509Certificate>) ReflectionHelper.callMethod(info, "getCertificateChain", block);
                         param.setResult(verifiedSignerCertChain.toArray(
                             new X509Certificate[0]));
                     }
                 }
             }
         });
-        hookAllMethods("android.util.apk.ApkSignatureVerifier", loadPackageParam.classLoader, "verifyV1Signature", new XC_MethodHook() {
+        hookAllMethods("android.util.apk.ApkSignatureVerifier", loadPackageParam.classLoader, "verifyV1Signature", new HookCallback() {
             public void afterHookedMethod(MethodHookParam methodHookParam) throws Throwable {
                 if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
                     Throwable throwable = methodHookParam.getThrowable();
                     Integer parseErr = null;
                     if (parseResult != null && ((Method) methodHookParam.method).getReturnType() == parseResult) {
                         Object result = methodHookParam.getResult();
-                        if ((boolean) XposedHelpers.callMethod(result, "isError")) {
-                            parseErr = (int) XposedHelpers.callMethod(result, "getErrorCode");
+                        if ((boolean) ReflectionHelper.callMethod(result, "isError")) {
+                            parseErr = (int) ReflectionHelper.callMethod(result, "getErrorCode");
                         }
                     }
                     if (throwable != null || parseErr != null) {
                         Signature[] lastSigs = null;
                         try {
                             if (prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
-                                PackageManager PM = AndroidAppHelper.currentApplication().getPackageManager();
+                                PackageManager PM = AppContext.currentApplication().getPackageManager();
                                 if (PM == null) {
-                                    XposedBridge.log("[HyperCeiler][E][android]" + TAG + ": [" + ProjectApi.mAppModulePkg + "] Cannot get the Package Manager... Are you using MiUI?");
+                                    HookBridge.log("[HyperCeiler][E][android]" + TAG + ": [" + ProjectApi.mAppModulePkg + "] Cannot get the Package Manager... Are you using MiUI?");
                                 } else {
                                     PackageInfo pI;
                                     if (parseErr != null) {
@@ -186,14 +186,14 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         try {
                             if (lastSigs == null && prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true)) {
                                 final Object origJarFile = constructorExact.newInstance(methodHookParam.args[parseErr == null ? 0 : 1], true, false);
-                                final ZipEntry manifestEntry = (ZipEntry) XposedHelpers.callMethod(origJarFile, "findEntry", "AndroidManifest.xml");
+                                final ZipEntry manifestEntry = (ZipEntry) ReflectionHelper.callMethod(origJarFile, "findEntry", "AndroidManifest.xml");
                                 final Certificate[][] lastCerts;
                                 if (parseErr != null) {
-                                    lastCerts = (Certificate[][]) XposedHelpers.callMethod(XposedHelpers.callStaticMethod(ASV, "loadCertificates", methodHookParam.args[0], origJarFile, manifestEntry), "getResult");
+                                    lastCerts = (Certificate[][]) ReflectionHelper.callMethod(ReflectionHelper.callStaticMethod(ASV, "loadCertificates", methodHookParam.args[0], origJarFile, manifestEntry), "getResult");
                                 } else {
-                                    lastCerts = (Certificate[][]) XposedHelpers.callStaticMethod(ASV, "loadCertificates", origJarFile, manifestEntry);
+                                    lastCerts = (Certificate[][]) ReflectionHelper.callStaticMethod(ASV, "loadCertificates", origJarFile, manifestEntry);
                                 }
-                                lastSigs = (Signature[]) XposedHelpers.callStaticMethod(ASV, "convertToSignatures", (Object) lastCerts);
+                                lastSigs = (Signature[]) ReflectionHelper.callStaticMethod(ASV, "convertToSignatures", (Object) lastCerts);
                             }
                         } catch (Throwable ignored) {
                         }
@@ -203,7 +203,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         // 修复 java.lang.ClassCastException: Cannot cast android.content.pm.PackageParser$SigningDetails to android.util.apk.ApkSignatureVerifier$SigningDetailsWithDigests
                         Class<?> signingDetailsWithDigests = findClassIfExists("android.util.apk.ApkSignatureVerifier.SigningDetailsWithDigests", loadPackageParam.classLoader);
                         if (signingDetailsWithDigests != null) {
-                            Constructor<?> signingDetailsWithDigestsConstructorExact = XposedHelpers.findConstructorExact(signingDetailsWithDigests, signingDetails, Map.class);
+                            Constructor<?> signingDetailsWithDigestsConstructorExact = ReflectionHelper.findConstructorExact(signingDetailsWithDigests, signingDetails, Map.class);
                             signingDetailsWithDigestsConstructorExact.setAccessible(true);
                             newInstance = signingDetailsWithDigestsConstructorExact.newInstance(newInstance, null);
                         }
@@ -222,8 +222,8 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         }
                         if (parseErr != null && parseErr == -103) {
                             Object input = methodHookParam.args[0];
-                            XposedHelpers.callMethod(input, "reset");
-                            methodHookParam.setResult(XposedHelpers.callMethod(input, "success", newInstance));
+                            ReflectionHelper.callMethod(input, "reset");
+                            methodHookParam.setResult(ReflectionHelper.callMethod(input, "success", newInstance));
                         }
                     }
                 }
@@ -233,7 +233,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
 
         // New package has a different signature
         // 处理覆盖安装但签名不一致
-        hookAllMethods(signingDetails, "checkCapability", new XC_MethodHook() {
+        hookAllMethods(signingDetails, "checkCapability", new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 // Don't handle PERMISSION & AUTH
@@ -246,7 +246,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
             }
         });
         // if app is system app, allow to use hidden api, even if app not using a system signature
-        findAndHookMethod("android.content.pm.ApplicationInfo", loadPackageParam.classLoader, "isPackageWhitelistedForHiddenApis", new XC_MethodHook() {
+        findAndHookMethod("android.content.pm.ApplicationInfo", loadPackageParam.classLoader, "isPackageWhitelistedForHiddenApis", new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 super.beforeHookedMethod(param);
@@ -263,7 +263,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         var keySetManagerClass = findClass("com.android.server.pm.KeySetManagerService", loadPackageParam.classLoader);
         if (keySetManagerClass != null) {
             var shouldBypass = new ThreadLocal<Boolean>();
-            hookAllMethods(keySetManagerClass, "shouldCheckUpgradeKeySetLocked", new XC_MethodHook() {
+            hookAllMethods(keySetManagerClass, "shouldCheckUpgradeKeySetLocked", new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     // 检查权限定义的签名的时候，如果定义包名相同，会使用 KeySetManagerService
@@ -282,7 +282,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                     }
                 }
             });
-            hookAllMethods(keySetManagerClass, "checkUpgradeKeySetLocked", new XC_MethodHook() {
+            hookAllMethods(keySetManagerClass, "checkUpgradeKeySetLocked", new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) && shouldBypass.get()) {
@@ -295,7 +295,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         // for SharedUser
         // "Package " + packageName + " has a signing lineage " + "that diverges from the lineage of the sharedUserId"
         // https://cs.android.com/android/platform/superproject/+/android-11.0.0_r21:frameworks/base/services/core/java/com/android/server/pm/PackageManagerServiceUtils.java;l=728;drc=02a58171a9d41ad0048d6a1a48d79dee585c22a5
-        hookAllMethods(signingDetails, "hasCommonAncestor", new XC_MethodHook() {
+        hookAllMethods(signingDetails, "hasCommonAncestor", new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true)
@@ -312,18 +312,18 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
             try {
                 deoptimizeMethod(utilClass, "verifySignatures");
             } catch (Throwable e) {
-                XposedBridge.log("[HyperCeiler][E][android]" + TAG + ": deoptimize failed" + Log.getStackTraceString(e));
+                HookBridge.log("[HyperCeiler][E][android]" + TAG + ": deoptimize failed" + Log.getStackTraceString(e));
             }
         }
 
         // choose a signature after all old signed packages are removed
-        var sharedUserSettingClass = XposedHelpers.findClass("com.android.server.pm.SharedUserSetting", loadPackageParam.classLoader);
-        XposedBridge.hookAllMethods(sharedUserSettingClass, "removePackage", new XC_MethodHook() {
+        var sharedUserSettingClass = ReflectionHelper.findClass("com.android.server.pm.SharedUserSetting", loadPackageParam.classLoader);
+        HookBridge.hookAllMethods(sharedUserSettingClass, "removePackage", new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     if (!prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) || !prefs.getBoolean("prefs_key_system_framework_core_patch_shared_user", false))
                         return;
-                    var flags = (int) XposedHelpers.getObjectField(param.thisObject, "uidFlags");
+                    var flags = (int) ReflectionHelper.getObjectField(param.thisObject, "uidFlags");
                     if ((flags & ApplicationInfo.FLAG_SYSTEM) != 0)
                         return; // do not modify system's signature
                     var toRemove = param.args[0]; // PackageSetting
@@ -332,9 +332,9 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                     var sharedUserSig = Setting_getSigningDetails(param.thisObject);
                     Object newSig = null;
                     var packages = /*Watchable?ArraySet<PackageSetting>*/ SharedUserSetting_packages(param.thisObject);
-                    var size = (int) XposedHelpers.callMethod(packages, "size");
+                    var size = (int) ReflectionHelper.callMethod(packages, "size");
                     for (var i = 0; i < size; i++) {
-                        var p = XposedHelpers.callMethod(packages, "valueAt", i);
+                        var p = ReflectionHelper.callMethod(packages, "valueAt", i);
                         // skip the removed package
                         if (toRemove.equals(p)) {
                             removed = true;
@@ -352,18 +352,18 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         else newSig = SigningDetails_mergeLineageWith(newSig, packageSig);
                     }
                     if (!removed || newSig == null) return;
-                    XposedBridge.log("updating signature in sharedUser during remove: " + param.thisObject);
+                    HookBridge.log("updating signature in sharedUser during remove: " + param.thisObject);
                     Setting_setSigningDetails(param.thisObject, newSig);
                 }
             }
         );
 
-        XposedBridge.hookAllMethods(sharedUserSettingClass, "addPackage", new XC_MethodHook() {
+        HookBridge.hookAllMethods(sharedUserSettingClass, "addPackage", new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     if (!prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) || !prefs.getBoolean("prefs_key_system_framework_core_patch_shared_user", false))
                         return;
-                    var flags = (int) XposedHelpers.getObjectField(param.thisObject, "uidFlags");
+                    var flags = (int) ReflectionHelper.getObjectField(param.thisObject, "uidFlags");
                     if ((flags & ApplicationInfo.FLAG_SYSTEM) != 0)
                         return; // do not modify system's signature
                     var toAdd = param.args[0]; // PackageSetting
@@ -372,9 +372,9 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                     var sharedUserSig = Setting_getSigningDetails(param.thisObject);
                     Object newSig = null;
                     var packages = /*Watchable?ArraySet<PackageSetting>*/ SharedUserSetting_packages(param.thisObject);
-                    var size = (int) XposedHelpers.callMethod(packages, "size");
+                    var size = (int) ReflectionHelper.callMethod(packages, "size");
                     for (var i = 0; i < size; i++) {
-                        var p = XposedHelpers.callMethod(packages, "valueAt", i);
+                        var p = ReflectionHelper.callMethod(packages, "valueAt", i);
                         if (toAdd.equals(p)) {
                             // must be an existing package
                             added = true;
@@ -392,7 +392,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         else newSig = SigningDetails_mergeLineageWith(newSig, packageSig);
                     }
                     if (!added || newSig == null) return;
-                    XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": updating signature in sharedUser during add " + toAdd + ": " + param.thisObject);
+                    HookBridge.log("[HyperCeiler][D][android]" + TAG + ": updating signature in sharedUser during add " + toAdd + ": " + param.thisObject);
                     Setting_setSigningDetails(param.thisObject, newSig);
                 }
             }
@@ -401,7 +401,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         hookAllMethods(getIsVerificationEnabledClass(loadPackageParam.classLoader), "isVerificationEnabled", new ReturnConstant(prefs, "prefs_key_system_framework_disable_verification_agent", false));
 
         // Allow apk splits with different signatures to be installed together
-        hookAllMethods(signingDetails, "signaturesMatchExactly", new XC_MethodHook() {
+        hookAllMethods(signingDetails, "signaturesMatchExactly", new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 if (prefs.getBoolean("prefs_key_system_framework_core_patch_exact_signature_check", false))
@@ -414,11 +414,11 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
 
     static Object callOriginMethod(Object obj, String methodName, Object... args) {
         try {
-            var method = XposedHelpers.findMethodBestMatch(obj.getClass(), methodName, args);
-            return XposedBridge.invokeOriginalMethod(method, obj, args);
+            var method = ReflectionHelper.findMethodBestMatch(obj.getClass(), methodName, args);
+            return HookBridge.invokeOriginalMethod(method, obj, args);
         } catch (IllegalAccessException e) {
             // should not happen
-            XposedBridge.log(e);
+            HookBridge.log(e);
             throw new IllegalAccessError(e.getMessage());
         } catch (IllegalArgumentException e) {
             throw e;
@@ -428,19 +428,19 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
     }
 
     Class<?> getIsVerificationEnabledClass(ClassLoader classLoader) {
-        return XposedHelpers.findClass("com.android.server.pm.PackageManagerService", classLoader);
+        return ReflectionHelper.findClass("com.android.server.pm.PackageManagerService", classLoader);
     }
 
     Class<?> getSigningDetails(ClassLoader classLoader) {
-        return XposedHelpers.findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
+        return ReflectionHelper.findClass("android.content.pm.PackageParser.SigningDetails", classLoader);
     }
 
     Object mPMS = null;
 
-    void initializeDebugHook(XC_LoadPackage.LoadPackageParam lpparam) throws IllegalAccessException, InvocationTargetException {
-        XposedBridge.hookAllMethods(
-            XposedHelpers.findClass("com.android.server.pm.PackageManagerShellCommand", lpparam.classLoader),
-            "onCommand", new XC_MethodHook() {
+    void initializeDebugHook(PackageContext.LoadPackageParam lpparam) throws IllegalAccessException, InvocationTargetException {
+        HookBridge.hookAllMethods(
+            ReflectionHelper.findClass("com.android.server.pm.PackageManagerShellCommand", lpparam.classLoader),
+            "onCommand", new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     try {
@@ -449,19 +449,19 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         var cmd = (String) param.args[0];
                         if (!"corepatch".equals(cmd)) return;
                         var self = param.thisObject;
-                        var pw = (PrintWriter) XposedHelpers.callMethod(self, "getOutPrintWriter");
-                        var type = (String) XposedHelpers.callMethod(self, "getNextArgRequired");
-                        var settings = XposedHelpers.getObjectField(pms, "mSettings");
+                        var pw = (PrintWriter) ReflectionHelper.callMethod(self, "getOutPrintWriter");
+                        var type = (String) ReflectionHelper.callMethod(self, "getNextArgRequired");
+                        var settings = ReflectionHelper.getObjectField(pms, "mSettings");
                         if ("p".equals(type) || "package".equals(type)) {
-                            var packageName = (String) XposedHelpers.callMethod(self, "getNextArgRequired");
-                            var packageSetting = XposedHelpers.callMethod(settings, "getPackageLPr", packageName);
+                            var packageName = (String) ReflectionHelper.callMethod(self, "getNextArgRequired");
+                            var packageSetting = ReflectionHelper.callMethod(settings, "getPackageLPr", packageName);
                             if (packageSetting != null) {
                                 dumpPackageSetting(packageSetting, pw, settings);
                             } else {
                                 pw.println("no package " + packageName + " found");
                             }
                         } else if ("su".equals(type) || "shareduser".equals(type)) {
-                            var name = (String) XposedHelpers.callMethod(self, "getNextArgRequired");
+                            var name = (String) ReflectionHelper.callMethod(self, "getNextArgRequired");
                             var su = getSharedUser(name, settings);
                             if (su != null) {
                                 dumpSharedUserSetting(su, pw);
@@ -473,17 +473,17 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
                         }
                         param.setResult(0);
                     } catch (Throwable t) {
-                        XposedBridge.log(t);
+                        HookBridge.log(t);
                         param.setThrowable(t);
                     }
                 }
             }
         );
 
-        var pmsClass = XposedHelpers.findClassIfExists("com.android.server.pm.PackageManagerService",
+        var pmsClass = ReflectionHelper.findClassIfExists("com.android.server.pm.PackageManagerService",
             lpparam.classLoader);
 
-        XposedBridge.hookAllConstructors(pmsClass, new XC_MethodHook() {
+        HookBridge.hookAllConstructors(pmsClass, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                     mPMS = param.thisObject;
@@ -498,12 +498,12 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
         var signingDetails = Setting_getSigningDetails(packageSetting);
         pw.println("signing for package " + packageSetting);
         dumpSigningDetails(signingDetails, pw);
-        var pkg = XposedHelpers.getObjectField(packageSetting, "pkg"); // AndroidPackage
+        var pkg = ReflectionHelper.getObjectField(packageSetting, "pkg"); // AndroidPackage
         if (pkg == null) {
             pw.println("android package is null!");
             return;
         }
-        var id = (String) XposedHelpers.callMethod(pkg, "getSharedUserId");
+        var id = (String) ReflectionHelper.callMethod(pkg, "getSharedUserId");
         pw.println("shared user id:" + id);
         if (settings != null) {
             var su = getSharedUser(id, settings);
@@ -515,9 +515,9 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
 
     Object getSharedUser(String id, Object /*Settings*/ settings) {
         // TODO: use Setting.getSharedUserSettingLPr(appId)?
-        var sharedUserSettings = XposedHelpers.getObjectField(settings, "mSharedUsers");
+        var sharedUserSettings = ReflectionHelper.getObjectField(settings, "mSharedUsers");
         if (sharedUserSettings == null) return null;
-        return XposedHelpers.callMethod(sharedUserSettings, "get", id);
+        return ReflectionHelper.callMethod(sharedUserSettings, "get", id);
     }
 
     void dumpSharedUserSetting(Object sharedUser, PrintWriter pw) {
@@ -528,7 +528,7 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
 
     protected void dumpSigningDetails(Object signingDetails, PrintWriter pw) {
         var i = 0;
-        for (var sign : (Signature[]) XposedHelpers.getObjectField(signingDetails, "signatures")) {
+        for (var sign : (Signature[]) ReflectionHelper.getObjectField(signingDetails, "signatures")) {
             i++;
             pw.println(i + ": " + sign.toCharsString());
         }
@@ -539,21 +539,21 @@ public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackag
      */
     Object Setting_getSigningDetails(Object pkgOrSharedUser) {
         // PackageSettingBase(A11)|PackageSetting(A13)|SharedUserSetting.<PackageSignatures>signatures.<PackageParser.SigningDetails>mSigningDetails
-        return XposedHelpers.getObjectField(XposedHelpers.getObjectField(pkgOrSharedUser, "signatures"), "mSigningDetails");
+        return ReflectionHelper.getObjectField(ReflectionHelper.getObjectField(pkgOrSharedUser, "signatures"), "mSigningDetails");
     }
 
     /**
      * Set signing details for PackageSetting or SharedUserSetting
      */
     void Setting_setSigningDetails(Object pkgOrSharedUser, Object signingDetails) {
-        XposedHelpers.setObjectField(XposedHelpers.getObjectField(pkgOrSharedUser, "signatures"), "mSigningDetails", signingDetails);
+        ReflectionHelper.setObjectField(ReflectionHelper.getObjectField(pkgOrSharedUser, "signatures"), "mSigningDetails", signingDetails);
     }
 
     protected Object SharedUserSetting_packages(Object /*SharedUserSetting*/ sharedUser) {
-        return XposedHelpers.getObjectField(sharedUser, "packages");
+        return ReflectionHelper.getObjectField(sharedUser, "packages");
     }
 
     protected Object SigningDetails_mergeLineageWith(Object self, Object other) {
-        return XposedHelpers.callMethod(self, "mergeLineageWith", other);
+        return ReflectionHelper.callMethod(self, "mergeLineageWith", other);
     }
 }

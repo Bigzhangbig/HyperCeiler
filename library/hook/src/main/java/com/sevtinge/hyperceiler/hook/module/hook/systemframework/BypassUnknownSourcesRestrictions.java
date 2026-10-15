@@ -19,7 +19,7 @@
 
 package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
-import static de.robv.android.xposed.XposedHelpers.setIntField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setIntField;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
@@ -31,12 +31,12 @@ public class BypassUnknownSourcesRestrictions extends BaseHook {
         // 注意：com.miui.packageinstaller 是 com.android.packageinstaller 的改包名安装器，不是 MIUI 原版安装器
         // 缘由：MIUI 原版安装器上传应用信息并协同小米账号到反诈中心等，并且用其他安装器不认，故将原生的安装器直接改包名并使用核破解覆盖 com.miui.packageinstaller
         /*if (packageName.equals("com.miui.packageinstaller") || packageName.equals("com.android.packageinstaller")){
-            XposedHelpers.findAndHookMethod("com.android.packageinstaller.PackageInstallerActivity", classLoader, "onCreate", android.os.Bundle.class, new XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod("com.android.packageinstaller.PackageInstallerActivity", classLoader, "onCreate", android.os.Bundle.class, new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                     super.beforeHookedMethod(param);
                     //很简单，只需要在 onCreate 方法执行前把 mAllowUnknownSources 字段设置为 true 即可
-                    XposedHelpers.setBooleanField(param.thisObject,"mAllowUnknownSources",true);
+                    ReflectionHelper.setBooleanField(param.thisObject,"mAllowUnknownSources",true);
                     Context context;
                 }
             });
@@ -48,7 +48,7 @@ public class BypassUnknownSourcesRestrictions extends BaseHook {
             protected void after(MethodHookParam param) throws Throwable {
                 if ((Integer) param.args[0] == 66) {
                     // AppOpsManager.permissionToOpCode("android.permission.REQUEST_INSTALL_PACKAGES") == 66
-                    // XposedBridge.log("com.android.server.appop.AppOpsService.noteOperation("+Arrays.toString(param.args)+") return:"+param.getResult());
+                    // HookBridge.log("com.android.server.appop.AppOpsService.noteOperation("+Arrays.toString(param.args)+") return:"+param.getResult());
                     setIntField(param.getResult(), "mOpMode", 0);
                 }
             }

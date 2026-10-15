@@ -35,15 +35,15 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DialogGravity extends BaseHook {
 
     public Context mContext;
     public View mParentPanel = null;
 
-    final Class<?> mDialogCls = XposedHelpers.findClassIfExists("miuix.appcompat.app.AlertController", lpparam.classLoader);
-    final Class<?> mDialogParentPanelCls = XposedHelpers.findClassIfExists("miuix.internal.widget.DialogParentPanel", lpparam.classLoader);
+    final Class<?> mDialogCls = ReflectionHelper.findClassIfExists("miuix.appcompat.app.AlertController", lpparam.classLoader);
+    final Class<?> mDialogParentPanelCls = ReflectionHelper.findClassIfExists("miuix.internal.widget.DialogParentPanel", lpparam.classLoader);
 
     final List<Method> methodList = new LinkedList<>();
 
@@ -68,7 +68,7 @@ public class DialogGravity extends BaseHook {
                 findAndHookMethod(mDialogCls, "setupDialogPanel", Configuration.class, new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) throws Throwable {
-                        mParentPanel = (View) XposedHelpers.getObjectField(param.thisObject, "mParentPanel");
+                        mParentPanel = (View) ReflectionHelper.getObjectField(param.thisObject, "mParentPanel");
 
                         mContext = mParentPanel.getContext();
 
@@ -97,10 +97,10 @@ public class DialogGravity extends BaseHook {
 
             for (Method method : methodList) {
                 if (Arrays.equals(method.getParameterTypes(), new Class[]{Configuration.class}) && method.getReturnType() == Void.TYPE && method.getModifiers() == 2 && method.getParameterCount() == 1) {
-                    XposedHelpers.findAndHookMethod(mDialogCls, method.getName(), new MethodHook() {
+                    ReflectionHelper.findAndHookMethod(mDialogCls, method.getName(), new MethodHook() {
                         @Override
                         protected void after(MethodHookParam param) throws Throwable {
-                            Field field = XposedHelpers.findFirstFieldByExactType(mDialogCls, mDialogParentPanelCls);
+                            Field field = ReflectionHelper.findFirstFieldByExactType(mDialogCls, mDialogParentPanelCls);
                             mParentPanel = (View) field.get(param.thisObject);
 
                             mContext = mParentPanel.getContext();
@@ -131,7 +131,7 @@ public class DialogGravity extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 super.after(param);
-                View mParentPanel = (View) XposedHelpers.getObjectField(param.thisObject, "mParentPanel");
+                View mParentPanel = (View) ReflectionHelper.getObjectField(param.thisObject, "mParentPanel");
                 mParentPanel.setVisibility(View.INVISIBLE);
             }
         });

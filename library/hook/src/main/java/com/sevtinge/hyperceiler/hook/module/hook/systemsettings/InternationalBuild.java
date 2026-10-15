@@ -20,11 +20,11 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemsettings;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class InternationalBuild extends BaseHook {
     @Override
     public void init() {
-        XposedHelpers.setStaticBooleanField(findClassIfExists("miui.os.Build"), "IS_INTERNATIONAL_BUILD", true);
+        ReflectionHelper.setStaticBooleanField(findClassIfExists("miui.os.Build"), "IS_INTERNATIONAL_BUILD", true);
     }
 }

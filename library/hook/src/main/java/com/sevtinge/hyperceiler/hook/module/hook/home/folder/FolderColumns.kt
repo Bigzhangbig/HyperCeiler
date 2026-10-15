@@ -38,7 +38,7 @@ import com.sevtinge.hyperceiler.hook.utils.findClass
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldAs
 import com.sevtinge.hyperceiler.hook.utils.hookAfterAllMethods
 import com.sevtinge.hyperceiler.hook.utils.setIntField
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 object FolderColumns : HomeBaseHook() {
     private const val FOLDER = "com.miui.home.launcher.Folder"
@@ -169,7 +169,7 @@ object FolderColumns : HomeBaseHook() {
             "bind"
         ) {
             val columns: Int = value
-            val mContent = XposedHelpers.getObjectField(it.thisObject, "mContent") as GridView
+            val mContent = ReflectionHelper.getObjectField(it.thisObject, "mContent") as GridView
             mContent.numColumns = columns
             if (mPrefsMap.getBoolean("home_folder_width") && (columns > 3)) {
                 mContent.setPadding(0, 0, 0, 0)
@@ -178,7 +178,7 @@ object FolderColumns : HomeBaseHook() {
                 mContent.layoutParams = lp
             }
             if (columns > 3) {
-                val mBackgroundView = XposedHelpers.getObjectField(it.thisObject, "mBackgroundView") as ViewGroup
+                val mBackgroundView = ReflectionHelper.getObjectField(it.thisObject, "mBackgroundView") as ViewGroup
                 mBackgroundView.setPadding(
                     mBackgroundView.paddingLeft / 3,
                     mBackgroundView.paddingTop,

@@ -24,12 +24,12 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.RemoteException;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.hchen.hooktool.utils.SystemPropTool;
 import com.sevtinge.hyperceiler.hook.IEffectInfo;
 
-public class AutoSEffSwitchForSystemUi extends HCBase {
+public class AutoSEffSwitchForSystemUi extends NativeFeatureModule {
     private static final String TAG = "AutoSEffSwitchForSystemUi";
     private boolean isInit = false;
     private static IEffectInfo mIEffectInfo;
@@ -70,7 +70,7 @@ public class AutoSEffSwitchForSystemUi extends HCBase {
         hookMethod("android.media.audiofx.AudioEffectCenter",
                 "setEffectActive",
                 String.class, boolean.class,
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void before() {
                         if (getEarPhoneStateFinal()) {
@@ -86,7 +86,7 @@ public class AutoSEffSwitchForSystemUi extends HCBase {
     public static void onNotSupportFW(ClassLoader classLoader) {
         hookMethod("miui.systemui.quicksettings.soundeffect.DolbyAtomsSoundEffectTile", classLoader,
             "handleClick",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getEarPhoneStateFinal()) {

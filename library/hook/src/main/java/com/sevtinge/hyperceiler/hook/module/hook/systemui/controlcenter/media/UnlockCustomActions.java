@@ -24,7 +24,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.ArrayList;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockCustomActions extends BaseHook {
 
@@ -36,11 +36,11 @@ public class UnlockCustomActions extends BaseHook {
                 "run", new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        Object INSTANCE = XposedHelpers.getStaticObjectField(
+                        Object INSTANCE = ReflectionHelper.getStaticObjectField(
                             findClassIfExists("com.miui.systemui.notification.NotificationSettingsManager"),
                             "sINSTANCE");
-                        XposedHelpers.setObjectField(INSTANCE, "mHiddenCustomActionsList", new ArrayList<>());
-                        XposedHelpers.setObjectField(INSTANCE, "mHiddenCustomActionsListLocal", new ArrayList<>());
+                        ReflectionHelper.setObjectField(INSTANCE, "mHiddenCustomActionsList", new ArrayList<>());
+                        ReflectionHelper.setObjectField(INSTANCE, "mHiddenCustomActionsListLocal", new ArrayList<>());
                     }
 
                 }
@@ -63,10 +63,10 @@ public class UnlockCustomActions extends BaseHook {
                             NotificationSettingsManager = findClassIfExists("com.android.systemui.statusbar.notification.NotificationSettingsManager$Holder");
                         }
 
-                        Object INSTANCE = XposedHelpers.getStaticObjectField(
+                        Object INSTANCE = ReflectionHelper.getStaticObjectField(
                             NotificationSettingsManager, isMoreAndroidVersion(35) ? "sINSTANCE" : "INSTANCE"
                         );
-                        XposedHelpers.setObjectField(INSTANCE, "mHiddenCustomActionsList", new ArrayList<>());
+                        ReflectionHelper.setObjectField(INSTANCE, "mHiddenCustomActionsList", new ArrayList<>());
                     }
 
                 }

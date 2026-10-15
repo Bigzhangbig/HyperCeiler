@@ -23,15 +23,15 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 public class CorePatchForU extends CorePatchForT {
     public static final String TAG = "[CorePatchForU]";
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void handleLoadPackage(PackageContext.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         super.handleLoadPackage(loadPackageParam);
 
         var utilClass = findClass("com.android.server.pm.ReconcilePackageUtils", loadPackageParam.classLoader);
@@ -39,7 +39,7 @@ public class CorePatchForU extends CorePatchForT {
             try {
                 deoptimizeMethod(utilClass, "reconcilePackages");
             } catch (Throwable e) {
-                XposedBridge.log("[HyperCeiler][E][android]" + TAG + ": deoptimizing failed" + Log.getStackTraceString(e));
+                HookBridge.log("[HyperCeiler][E][android]" + TAG + ": deoptimizing failed" + Log.getStackTraceString(e));
             }
         }
 
@@ -58,7 +58,7 @@ public class CorePatchForU extends CorePatchForT {
         findAndHookMethod("com.android.server.pm.ScanPackageUtils", loadPackageParam.classLoader,
                 "assertMinSignatureSchemeIsValid",
                 "com.android.server.pm.pkg.AndroidPackage", int.class,
-                new XC_MethodHook() {
+                new HookCallback() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
@@ -69,13 +69,13 @@ public class CorePatchForU extends CorePatchForT {
 
         findAndHookMethod("com.android.server.pm.InstallPackageHelper", loadPackageParam.classLoader,
                 "doesSignatureMatchForPermissions", String.class,
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM ? "com.android.internal.pm.parsing.pkg.ParsedPackage" : "com.android.server.pm.parsing.pkg.ParsedPackage"), int.class, new XC_MethodHook() {
+                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM ? "com.android.internal.pm.parsing.pkg.ParsedPackage" : "com.android.server.pm.parsing.pkg.ParsedPackage"), int.class, new HookCallback() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) && prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
                             //If we decide to crack this then at least make sure they are same apks, avoid another one that tries to impersonate.
                             if (param.getResult().equals(false)) {
-                                String pPname = (String) XposedHelpers.callMethod(param.args[1], "getPackageName");
+                                String pPname = (String) ReflectionHelper.callMethod(param.args[1], "getPackageName");
                                 if (pPname.contentEquals((String) param.args[0])) {
                                     param.setResult(true);
                                 }
@@ -88,13 +88,13 @@ public class CorePatchForU extends CorePatchForT {
 
     @Override
     Class<?> getParsedPackage(ClassLoader classLoader) {
-        var clazz = XposedHelpers.findClassIfExists("com.android.internal.pm.parsing.pkg.ParsedPackage", classLoader);
-        return clazz != null ? clazz : XposedHelpers.findClassIfExists("com.android.server.pm.parsing.pkg.ParsedPackage", classLoader);
+        var clazz = ReflectionHelper.findClassIfExists("com.android.internal.pm.parsing.pkg.ParsedPackage", classLoader);
+        return clazz != null ? clazz : ReflectionHelper.findClassIfExists("com.android.server.pm.parsing.pkg.ParsedPackage", classLoader);
     }
 
     @Override
     Class<?> getIsVerificationEnabledClass(ClassLoader classLoader) {
-        return XposedHelpers.findClass("com.android.server.pm.VerifyingSession", classLoader);
+        return ReflectionHelper.findClass("com.android.server.pm.VerifyingSession", classLoader);
     }
 
 }

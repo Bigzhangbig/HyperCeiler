@@ -18,8 +18,8 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.downloadsui;
 
-import static de.robv.android.xposed.XposedHelpers.getObjectField;
-import static de.robv.android.xposed.XposedHelpers.setObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setObjectField;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;

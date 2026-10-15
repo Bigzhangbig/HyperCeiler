@@ -24,15 +24,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 
 /**
  * 代理 AIDL
  *
  * @author 焕晨HChen
  */
-public class EffectBinderProxy extends HCBase {
+public class EffectBinderProxy extends NativeFeatureModule {
 
     @Override
     protected void init() {
@@ -40,7 +40,7 @@ public class EffectBinderProxy extends HCBase {
                 "registerReceiverWithFeature",
                 "android.app.IApplicationThread", String.class, String.class, String.class,
                 "android.content.IIntentReceiver", IntentFilter.class, String.class, int.class, int.class,
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void after() {
                         Intent intent = (Intent) getResult();

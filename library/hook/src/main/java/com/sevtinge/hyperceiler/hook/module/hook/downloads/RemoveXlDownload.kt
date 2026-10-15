@@ -36,7 +36,9 @@ object RemoveXlDownload : BaseHook() {
             }
 
         loadClass("com.android.providers.downloads.util.FileUtil").methodFinder()
-            .filterByName("createFile").single().createHook {
+            .filterByName("createFile").single().createHook(
+                exceptionMode = io.github.libxposed.api.XposedInterface.ExceptionMode.PASSTHROUGH
+            ) {
                 before {
                     if ((it.args[0] as String).contains(".xlDownload")) {
                         it.throwable = IOException(".xlDownload is blocked")

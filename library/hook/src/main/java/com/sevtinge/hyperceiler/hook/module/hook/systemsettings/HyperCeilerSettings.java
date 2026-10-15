@@ -37,7 +37,7 @@ import com.sevtinge.hyperceiler.hook.utils.api.ProjectApi;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class HyperCeilerSettings extends BaseHook {
 
@@ -75,17 +75,17 @@ public class HyperCeilerSettings extends BaseHook {
                 mIntent.putExtra("isDisplayHomeAsUpEnabled", true);
                 mIntent.setClassName(ProjectApi.mAppModulePkg, "com.sevtinge.hyperceiler.ui.HyperCeilerTabActivity");
 
-                Object header = XposedHelpers.newInstance(mPreferenceHeader);
-                XposedHelpers.setLongField(header, "id", 666);
-                XposedHelpers.setObjectField(header, "intent", mIntent);
-                XposedHelpers.setIntField(header, "iconRes", settingsIconResId);
-                XposedHelpers.setObjectField(header, "title", modRes.getString(R.string.library_app_name));
+                Object header = ReflectionHelper.newInstance(mPreferenceHeader);
+                ReflectionHelper.setLongField(header, "id", 666);
+                ReflectionHelper.setObjectField(header, "intent", mIntent);
+                ReflectionHelper.setIntField(header, "iconRes", settingsIconResId);
+                ReflectionHelper.setObjectField(header, "title", modRes.getString(R.string.library_app_name));
 
                 Bundle bundle = new Bundle();
                 ArrayList<UserHandle> users = new ArrayList<>();
-                users.add((UserHandle) XposedHelpers.newInstance(UserHandle.class, 0));
+                users.add((UserHandle) ReflectionHelper.newInstance(UserHandle.class, 0));
                 bundle.putParcelableArrayList("header_user", users);
-                XposedHelpers.setObjectField(header, "extras", bundle);
+                ReflectionHelper.setObjectField(header, "extras", bundle);
 
                 int device = mContext.getResources().getIdentifier("my_device", "id", mContext.getPackageName());
                 int themes = mContext.getResources().getIdentifier("launcher_settings", "id", mContext.getPackageName());
@@ -96,7 +96,7 @@ public class HyperCeilerSettings extends BaseHook {
                 int position = 0;
                 for (Object head : headers) {
                     position++;
-                    long id = XposedHelpers.getLongField(head, "id");
+                    long id = ReflectionHelper.getLongField(head, "id");
                     if (opt == 1) {
                         if (isMoreHyperOSVersion(2f)) {
                             if (id == device) headers.add(position, header);

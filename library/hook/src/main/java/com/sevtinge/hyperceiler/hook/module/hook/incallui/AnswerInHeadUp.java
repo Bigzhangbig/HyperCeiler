@@ -22,7 +22,7 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AnswerInHeadUp extends BaseHook {
     @Override
@@ -32,10 +32,10 @@ public class AnswerInHeadUp extends BaseHook {
             protected void before(MethodHookParam param) throws Throwable {
                 boolean showUi = (boolean) param.args[3];
                 if (showUi) {
-                    Object foregroundInfo = XposedHelpers.callStaticMethod(findClassIfExists("miui.process.ProcessManager"),
+                    Object foregroundInfo = ReflectionHelper.callStaticMethod(findClassIfExists("miui.process.ProcessManager"),
                             "getForegroundInfo");
                     if (foregroundInfo != null) {
-                        String topPackage = (String) XposedHelpers.getObjectField(foregroundInfo, "mForegroundPackageName");
+                        String topPackage = (String) ReflectionHelper.getObjectField(foregroundInfo, "mForegroundPackageName");
                         if (!"com.miui.home".equals(topPackage)) {
                             param.args[3] = false;
                         }

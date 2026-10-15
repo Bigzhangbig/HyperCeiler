@@ -31,7 +31,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isAndroidVersion
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreAndroidVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
-import de.robv.android.xposed.XC_MethodHook
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder.`-Static`.constructorFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -291,7 +291,7 @@ object StatusBarClockNew : BaseHook() {
         }
     }
 
-    private fun applyMiuiClockStyleAndFormat(hook: XC_MethodHook.MethodHookParam) {
+    private fun applyMiuiClockStyleAndFormat(hook: HookParam) {
         val textV = hook.thisObject as TextView
         val context = textV.context
         val miuiClockName = textV.resources.getResourceEntryName(textV.id) ?: return

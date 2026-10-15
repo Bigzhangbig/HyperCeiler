@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.layout;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class UnlockGridsNoWord extends BaseHook {
 
@@ -30,6 +30,6 @@ public class UnlockGridsNoWord extends BaseHook {
     public void init() {
         mDeviceConfig = findClassIfExists("com.miui.home.launcher.DeviceConfig");
 
-        findAndHookMethod(mDeviceConfig, "isThemeCoverCellConfig", XC_MethodReplacement.returnConstant(true));
+        findAndHookMethod(mDeviceConfig, "isThemeCoverCellConfig", HookReplacement.returnConstant(true));
     }
 }

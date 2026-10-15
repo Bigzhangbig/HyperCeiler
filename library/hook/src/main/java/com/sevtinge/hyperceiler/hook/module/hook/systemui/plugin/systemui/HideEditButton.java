@@ -18,13 +18,13 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.systemui.plugin.systemui;
 
-import static de.robv.android.xposed.XC_MethodReplacement.returnConstant;
+import static com.sevtinge.hyperceiler.hook.api.HookReplacement.returnConstant;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class HideEditButton {
     public static void initHideEditButton(ClassLoader classLoader) {
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.panel.main.qs.EditButtonController", classLoader, "available", boolean.class, returnConstant(false));
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.panel.main.qs.EditButtonController", classLoader, "available", boolean.class, "miui.systemui.controlcenter.panel.main.MainPanelModeController$MainPanelMode", returnConstant(false));
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.panel.main.qs.EditButtonController", classLoader, "available", boolean.class, returnConstant(false));
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.panel.main.qs.EditButtonController", classLoader, "available", boolean.class, "miui.systemui.controlcenter.panel.main.MainPanelModeController$MainPanelMode", returnConstant(false));
     }
 }

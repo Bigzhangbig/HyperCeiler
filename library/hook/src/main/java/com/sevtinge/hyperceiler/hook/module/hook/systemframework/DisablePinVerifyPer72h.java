@@ -20,11 +20,11 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class DisablePinVerifyPer72h extends BaseHook {
     @Override
     public void init() {
-        findAndHookMethod("com.android.server.locksettings.LockSettingsStrongAuth", "rescheduleStrongAuthTimeoutAlarm", long.class, int.class, XC_MethodReplacement.DO_NOTHING);
+        findAndHookMethod("com.android.server.locksettings.LockSettingsStrongAuth", "rescheduleStrongAuthTimeoutAlarm", long.class, int.class, HookReplacement.DO_NOTHING);
     }
 }

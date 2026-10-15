@@ -42,9 +42,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AppDetails extends BaseHook {
 
@@ -73,7 +73,7 @@ public class AppDetails extends BaseHook {
                 findAndHookConstructor(mFragmentCls, new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) throws Throwable {
-                        Field piField = XposedHelpers.findFirstFieldByExactType(param.thisObject.getClass(), PackageInfo.class);
+                        Field piField = ReflectionHelper.findFirstFieldByExactType(param.thisObject.getClass(), PackageInfo.class);
                         if (piField != null) {
                             mSupportFragment = param.thisObject;
                         }
@@ -98,9 +98,9 @@ public class AppDetails extends BaseHook {
                             final Resources modRes;
                             try {
                                 modRes = getModuleRes(act);
-                                Field piField = XposedHelpers.findFirstFieldByExactType(frag.getClass(), PackageInfo.class);
+                                Field piField = ReflectionHelper.findFirstFieldByExactType(frag.getClass(), PackageInfo.class);
                                 mLastPackageInfo = (PackageInfo) piField.get(frag);
-                                Method[] addPref = XposedHelpers.findMethodsByExactParameters(frag.getClass(), void.class, String.class, String.class, String.class);
+                                Method[] addPref = ReflectionHelper.findMethodsByExactParameters(frag.getClass(), void.class, String.class, String.class, String.class);
                                 if (mLastPackageInfo == null || addPref.length == 0) {
                                     logI(TAG, AppDetails.this.lpparam.packageName, "Unable to find field/class/method in SecurityCenter to hook");
                                     return;
@@ -109,7 +109,7 @@ public class AppDetails extends BaseHook {
                                 }
 
                                 // === 替换 noClickTextPreference 为 TextPreference ===
-                                XposedBridge.hookMethod(addPref[0], new XC_MethodHook() {
+                                HookBridge.hookMethod(addPref[0], new HookCallback() {
                                     @Override
                                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                                         Object thiz = param.thisObject;
@@ -117,24 +117,24 @@ public class AppDetails extends BaseHook {
 
                                         param.setResult(null);
 
-                                        Object prefManager = XposedHelpers.callMethod(thiz, "getPreferenceManager");
-                                        Method[] ctxMethods = XposedHelpers.findMethodsByExactParameters(prefManager.getClass(), Context.class);
+                                        Object prefManager = ReflectionHelper.callMethod(thiz, "getPreferenceManager");
+                                        Method[] ctxMethods = ReflectionHelper.findMethodsByExactParameters(prefManager.getClass(), Context.class);
                                         if (ctxMethods.length == 0) {
                                             logE(TAG, "Cannot find Context method in PreferenceManager!");
                                             return;
                                         }
-                                        Context ctx = (Context) XposedHelpers.callMethod(prefManager, ctxMethods[0].getName());
+                                        Context ctx = (Context) ReflectionHelper.callMethod(prefManager, ctxMethods[0].getName());
 
-                                        Class<?> textPrefCls = XposedHelpers.findClass("miuix.preference.TextPreference", cl);
-                                        Object textPref = XposedHelpers.newInstance(textPrefCls, ctx);
+                                        Class<?> textPrefCls = ReflectionHelper.findClass("miuix.preference.TextPreference", cl);
+                                        Object textPref = ReflectionHelper.newInstance(textPrefCls, ctx);
 
-                                        XposedHelpers.callMethod(textPref, "setKey", param.args[0]);
-                                        XposedHelpers.callMethod(textPref, "setTitle", param.args[1]);
-                                        XposedHelpers.callMethod(textPref, "setText", param.args[2]);
+                                        ReflectionHelper.callMethod(textPref, "setKey", param.args[0]);
+                                        ReflectionHelper.callMethod(textPref, "setTitle", param.args[1]);
+                                        ReflectionHelper.callMethod(textPref, "setText", param.args[2]);
 
-                                        Field prefField = XposedHelpers.findFirstFieldByExactType(
+                                        Field prefField = ReflectionHelper.findFirstFieldByExactType(
                                             thiz.getClass(),
-                                            XposedHelpers.findClass("androidx.preference.PreferenceCategory", cl)
+                                            ReflectionHelper.findClass("androidx.preference.PreferenceCategory", cl)
                                         );
 
                                         if (prefField == null) {
@@ -145,7 +145,7 @@ public class AppDetails extends BaseHook {
                                         prefField.setAccessible(true);
                                         Object prefGroup = prefField.get(thiz);
 
-                                        XposedHelpers.callMethod(prefGroup, "addP" +
+                                        ReflectionHelper.callMethod(prefGroup, "addP" +
                                             "reference", textPref);
 
                                     }
@@ -174,8 +174,8 @@ public class AppDetails extends BaseHook {
                                 @SuppressLint("DiscouragedApi")
                                 @Override
                                 protected void before(MethodHookParam param1) throws Throwable {
-                                    String key = (String) XposedHelpers.callMethod(param1.args[0], "getKey");
-                                    String title = (String) XposedHelpers.callMethod(param1.args[0], "getTitle");
+                                    String key = (String) ReflectionHelper.callMethod(param1.args[0], "getKey");
+                                    String title = (String) ReflectionHelper.callMethod(param1.args[0], "getTitle");
                                     switch (key) {
                                         case "apk_filename" -> {
                                             ((ClipboardManager) act.getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText(title, mLastPackageInfo.applicationInfo.sourceDir));
@@ -208,7 +208,7 @@ public class AppDetails extends BaseHook {
                                                 int user = 0;
                                                 try {
                                                     int uid = act.getIntent().getIntExtra("am_app_uid", -1);
-                                                    user = (int) XposedHelpers.callStaticMethod(UserHandle.class, "getUserId", uid);
+                                                    user = (int) ReflectionHelper.callStaticMethod(UserHandle.class, "getUserId", uid);
                                                 } catch (Throwable t) {
                                                     logW(TAG, "3", t);
                                                 }
@@ -216,7 +216,7 @@ public class AppDetails extends BaseHook {
                                                 launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                                                 if (user != 0) {
                                                     try {
-                                                        XposedHelpers.callMethod(act, "startActivityAsUser", launchIntent, XposedHelpers.newInstance(UserHandle.class, user));
+                                                        ReflectionHelper.callMethod(act, "startActivityAsUser", launchIntent, ReflectionHelper.newInstance(UserHandle.class, user));
                                                     } catch (Throwable t) {
                                                         logW(TAG, "4", t);
                                                     }

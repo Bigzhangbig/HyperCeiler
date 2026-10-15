@@ -18,7 +18,7 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.packageinstaller;
 
-import static de.robv.android.xposed.XposedHelpers.setStaticBooleanField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setStaticBooleanField;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;

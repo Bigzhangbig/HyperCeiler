@@ -29,7 +29,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.Locale;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UsbModeChoose extends BaseHook {
     ArrayMap<String, Integer> mode = new ArrayMap<>();
@@ -75,11 +75,11 @@ public class UsbModeChoose extends BaseHook {
                         if (addAll) return;
                         setLanguage(activity);
                         for (long l : jArr) {
-                            int getTitle = (int) XposedHelpers.callStaticMethod(
+                            int getTitle = (int) ReflectionHelper.callStaticMethod(
                                 findClassIfExists("com.android.settings.connecteddevice.usb.UsbModeChooserActivity"),
                                 "getTitleMiui12", l);
                             if (getTitle != 0) {
-                                String get = (String) XposedHelpers.callMethod(
+                                String get = (String) ReflectionHelper.callMethod(
                                     param.thisObject, "getString", getTitle
                                 );
                                 mode.put(get,
@@ -109,21 +109,21 @@ public class UsbModeChoose extends BaseHook {
                             int choose = mode.get(getMode.get(mChoose));
                             // logE(TAG, "choose: " + choose);
                             if (choose != -1) {
-                                Object mBackend = XposedHelpers.getObjectField(param.thisObject, "mBackend");
+                                Object mBackend = ReflectionHelper.getObjectField(param.thisObject, "mBackend");
                                 // logE(TAG, "cc: " + getMode.get(mChoose));
                                 if (getMode.get(mChoose).equals("反向充电")) {
-                                    if ((boolean) XposedHelpers.callMethod(param.thisObject, "isSupportReverseCharging")) {
-                                        XposedHelpers.callMethod(mBackend, "setCurrentFunctions", (long) choose);
+                                    if ((boolean) ReflectionHelper.callMethod(param.thisObject, "isSupportReverseCharging")) {
+                                        ReflectionHelper.callMethod(mBackend, "setCurrentFunctions", (long) choose);
                                     } else {
                                         logE(TAG, "Your phone can't reverse charging.");
                                     }
                                 } else {
-                                    XposedHelpers.callMethod(mBackend, "setCurrentFunctions", (long) choose);
+                                    ReflectionHelper.callMethod(mBackend, "setCurrentFunctions", (long) choose);
                                     // logE(TAG, "set: " + choose + " name: " + getMode.get(mChoose));
                                 }
                             } else if (choose == -1) {
                                 Object tethering = activity.getSystemService("tethering");
-                                int end = (int) XposedHelpers.callMethod(tethering, "setUsbTethering", true);
+                                int end = (int) ReflectionHelper.callMethod(tethering, "setUsbTethering", true);
                                 logI(TAG, "tethering: " + end);
                             }
                             if (modes) {

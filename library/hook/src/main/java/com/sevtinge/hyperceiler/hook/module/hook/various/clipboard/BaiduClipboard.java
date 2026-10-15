@@ -18,7 +18,7 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.various.clipboard;
 
-import com.hchen.hooktool.HCBase;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.IDexKit;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.IDexKitList;
@@ -39,7 +39,7 @@ import java.util.Arrays;
 /**
  * @author 焕晨HChen
  */
-public class BaiduClipboard extends HCBase {
+public class BaiduClipboard extends NativeFeatureModule {
     @Override
     public void init() {
         if ("com.baidu.input".equals(loadPackageParam.packageName)) {
@@ -74,7 +74,7 @@ public class BaiduClipboard extends HCBase {
                     );
                     return methodDataList;
                 }
-            }).forEach(method -> hook((Member) method, returnResult(Integer.MAX_VALUE)));
+            }).forEach(method -> hook((java.lang.reflect.Executable) method, returnResult(Integer.MAX_VALUE)));
         }
     }
 }

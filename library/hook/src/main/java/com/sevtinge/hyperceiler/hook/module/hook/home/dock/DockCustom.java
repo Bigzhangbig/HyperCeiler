@@ -32,7 +32,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.blur.BlurUtils;
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DockCustom extends BaseHook {
 
@@ -62,7 +62,7 @@ public class DockCustom extends BaseHook {
             protected void after(MethodHookParam param) {
                 Activity mActivity = (Activity) param.thisObject;
 
-                FrameLayout mSearchBarContainer = (FrameLayout) XposedHelpers.callMethod(param.thisObject, "getSearchBarContainer");
+                FrameLayout mSearchBarContainer = (FrameLayout) ReflectionHelper.callMethod(param.thisObject, "getSearchBarContainer");
                 FrameLayout mSearchEdgeLayout = (FrameLayout) mSearchBarContainer.getParent();
 
                 int mDockHeight = DisplayUtils.dp2px(mPrefsMap.getInt("home_dock_bg_height", 80));

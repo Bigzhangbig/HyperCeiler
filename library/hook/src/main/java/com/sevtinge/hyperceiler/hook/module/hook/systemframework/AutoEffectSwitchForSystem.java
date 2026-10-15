@@ -34,8 +34,8 @@ import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.hchen.hooktool.utils.SystemPropTool;
 import com.sevtinge.hyperceiler.hook.utils.api.effect.binder.EffectInfoService;
 import com.sevtinge.hyperceiler.hook.utils.api.effect.callback.IControlForSystem;
@@ -47,7 +47,7 @@ import com.sevtinge.hyperceiler.hook.utils.api.effect.control.FWAudioEffectContr
  *
  * @author 焕晨HChen
  */
-public class AutoEffectSwitchForSystem extends HCBase {
+public class AutoEffectSwitchForSystem extends NativeFeatureModule {
     public static final String TAG = "AutoEffectSwitchForSystem";
     public Context mContext;
     private static Handler mHandler;
@@ -75,7 +75,7 @@ public class AutoEffectSwitchForSystem extends HCBase {
 
         hookMethod("com.android.server.audio.AudioService",
                 "onSystemReady",
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void after() {
                         mContext = (Context) getThisField("mContext");

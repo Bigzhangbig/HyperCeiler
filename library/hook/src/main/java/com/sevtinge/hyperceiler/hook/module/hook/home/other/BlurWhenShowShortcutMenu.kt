@@ -26,7 +26,7 @@ import android.widget.*
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getValueByField
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 import kotlin.math.*
 
 object BlurWhenShowShortcutMenu : BaseHook() {
@@ -53,31 +53,31 @@ object BlurWhenShowShortcutMenu : BaseHook() {
 
         fun showBlurDrawable() {
             allBluredDrawable.forEach { drawable ->
-                XposedHelpers.callMethod(drawable, "setVisible", true, false)
+                ReflectionHelper.callMethod(drawable, "setVisible", true, false)
             }
         }
 
         fun hideBlurDrawable() {
             allBluredDrawable.forEach { drawable ->
-                XposedHelpers.callMethod(drawable, "setVisible", false, false)
+                ReflectionHelper.callMethod(drawable, "setVisible", false, false)
             }
         }
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             shortcutMenuLayerClass,
             "showShortcutMenu",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val dragObject = param.args[0]
-                    val dragViewInfo = XposedHelpers.callMethod(dragObject, "getDragInfo")
+                    val dragViewInfo = ReflectionHelper.callMethod(dragObject, "getDragInfo")
                     val iconIsInFolder =
-                        XposedHelpers.callMethod(dragViewInfo, "isInFolder") as Boolean
+                        ReflectionHelper.callMethod(dragViewInfo, "isInFolder") as Boolean
 
-                    val mLauncher = XposedHelpers.callStaticMethod(applicationClass, "getLauncher")
+                    val mLauncher = ReflectionHelper.callStaticMethod(applicationClass, "getLauncher")
                     val systemUiController =
-                        XposedHelpers.callMethod(mLauncher, "getSystemUiController")
+                        ReflectionHelper.callMethod(mLauncher, "getSystemUiController")
                     val mWindow = getValueByField(systemUiController, "mWindow")
-                    val targetBlurView = XposedHelpers.callMethod(mLauncher, "getScreen") as View
+                    val targetBlurView = ReflectionHelper.callMethod(mLauncher, "getScreen") as View
                     // 修复文件夹内各种模糊冲突异常
                     blurBackground = if (iconIsInFolder) !mPrefsMap.getBoolean("home_folder_blur") else true
                     val renderEffectArray = arrayOfNulls<RenderEffect>(51)
@@ -95,7 +95,7 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                         targetBlurView.setRenderEffect(renderEffectArray[value])
                         // 修复始终模糊壁纸冲突导致的各种模糊异常
                         if (blurBackground && !mPrefsMap.getBoolean("home_other_always_blur_launcher_wallpaper")) {
-                            XposedHelpers.callStaticMethod(
+                            ReflectionHelper.callStaticMethod(
                                 blurUtilsClass,
                                 "fastBlurDirectly",
                                 value / 50f,
@@ -104,8 +104,8 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                         }
                     }
                     dragView =
-                        XposedHelpers.callMethod(dragObject, "getDragView") as View
-                    targetView = XposedHelpers.callMethod(dragView, "getContent") as ViewGroup
+                        ReflectionHelper.callMethod(dragObject, "getDragView") as View
+                    targetView = ReflectionHelper.callMethod(dragView, "getContent") as ViewGroup
                     valueAnimator.duration = 200
                     valueAnimator.start()
                     hideBlurDrawable()
@@ -113,10 +113,10 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                 }
             })
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             shortcutMenuLayerClass,
             "onDragStart",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     if (isShortcutMenuLayerBlurred) {
                         if (targetView != null) {
@@ -126,13 +126,13 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                 }
             })
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             shortcutMenuLayerClass,
             "onDragEnd",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     if (isShortcutMenuLayerBlurred) {
-                        val isLocked = XposedHelpers.callStaticMethod(
+                        val isLocked = ReflectionHelper.callStaticMethod(
                             utilitiesClass,
                             "isScreenCellsLocked"
                         ) as Boolean
@@ -143,7 +143,7 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                 }
             })
 
-        XposedBridge.hookAllMethods(dragViewClass, "remove", object : XC_MethodHook() {
+        HookBridge.hookAllMethods(dragViewClass, "remove", object : HookCallback() {
             override fun beforeHookedMethod(param: MethodHookParam) {
                 if (isShortcutMenuLayerBlurred) {
                     param.result = null
@@ -151,10 +151,10 @@ object BlurWhenShowShortcutMenu : BaseHook() {
             }
         })
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             shortcutMenuClass,
             "reset",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     if (isShortcutMenuLayerBlurred) {
                         isShortcutMenuLayerBlurred = false
@@ -162,13 +162,13 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                             targetView!!.transitionAlpha = 1f
                         }
                         val mLauncher =
-                            XposedHelpers.callStaticMethod(applicationClass, "getLauncher")
+                            ReflectionHelper.callStaticMethod(applicationClass, "getLauncher")
                         val systemUiController =
-                            XposedHelpers.callMethod(mLauncher, "getSystemUiController")
+                            ReflectionHelper.callMethod(mLauncher, "getSystemUiController")
                         val mWindow = getValueByField(systemUiController, "mWindow")
 
                         if (blurBackground) {
-                            XposedHelpers.callStaticMethod(
+                            ReflectionHelper.callStaticMethod(
                                 blurUtilsClass, "fastBlurDirectly", 0f, mWindow
                             )
                         }
@@ -176,22 +176,22 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                 }
             })
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             shortcutMenuLayerClass,
             "hideShortcutMenu",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     if (isShortcutMenuLayerBlurred) {
                         val editStateChangeReason = param.args[0]
                         val shortcutMenuLayer = param.thisObject as FrameLayout
                         val mLauncher =
-                            XposedHelpers.callStaticMethod(applicationClass, "getLauncher")
+                            ReflectionHelper.callStaticMethod(applicationClass, "getLauncher")
                         val systemUiController =
-                            XposedHelpers.callMethod(mLauncher, "getSystemUiController")
+                            ReflectionHelper.callMethod(mLauncher, "getSystemUiController")
                         val mWindow = getValueByField(systemUiController, "mWindow")
 
                         val targetBlurView =
-                            XposedHelpers.callMethod(mLauncher, "getScreen") as View
+                            ReflectionHelper.callMethod(mLauncher, "getScreen") as View
 
                         val valueAnimator = ValueAnimator.ofInt(50, 0)
                         val renderEffectArray = arrayOfNulls<RenderEffect>(51)
@@ -207,7 +207,7 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                             targetBlurView.setRenderEffect(renderEffectArray[value])
                             // 修复始终模糊壁纸模糊丢失
                             if (blurBackground && !mPrefsMap.getBoolean("home_other_always_blur_launcher_wallpaper")) {
-                                XposedHelpers.callStaticMethod(
+                                ReflectionHelper.callStaticMethod(
                                     blurUtilsClass, "fastBlurDirectly", value / 50f, mWindow
                                 )
                             }
@@ -220,7 +220,7 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                                 targetBlurView.setRenderEffect(null)
                                 isShortcutMenuLayerBlurred = false
                                 if (editStateChangeReason != null && editStateChangeReason.toString() != "drag_over_threshold") {
-                                    XposedHelpers.callMethod(dragView, "remove")
+                                    ReflectionHelper.callMethod(dragView, "remove")
                                 }
                             }
                         })
@@ -235,16 +235,16 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                             )
                         } else {
                             isShortcutMenuLayerBlurred = false
-                            XposedHelpers.callMethod(dragView, "remove")
+                            ReflectionHelper.callMethod(dragView, "remove")
                         }
                     }
                 }
             })
 
-        XposedBridge.hookAllMethods(
+        HookBridge.hookAllMethods(
             blurUtilsClass,
             "fastBlurDirectly",
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val blurRatio = param.args[0] as Float
                     if (isShortcutMenuLayerBlurred && blurRatio == 0.0f) {
@@ -255,10 +255,10 @@ object BlurWhenShowShortcutMenu : BaseHook() {
 
 
         if (shortcutMenuBackgroundAlpha != 255) {
-            XposedBridge.hookAllMethods(
+            HookBridge.hookAllMethods(
                 shortcutMenuClass,
                 "setMenuBg",
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!isShortcutMenuLayerBlurred) {
                             return
@@ -379,14 +379,14 @@ object BlurWhenShowShortcutMenu : BaseHook() {
                                  }
                              }
                          } catch (e: Exception) {
-                             XposedBridge.log("HyperCeiler: BlurWhenShowShortcutMenu get mWidgetShortcutMenu failed by: $e")
+                             HookBridge.log("HyperCeiler: BlurWhenShowShortcutMenu get mWidgetShortcutMenu failed by: $e")
                          }*/
                     }
                 })
-            XposedBridge.hookAllMethods(
+            HookBridge.hookAllMethods(
                 shortcutMenuClass,
                 "addArrow",
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!isShortcutMenuLayerBlurred) {
                             return

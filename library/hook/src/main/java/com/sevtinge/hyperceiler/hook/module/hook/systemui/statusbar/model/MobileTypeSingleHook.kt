@@ -31,7 +31,7 @@ import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.statusbar.icon.Mo
 import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.statusbar.icon.MobilePrefs.rightMargin
 import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.statusbar.icon.MobilePrefs.verticalOffset
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.dp2px
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 
@@ -47,11 +47,11 @@ object MobileTypeSingleHook : BaseHook() {
             .single().createHook {
                 after {
                     val mobileLeftContainer =
-                        XposedHelpers.getObjectField(it.result, "mMobileLeftContainer") as ViewGroup
+                        ReflectionHelper.getObjectField(it.result, "mMobileLeftContainer") as ViewGroup
                     val mobileGroup =
-                        XposedHelpers.getObjectField(it.result, "mMobileGroup") as LinearLayout
+                        ReflectionHelper.getObjectField(it.result, "mMobileGroup") as LinearLayout
                     val mobileTypeSingle =
-                        XposedHelpers.getObjectField(it.result, "mMobileTypeSingle") as TextView
+                        ReflectionHelper.getObjectField(it.result, "mMobileTypeSingle") as TextView
 
                     setMobileType(mobileGroup, mobileTypeSingle, mobileLeftContainer)
                 }

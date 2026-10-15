@@ -22,7 +22,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class StatusBarIcon extends BaseHook {
 
@@ -30,8 +30,8 @@ public class StatusBarIcon extends BaseHook {
     public void init() {
         // from XiaomiHelper with GPL3
         Class<?> mMiuiIconManagerUtils = findClassIfExists("com.android.systemui.statusbar.phone.MiuiIconManagerUtils");
-        List<String> statusBarList = (List<String>) XposedHelpers.getStaticObjectField(mMiuiIconManagerUtils, "RIGHT_BLOCK_LIST");
-        List<String> ctrlCenterList = (List<String>) XposedHelpers.getStaticObjectField(mMiuiIconManagerUtils, "CONTROL_CENTER_BLOCK_LIST");
+        List<String> statusBarList = (List<String>) ReflectionHelper.getStaticObjectField(mMiuiIconManagerUtils, "RIGHT_BLOCK_LIST");
+        List<String> ctrlCenterList = (List<String>) ReflectionHelper.getStaticObjectField(mMiuiIconManagerUtils, "CONTROL_CENTER_BLOCK_LIST");
 
         hyperIconShowManager(statusBarList, ctrlCenterList, mMiuiIconManagerUtils);
     }
@@ -65,8 +65,8 @@ public class StatusBarIcon extends BaseHook {
         setIcon(mPrefsMap.getStringAsInt("system_ui_status_bar_icon_tv", 0), "tv", statusBarList, ctrlCenterList);
         setIcon(mPrefsMap.getStringAsInt("system_ui_status_bar_icon_wireless_headset", 0), "wireless_headset", statusBarList, ctrlCenterList);
 
-        XposedHelpers.setStaticObjectField(mMiuiIconManagerUtils, "RIGHT_BLOCK_LIST", statusBarList);
-        XposedHelpers.setStaticObjectField(mMiuiIconManagerUtils, "CONTROL_CENTER_BLOCK_LIST", ctrlCenterList);
+        ReflectionHelper.setStaticObjectField(mMiuiIconManagerUtils, "RIGHT_BLOCK_LIST", statusBarList);
+        ReflectionHelper.setStaticObjectField(mMiuiIconManagerUtils, "CONTROL_CENTER_BLOCK_LIST", ctrlCenterList);
     }
 
     private void setIcon(int value, String name, List<String> statusBarList, List<String> controlList){

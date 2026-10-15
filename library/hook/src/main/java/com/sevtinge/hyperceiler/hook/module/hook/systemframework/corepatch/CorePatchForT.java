@@ -23,29 +23,29 @@ import android.content.pm.Signature;
 import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 public class CorePatchForT extends CorePatchForS {
     public static final String TAG = "[CorePatchForT]";
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+    public void handleLoadPackage(PackageContext.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {
         super.handleLoadPackage(loadPackageParam);
 
-        var checkDowngrade = XposedHelpers.findMethodExactIfExists("com.android.server.pm.PackageManagerServiceUtils", loadPackageParam.classLoader,
+        var checkDowngrade = ReflectionHelper.findMethodExactIfExists("com.android.server.pm.PackageManagerServiceUtils", loadPackageParam.classLoader,
             "checkDowngrade",
             "com.android.server.pm.parsing.pkg.AndroidPackage",
             "android.content.pm.PackageInfoLite");
         if (checkDowngrade != null) {
-            XposedBridge.hookMethod(checkDowngrade, new ReturnConstant(prefs, "prefs_key_system_framework_core_patch_downgr", null));
+            HookBridge.hookMethod(checkDowngrade, new ReturnConstant(prefs, "prefs_key_system_framework_core_patch_downgr", null));
         }
 
         Class<?> signingDetails = getSigningDetails(loadPackageParam.classLoader);
         // New package has a different signature
         // 处理覆盖安装但签名不一致
-        hookAllMethods(signingDetails, "checkCapability", new XC_MethodHook() {
+        hookAllMethods(signingDetails, "checkCapability", new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) {
                 // Don't handle PERMISSION & AUTH
@@ -63,13 +63,13 @@ public class CorePatchForT extends CorePatchForS {
         Class<?> ParsedPackage = getParsedPackage(loadPackageParam.classLoader);
         findAndHookMethod("com.android.server.pm.InstallPackageHelper", loadPackageParam.classLoader,
             "doesSignatureMatchForPermissions", String.class,
-            ParsedPackage, int.class, new XC_MethodHook() {
+            ParsedPackage, int.class, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     if (prefs.getBoolean("prefs_key_system_framework_core_patch_digest_creak", true) && prefs.getBoolean("prefs_key_system_framework_core_patch_use_pre_signature", false)) {
                         //If we decide to crack this then at least make sure they are same apks, avoid another one that tries to impersonate.
                         if (param.getResult().equals(false)) {
-                            String pPname = (String) XposedHelpers.callMethod(param.args[1], "getPackageName");
+                            String pPname = (String) ReflectionHelper.callMethod(param.args[1], "getPackageName");
                             if (pPname.contentEquals((String) param.args[0])) {
                                 param.setResult(true);
                             }
@@ -78,11 +78,11 @@ public class CorePatchForT extends CorePatchForS {
                 }
             });
 
-        var assertMinSignatureSchemeIsValid = XposedHelpers.findMethodExactIfExists("com.android.server.pm.ScanPackageUtils", loadPackageParam.classLoader,
+        var assertMinSignatureSchemeIsValid = ReflectionHelper.findMethodExactIfExists("com.android.server.pm.ScanPackageUtils", loadPackageParam.classLoader,
             "assertMinSignatureSchemeIsValid",
             "com.android.server.pm.parsing.pkg.AndroidPackage", int.class);
         if (assertMinSignatureSchemeIsValid != null) {
-            XposedBridge.hookMethod(assertMinSignatureSchemeIsValid, new XC_MethodHook() {
+            HookBridge.hookMethod(assertMinSignatureSchemeIsValid, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
@@ -94,11 +94,11 @@ public class CorePatchForT extends CorePatchForS {
 
         Class<?> strictJarVerifier = findClass("android.util.jar.StrictJarVerifier", loadPackageParam.classLoader);
         if (strictJarVerifier != null) {
-            XposedBridge.hookAllConstructors(strictJarVerifier, new XC_MethodHook() {
+            HookBridge.hookAllConstructors(strictJarVerifier, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     if (prefs.getBoolean("prefs_key_system_framework_core_patch_auth_creak", true)) {
-                        XposedHelpers.setBooleanField(param.thisObject, "signatureSchemeRollbackProtectionsEnforced", false);
+                        ReflectionHelper.setBooleanField(param.thisObject, "signatureSchemeRollbackProtectionsEnforced", false);
                     }
                 }
             });
@@ -106,24 +106,24 @@ public class CorePatchForT extends CorePatchForS {
 
         // ensure verifySignatures success
         // https://cs.android.com/android/platform/superproject/main/+/main:frameworks/base/services/core/java/com/android/server/pm/PackageManagerServiceUtils.java;l=621;drc=2e50991320cbef77d3e8504a4b284adae8c2f4d2
-        var utils = XposedHelpers.findClassIfExists("com.android.server.pm.PackageManagerServiceUtils", loadPackageParam.classLoader);
+        var utils = ReflectionHelper.findClassIfExists("com.android.server.pm.PackageManagerServiceUtils", loadPackageParam.classLoader);
         if (utils != null) {
             deoptimizeMethod(utils, "canJoinSharedUserId");
         }
     }
 
     Class<?> getParsedPackage(ClassLoader classLoader) {
-        return XposedHelpers.findClassIfExists("com.android.server.pm.parsing.pkg.ParsedPackage", classLoader);
+        return ReflectionHelper.findClassIfExists("com.android.server.pm.parsing.pkg.ParsedPackage", classLoader);
     }
 
     Class<?> getSigningDetails(ClassLoader classLoader) {
-        return XposedHelpers.findClassIfExists("android.content.pm.SigningDetails", classLoader);
+        return ReflectionHelper.findClassIfExists("android.content.pm.SigningDetails", classLoader);
     }
 
     @Override
     protected void dumpSigningDetails(Object signingDetails, PrintWriter pw) {
         var i = 0;
-        for (var sign : (Signature[]) XposedHelpers.callMethod(signingDetails, "getSignatures")) {
+        for (var sign : (Signature[]) ReflectionHelper.callMethod(signingDetails, "getSignatures")) {
             i++;
             pw.println(i + ": " + sign.toCharsString());
         }
@@ -131,16 +131,16 @@ public class CorePatchForT extends CorePatchForS {
 
     @Override
     protected Object SharedUserSetting_packages(Object sharedUser) {
-        return XposedHelpers.getObjectField(sharedUser, "mPackages");
+        return ReflectionHelper.getObjectField(sharedUser, "mPackages");
     }
 
     @Override
     protected Object SigningDetails_mergeLineageWith(Object self, Object other) {
-        return XposedHelpers.callMethod(self, "mergeLineageWith", other, 2 /*MERGE_RESTRICTED_CAPABILITY*/);
+        return ReflectionHelper.callMethod(self, "mergeLineageWith", other, 2 /*MERGE_RESTRICTED_CAPABILITY*/);
     }
 
     @Override
     Class<?> getIsVerificationEnabledClass(ClassLoader classLoader) {
-        return XposedHelpers.findClass("com.android.server.pm.PackageManagerService", classLoader);
+        return ReflectionHelper.findClass("com.android.server.pm.PackageManagerService", classLoader);
     }
 }

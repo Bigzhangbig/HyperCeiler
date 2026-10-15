@@ -29,7 +29,7 @@ import android.widget.TextView;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class HideDelimiter extends BaseHook {
 
@@ -62,13 +62,13 @@ public class HideDelimiter extends BaseHook {
                         new MethodHook() {
                             @Override
                             protected void before(MethodHookParam param) {
-                                String mCurrentCarrier = (String) XposedHelpers.getObjectField(param.thisObject, "mCurrentCarrier");
+                                String mCurrentCarrier = (String) ReflectionHelper.getObjectField(param.thisObject, "mCurrentCarrier");
                                 switch (prefs) {
                                     case 1 -> mCurrentCarrier = mCurrentCarrier.replace(" | ", "");
                                     case 2 -> mCurrentCarrier = "";
                                     case 3 -> mCurrentCarrier = getProp("persist.sys.device_name");
                                 }
-                                XposedHelpers.setObjectField(param.thisObject, "mCurrentCarrier", mCurrentCarrier);
+                                ReflectionHelper.setObjectField(param.thisObject, "mCurrentCarrier", mCurrentCarrier);
                             }
                         }
                 );
@@ -158,20 +158,20 @@ public class HideDelimiter extends BaseHook {
                         findAndHookMethod("com.android.systemui.statusbar.policy.MiuiCarrierTextControllerImpl", "updateCarrierText", new MethodHook() {
                             @Override
                             protected void before(MethodHookParam param) throws Throwable {
-                                XposedHelpers.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
-                                XposedHelpers.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
-                                XposedHelpers.setObjectField(param.thisObject, "mCarrier", deviceNameList);
-                                XposedHelpers.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
+                                ReflectionHelper.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
                             }
                         });
                     } catch(Throwable ignore) {
                         findAndHookMethod("com.android.systemui.statusbar.policy.MiuiCarrierTextController", "updateCarrierText", new MethodHook() {
                             @Override
                             protected void before(MethodHookParam param) throws Throwable {
-                                XposedHelpers.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
-                                XposedHelpers.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
-                                XposedHelpers.setObjectField(param.thisObject, "mCarrier", deviceNameList);
-                                XposedHelpers.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
+                                ReflectionHelper.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mCarrier", deviceNameList);
+                                ReflectionHelper.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
                             }
                         });
                     }
@@ -210,10 +210,10 @@ public class HideDelimiter extends BaseHook {
                     findAndHookMethod("com.android.systemui.statusbar.policy.MiuiCarrierTextControllerImpl", "updateCarrierText", new MethodHook() {
                         @Override
                         protected void before(MethodHookParam param) throws Throwable {
-                            XposedHelpers.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
-                            XposedHelpers.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
-                            XposedHelpers.setObjectField(param.thisObject, "mCarrier", deviceNameList);
-                            XposedHelpers.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
+                            ReflectionHelper.setObjectField(param.thisObject, "mCurrentCarrier", getProp("persist.sys.device_name"));
+                            ReflectionHelper.setObjectField(param.thisObject, "mCustomCarrier", deviceNameList);
+                            ReflectionHelper.setObjectField(param.thisObject, "mCarrier", deviceNameList);
+                            ReflectionHelper.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
                         }
                     });
 
@@ -228,7 +228,7 @@ public class HideDelimiter extends BaseHook {
                         @Override
                         protected void before(MethodHookParam param) throws Throwable {
                             param.args[0] = deviceNameList;
-                            XposedHelpers.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
+                            ReflectionHelper.setObjectField(param.thisObject, "mRealCarrier", deviceNameList);
                         }
                     });
 
@@ -271,9 +271,9 @@ public class HideDelimiter extends BaseHook {
                     Object carrierView;
                     TextView mCarrierText;
                     try {
-                        carrierView = XposedHelpers.getObjectField(param.thisObject, "carrierText");
+                        carrierView = ReflectionHelper.getObjectField(param.thisObject, "carrierText");
                     } catch (Throwable e) {
-                        carrierView = XposedHelpers.getObjectField(param.thisObject, "mCarrierText");
+                        carrierView = ReflectionHelper.getObjectField(param.thisObject, "mCarrierText");
                     }
                     mCarrierText = (TextView) carrierView;
                     mCarrierText.setVisibility(View.GONE);

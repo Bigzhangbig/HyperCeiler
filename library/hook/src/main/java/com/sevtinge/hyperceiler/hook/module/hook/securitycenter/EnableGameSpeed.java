@@ -33,7 +33,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class EnableGameSpeed extends BaseHook {
     @Override
@@ -71,7 +71,7 @@ public class EnableGameSpeed extends BaseHook {
         });
         hookMethod(method2, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 String param0 = (String) param.args[0];
                 if (Objects.equals(param0, "debug.game.video.support")) param.setResult(true);
             }
@@ -90,7 +90,7 @@ public class EnableGameSpeed extends BaseHook {
         });
         hookMethod(method3, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         });
@@ -108,7 +108,7 @@ public class EnableGameSpeed extends BaseHook {
         });
         hookMethod(method4, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         });
@@ -125,7 +125,7 @@ public class EnableGameSpeed extends BaseHook {
         });
         hookMethod(method5, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 mSetProp();
                 param.setResult(null);
             }

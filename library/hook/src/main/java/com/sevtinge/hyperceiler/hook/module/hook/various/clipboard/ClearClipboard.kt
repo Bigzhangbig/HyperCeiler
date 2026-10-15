@@ -34,7 +34,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreSmallVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldAs
 import com.sevtinge.hyperceiler.hook.utils.hookAfterMethod
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 
@@ -82,7 +82,7 @@ class ClearClipboard : BaseHook() {
                         mAllClipboardList.clear()
 
                         mPopWindow.getObjectField("mInputMethodClipboardAdapter")?.callMethod("clearClipboardListItem")
-                        XposedHelpers.findClassIfExists("com.miui.inputmethod.MiuiClipboardManager", classLoader)
+                        ReflectionHelper.findClassIfExists("com.miui.inputmethod.MiuiClipboardManager", classLoader)
                             .callStaticMethod(
                                 "setClipboardModelList",
                                 mPopWindow.getObjectField("mContext"),

@@ -22,7 +22,7 @@ import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.isMoreAn
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NotificationFix extends BaseHook {
     @Override
@@ -35,6 +35,6 @@ public class NotificationFix extends BaseHook {
         else
             className = "com.android.systemui.statusbar.notification.NotificationSettingsManager";
 
-        XposedHelpers.setStaticBooleanField(XposedHelpers.findClass(className, lpparam.classLoader), fieldName, false);
+        ReflectionHelper.setStaticBooleanField(ReflectionHelper.findClass(className, lpparam.classLoader), fieldName, false);
     }
 }

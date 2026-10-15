@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefType;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsChangeObserver;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class VolumeDefaultStream extends BaseHook {
 
@@ -39,7 +39,7 @@ public class VolumeDefaultStream extends BaseHook {
             @Override
             protected void before(MethodHookParam param) {
 
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 Handler mHandler = new Handler(mContext.getMainLooper());
                 new PrefsChangeObserver(mContext, mHandler, true, PrefType.String,
                         "prefs_key_system_framework_default_volume_stream", "0");

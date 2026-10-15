@@ -69,6 +69,6 @@ public class SetDeviceLevel extends BaseHook {
         // if (getPackageVersionCode(lpparam) < 15000000)
         //     hookAllMethods(cls, "transDeviceLevel", MethodHook.returnConstant(order));
         // else
-        //     findAndHookMethod(cls, "transDeviceLevel", int.class, XC_MethodReplacement.returnConstant(order));
+        //     findAndHookMethod(cls, "transDeviceLevel", int.class, HookReplacement.returnConstant(order));
     }
 }

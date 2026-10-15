@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.hook.module.hook.securitycenter.battery
 
 import android.annotation.SuppressLint
-import android.app.AndroidAppHelper
+import com.sevtinge.hyperceiler.hook.api.AppContext
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.IntentFilter
@@ -103,7 +103,7 @@ object ShowBatteryTemperatureNew : BaseHook() {
             }
         }.createHook {
             after { hookParam ->
-                val context = AndroidAppHelper.currentApplication().applicationContext
+                val context = AppContext.currentApplication().applicationContext
                 val isDarkMode =
                     context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
                 val currentTemperatureState =

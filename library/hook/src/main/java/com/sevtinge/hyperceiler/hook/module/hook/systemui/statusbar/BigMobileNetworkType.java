@@ -31,7 +31,7 @@ import android.widget.TextView;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BigMobileNetworkType extends BaseHook {
 
@@ -42,16 +42,16 @@ public class BigMobileNetworkType extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 Object mobileIconState = param.args[0];
-                XposedHelpers.setObjectField(mobileIconState, "showMobileDataTypeSingle", true);
-                XposedHelpers.setObjectField(mobileIconState, "fiveGDrawableId", 0);
+                ReflectionHelper.setObjectField(mobileIconState, "showMobileDataTypeSingle", true);
+                ReflectionHelper.setObjectField(mobileIconState, "fiveGDrawableId", 0);
             }
         };
 
         MethodHook afterUpdate = new MethodHook() {
             @Override
             protected void after(final MethodHookParam param) throws Throwable {
-                Object mMobileLeftContainer = XposedHelpers.getObjectField(param.thisObject, "mMobileLeftContainer");
-                XposedHelpers.callMethod(mMobileLeftContainer, "setVisibility", 8);
+                Object mMobileLeftContainer = ReflectionHelper.getObjectField(param.thisObject, "mMobileLeftContainer");
+                ReflectionHelper.callMethod(mMobileLeftContainer, "setVisibility", 8);
             }
         };
 
@@ -107,7 +107,7 @@ public class BigMobileNetworkType extends BaseHook {
                 newLinearlayout.setPadding(0, 0, 0, 0);
 
 
-                XposedHelpers.setObjectField(param.thisObject, "mMobileLeftContainer", newLinearlayout);
+                ReflectionHelper.setObjectField(param.thisObject, "mMobileLeftContainer", newLinearlayout);
                 rightParentLayout.addView(newLinearlayout, mobileContainerRightIndex);
 
                 // 将组件插入新的布局

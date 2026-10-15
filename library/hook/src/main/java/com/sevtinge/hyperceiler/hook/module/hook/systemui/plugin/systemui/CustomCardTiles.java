@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.plugin.systemui;
 
 import static com.sevtinge.hyperceiler.hook.utils.devicesdk.SystemSDKKt.isMoreHyperOSVersion;
 import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logE;
-import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findAndHookMethod;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
@@ -29,9 +29,8 @@ import android.widget.LinearLayout;
 
 import java.util.List;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XCallback;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CustomCardTiles {
     private static final String TAG = "CustomCardTiles";
@@ -51,16 +50,16 @@ public class CustomCardTiles {
     public static void initCustomCardTiles(ClassLoader classLoader, List<String> cardStyleTiles) {
         findAndHookMethod("miui.systemui.controlcenter.qs.QSController", classLoader,
                 "getCardStyleTileSpecs",
-                new XC_MethodHook() {
+                new HookCallback() {
                     @Override
-                    protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param)  {
+                    protected void beforeHookedMethod(HookCallback.MethodHookParam param)  {
                         param.setResult(cardStyleTiles);
                     }
                 });
 
-        XposedHelpers.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader,
+        ReflectionHelper.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader,
                 Context.class, AttributeSet.class,
-                new XC_MethodHook() {
+                new HookCallback() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         LinearLayout linearLayout = (LinearLayout) param.thisObject;
@@ -76,13 +75,13 @@ public class CustomCardTiles {
         );
 
         findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader,
-                "updateBackground", new XC_MethodHook(XCallback.PRIORITY_HIGHEST) {
+                "updateBackground", new HookCallback(HookCallback.PRIORITY_HIGHEST) {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
-                        Object state = XposedHelpers.getObjectField(param.thisObject, "state");
+                        Object state = ReflectionHelper.getObjectField(param.thisObject, "state");
                         if (state == null) return;  // 系统界面组件会先 null 几次才会获取到值，应该是官方写法有问题
-                        String spec = (String) XposedHelpers.getObjectField(state, "spec");
-                        int i = XposedHelpers.getIntField(state, "state");
+                        String spec = (String) ReflectionHelper.getObjectField(state, "spec");
+                        int i = ReflectionHelper.getIntField(state, "state");
                         switch (spec) {
                             case TAG_BT, TAG_CELL, TAG_FLASHLIGHT, TAG_WIFI, TAG_VOWIFI1, TAG_VOWIFI2:
                                 break;
@@ -96,12 +95,12 @@ public class CustomCardTiles {
                                     Drawable enable = linearLayout.getContext().getTheme().
                                             getResources().getDrawable(idEnable, linearLayout.getContext().getTheme());
                                     linearLayout.setBackground(enable);
-                                    XposedHelpers.callMethod(param.thisObject, "setCornerRadius", cornerRadiusF);
+                                    ReflectionHelper.callMethod(param.thisObject, "setCornerRadius", cornerRadiusF);
                                 } else if (i == 1) {
                                     Drawable disabled = linearLayout.getContext().getTheme().
                                             getResources().getDrawable(idDisabled, linearLayout.getContext().getTheme());
                                     linearLayout.setBackground(disabled);
-                                    XposedHelpers.callMethod(param.thisObject, "setCornerRadius", cornerRadiusF);
+                                    ReflectionHelper.callMethod(param.thisObject, "setCornerRadius", cornerRadiusF);
                                 }
                         }
                     }
@@ -111,9 +110,9 @@ public class CustomCardTiles {
         if (isMoreHyperOSVersion(2f)) {
             findAndHookMethod("miui.systemui.controlcenter.panel.main.qs.QSCardsController", classLoader,
                     "createVoWifiTiles",
-                    new XC_MethodHook() {
+                    new HookCallback() {
                         @Override
-                        protected void beforeHookedMethod(XC_MethodHook.MethodHookParam param)  {
+                        protected void beforeHookedMethod(HookCallback.MethodHookParam param)  {
                             param.setResult(null);
                         }
                     });

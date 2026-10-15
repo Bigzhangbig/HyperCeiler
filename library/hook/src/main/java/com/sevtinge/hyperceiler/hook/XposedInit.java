@@ -30,8 +30,11 @@ import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logE;
 import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logI;
 import static com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils.mPrefsMap;
 
-import com.hchen.hooktool.HCInit;
+import com.hchen.hooktool.ModuleData;
 import com.hchen.hooktool.utils.ResInjectTool;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
+import com.sevtinge.hyperceiler.hook.api.PackageHook;
 import com.sevtinge.hyperceiler.hook.module.app.VariousThirdApps;
 import com.sevtinge.hyperceiler.hook.module.base.BaseModule;
 import com.sevtinge.hyperceiler.hook.module.base.tool.ResourcesTool;
@@ -39,7 +42,6 @@ import com.sevtinge.hyperceiler.hook.module.skip.SystemFrameworkForCorePatch;
 import com.sevtinge.hyperceiler.hook.safe.CrashHook;
 import com.sevtinge.hyperceiler.hook.safe.RescuePartyPlus;
 import com.sevtinge.hyperceiler.hook.safe.SafeMode;
-import com.sevtinge.hyperceiler.hook.utils.log.LogManager;
 import com.sevtinge.hyperceiler.module.base.DataBase;
 
 import java.lang.reflect.InvocationTargetException;
@@ -47,14 +49,11 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.IXposedHookZygoteInit;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.kyuubiran.ezxhelper.android.logging.Logger;
+import io.github.kyuubiran.ezxhelper.core.EzXReflection;
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed;
 
-public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage {
+public class XposedInit implements PackageHook {
     private static final String TAG = "HyperCeiler";
     public static String mModulePath = null;
     public static ResourcesTool mResHook;
@@ -62,37 +61,21 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
     // public static XmlTool mXmlTool;
     public final VariousThirdApps mVariousThirdApps = new VariousThirdApps();
 
-    @Override
-    public void initZygote(StartupParam startupParam) {
-        // ModernXposedInit has already attached the framework's remote preferences.
+    public void initializeBackend(String modulePath, boolean systemServer) {
+        // The modern entry has already attached preferences and initialized both native helpers.
         if (!mPrefsMap.getBoolean("allow_hook")) return;
 
-        // load EzXHelper
-        EzXposed.initZygote(startupParam);
+        EzXposed.initModuleResources();
         Logger.INSTANCE.setTag(TAG);
 
-        // load HCInit
-        HCInit.initBasicData(new HCInit.BasicData()
-            .setModulePackageName(BuildConfig.APP_MODULE_ID)
-            .setLogLevel(LogManager.getLogLevel())
-            .setTag("HyperCeiler")
-        );
-        HCInit.initStartupParam(startupParam);
-
-        // get module path
-        mModulePath = startupParam.modulePath;
-        // mXmlTool = new XmlTool(startupParam);
-        // load ResourcesTool
+        mModulePath = modulePath;
         if (!mPrefsMap.getBoolean("module_settings_reshook_new")) {
-            mResHook = ResourcesTool.getInstance(startupParam.modulePath);
+            mResHook = ResourcesTool.getInstance(modulePath);
         }
-
-        // load ZygoteHook
-        // new BackgroundBlurDrawable().initZygote(startupParam); 留档
     }
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    public void handleLoadPackage(PackageContext.LoadPackageParam lpparam) throws Throwable {
         String packageName = lpparam.packageName;
 
         if (SafeMode.isInSafeModeOnHook(packageName) || SafeMode.isInSafeModeByProp(packageName)) {
@@ -102,8 +85,9 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
 
         if (mPrefsMap.getBoolean("allow_hook")) {
 
-            // load EzXHelper and set log tag
-            EzXposed.initHandleLoadPackage(lpparam);
+            // Shared data for native reflection helpers follows the current target's loader.
+            EzXReflection.init(lpparam.classLoader);
+            ModuleData.setClassLoader(lpparam.classLoader);
 
             // load CorePatch
             if (mPrefsMap.getBoolean("system_framework_core_patch_enable")) {
@@ -126,7 +110,7 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
         }
     }
 
-    private void invokeInit(XC_LoadPackage.LoadPackageParam lpparam) {
+    private void invokeInit(PackageContext.LoadPackageParam lpparam) {
         String mPkgName = lpparam.packageName;
         if (mPkgName == null) return;
 
@@ -160,9 +144,9 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
         });
     }
 
-    private void androidCrashEventHook(XC_LoadPackage.LoadPackageParam lpparam) {
+    private void androidCrashEventHook(PackageContext.LoadPackageParam lpparam) {
         if ("android".equals(lpparam.packageName)) {
-            XposedBridge.log("[HyperCeiler][I]: Log level is " + logLevelDesc());
+            HookBridge.log("[HyperCeiler][I]: Log level is " + logLevelDesc());
             try {
                 new CrashHook(lpparam);
                 RescuePartyPlus rescuePartyPlus = RescuePartyPlus.INSTANCE;

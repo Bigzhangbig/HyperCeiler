@@ -25,8 +25,8 @@ import android.os.Bundle;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.skip.GlobalActions;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SwipeAndStop extends BaseHook {
     @Override
@@ -37,7 +37,7 @@ public class SwipeAndStop extends BaseHook {
 
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                vibratorHook = findAndHookMethodUseUnhook(VibratorCls, "vibrate", long.class, XC_MethodReplacement.DO_NOTHING);
+                vibratorHook = findAndHookMethodUseUnhook(VibratorCls, "vibrate", long.class, HookReplacement.DO_NOTHING);
             }
 
             @Override
@@ -54,7 +54,7 @@ public class SwipeAndStop extends BaseHook {
                 param.args[0] = false;
             }
         });
-        findAndHookMethod("com.miui.home.recents.GestureStubView", "isDisableQuickSwitch", XC_MethodReplacement.returnConstant(false));
+        findAndHookMethod("com.miui.home.recents.GestureStubView", "isDisableQuickSwitch", HookReplacement.returnConstant(false));
         findAndHookMethod("com.miui.home.recents.GestureStubView", "getNextTask", Context.class, boolean.class, int.class, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
@@ -65,7 +65,7 @@ public class SwipeAndStop extends BaseHook {
                     bundle.putInt("inDirection", (int) param.args[2]);
                     if (GlobalActions.handleAction(mContext, "pref_key_controls_fsg_swipeandstop")) {
                         Class<?> Task = findClassIfExists("com.android.systemui.shared.recents.model.Task", lpparam.classLoader);
-                        param.setResult(XposedHelpers.newInstance(Task));
+                        param.setResult(ReflectionHelper.newInstance(Task));
                         return;
                     }
                 }

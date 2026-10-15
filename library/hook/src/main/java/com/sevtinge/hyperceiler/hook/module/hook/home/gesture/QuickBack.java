@@ -22,8 +22,8 @@ import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.content.Context;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,7 +33,7 @@ import java.util.HashMap;
  *
  * @noinspection DataFlowIssue
  */
-public class QuickBack extends HCBase {
+public class QuickBack extends NativeFeatureModule {
     private static final HashMap<String, Integer> mResMap = new HashMap<>();
     private static int[] values = null;
 
@@ -60,7 +60,7 @@ public class QuickBack extends HCBase {
         hookMethod("com.miui.home.recents.GestureStubView$3",
                 "onSwipeStop",
                 boolean.class, float.class, boolean.class,
-                new IHook() {
+                new NativeFeatureHook() {
 
                     @Override
                     public void before() {
@@ -72,7 +72,7 @@ public class QuickBack extends HCBase {
 
                             int ordinal = (int) callMethod(getCurrentState, "ordinal");
                             if (values == null) {
-                                Class<?> mGestureStubView$X = existsClass("com.miui.home.recents.GestureStubView$4") ?
+                                Class<?> mGestureStubView$X = hasClass("com.miui.home.recents.GestureStubView$4") ?
                                         findClass("com.miui.home.recents.GestureStubView$4")
                                         : findClass("com.miui.home.recents.GestureStubView$5");
                                 int[] mState = (int[]) getStaticField(mGestureStubView$X, "$SwitchMap$com$miui$home$recents$GestureBackArrowView$ReadyState");
@@ -93,7 +93,7 @@ public class QuickBack extends HCBase {
         hookMethod("com.miui.home.recents.GestureStubView",
                 "getNextTask",
                 Context.class, boolean.class, int.class,
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void before() {
                         Context context = (Context) getArg(0);

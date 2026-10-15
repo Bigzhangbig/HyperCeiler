@@ -30,14 +30,14 @@ import com.sevtinge.hyperceiler.hook.module.hook.systemframework.corepatch.CoreP
 import com.sevtinge.hyperceiler.hook.module.hook.systemframework.corepatch.CorePatchForV;
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils;
 
-import de.robv.android.xposed.IXposedHookLoadPackage;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.PackageHook;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
-public class SystemFrameworkForCorePatch implements IXposedHookLoadPackage {
+public class SystemFrameworkForCorePatch implements PackageHook {
     public static final String TAG = "CorePatch";
 
     @Override
-    public void handleLoadPackage(XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
+    public void handleLoadPackage(PackageContext.LoadPackageParam lpparam) throws Throwable {
         if (("android".equals(lpparam.packageName)) && (lpparam.processName.equals("android"))) {
             if (DEBUG)
                 XposedLogUtils.logD(TAG, "android", "handleLoadPackage: Current sdk version " + Build.VERSION.SDK_INT);

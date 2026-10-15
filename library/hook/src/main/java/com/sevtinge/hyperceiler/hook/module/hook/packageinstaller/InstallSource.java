@@ -22,7 +22,7 @@ import android.app.Activity;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class InstallSource extends BaseHook {
 
@@ -42,7 +42,7 @@ public class InstallSource extends BaseHook {
 
         findAndHookMethodSilently("com.miui.packageInstaller.InstallStart",
             "getCallingPackage",
-            XC_MethodReplacement.returnConstant(mInstallSourcePackageName));
+            HookReplacement.returnConstant(mInstallSourcePackageName));
     }
 
     private static boolean isCalledFromInstallStart() {
@@ -66,7 +66,7 @@ public class InstallSource extends BaseHook {
                 }
             }
         } catch (Throwable t) {
-            de.robv.android.xposed.XposedBridge.log("isCalledFromInstallStartStrict error: " + t);
+            com.sevtinge.hyperceiler.hook.api.HookBridge.log("isCalledFromInstallStartStrict error: " + t);
         }
         return false;
     }

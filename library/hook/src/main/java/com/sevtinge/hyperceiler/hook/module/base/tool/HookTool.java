@@ -31,19 +31,19 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 public class HookTool extends XposedLogUtils {
     public static final PrefsMap<String, Object> mPrefsMap = PrefsUtils.mPrefsMap;
     public static final boolean isNewResHook = mPrefsMap.getBoolean("module_settings_reshook_new");
     private final String TAG = getClass().getSimpleName();
 
-    public XC_LoadPackage.LoadPackageParam lpparam;
+    public PackageContext.LoadPackageParam lpparam;
 
-    public void setLoadPackageParam(XC_LoadPackage.LoadPackageParam param) {
+    public void setLoadPackageParam(PackageContext.LoadPackageParam param) {
     }
 
     public Class<?> findClass(String className) {
@@ -51,13 +51,13 @@ public class HookTool extends XposedLogUtils {
     }
 
     public Class<?> findClass(String className, ClassLoader classLoader) {
-        return XposedHelpers.findClass(className, classLoader);
+        return ReflectionHelper.findClass(className, classLoader);
     }
 
     public Class<?> findClassIfExists(String className) {
         try {
             return findClass(className);
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             if (BuildConfig.DEBUG)
                 logE(TAG, "find " + className + " is Null: " + e);
         }
@@ -67,7 +67,7 @@ public class HookTool extends XposedLogUtils {
     public Class<?> findClassIfExists(String newClassName, String oldClassName) {
         try {
             return findClass(findClassIfExists(newClassName) != null ? newClassName : oldClassName);
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             if (BuildConfig.DEBUG)
                 logE(TAG, "find " + newClassName + " and " + oldClassName + " is Null: " + e);
 
@@ -78,14 +78,14 @@ public class HookTool extends XposedLogUtils {
     public Class<?> findClassIfExists(String className, ClassLoader classLoader) {
         try {
             return findClass(className, classLoader);
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             if (BuildConfig.DEBUG)
                 logE(TAG, "find " + className + " is Null: " + e);
         }
         return null;
     }
 
-    public static class MethodHook extends XC_MethodHook {
+    public static class MethodHook extends HookCallback {
 
         protected void before(MethodHookParam param) throws Throwable {
         }
@@ -110,7 +110,7 @@ public class HookTool extends XposedLogUtils {
             };
         }
 
-        public static final MethodHook DO_NOTHING = new MethodHook(PRIORITY_HIGHEST * 2) {
+        public static final MethodHook DO_NOTHING = new MethodHook(PRIORITY_HIGHEST) {
             @Override
             protected void before(MethodHookParam param) {
                 param.setResult(null);
@@ -161,12 +161,12 @@ public class HookTool extends XposedLogUtils {
     }
 
     public static void hookMethod(Method method, MethodHook callback) {
-        XposedBridge.hookMethod(method, callback);
+        HookBridge.hookMethod(method, callback);
     }
 
     public static Object getObjectFieldSilently(Object obj, String fieldName) {
         try {
-            return XposedHelpers.getObjectField(obj, fieldName);
+            return ReflectionHelper.getObjectField(obj, fieldName);
         } catch (Throwable t) {
             return "ObjectFieldNotExist";
         }
@@ -180,8 +180,8 @@ public class HookTool extends XposedLogUtils {
         }
     }
 
-    public static XC_MethodHook.Unhook findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
-        return XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
+    public static HookCallback.Unhook findAndHookMethod(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
+        return ReflectionHelper.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
     }
 
     public void findAndHookMethod(String className, String methodName, Object... parameterTypesAndCallback) {
@@ -197,21 +197,21 @@ public class HookTool extends XposedLogUtils {
     }
 
     public static void findAndHookMethod(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
-        XposedHelpers.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
+        ReflectionHelper.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
     }
 
-    public XC_MethodHook.Unhook findAndHookMethodUseUnhook(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
+    public HookCallback.Unhook findAndHookMethodUseUnhook(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
         try {
-            return XposedHelpers.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
+            return ReflectionHelper.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
         } catch (Throwable t) {
             // logE("findAndHookMethodUseUnhook", "Failed to hook " + methodName + " method in " + className);
             return null;
         }
     }
 
-    public XC_MethodHook.Unhook findAndHookMethodUseUnhook(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
+    public HookCallback.Unhook findAndHookMethodUseUnhook(Class<?> clazz, String methodName, Object... parameterTypesAndCallback) {
         try {
-            return XposedHelpers.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
+            return ReflectionHelper.findAndHookMethod(clazz, methodName, parameterTypesAndCallback);
         } catch (Throwable t) {
             // logE("findAndHookMethodUseUnhook", "Failed to hook " + methodName + " method in " + clazz.getCanonicalName());
             return null;
@@ -230,7 +230,7 @@ public class HookTool extends XposedLogUtils {
 
     public boolean findAndHookMethodSilently(String className, ClassLoader classLoader, String methodName, Object... parameterTypesAndCallback) {
         try {
-            XposedHelpers.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
+            ReflectionHelper.findAndHookMethod(className, classLoader, methodName, parameterTypesAndCallback);
             return true;
         } catch (Throwable t) {
             // logE("findAndHookMethodSilently", className + methodName + " is null: " + t);
@@ -253,28 +253,28 @@ public class HookTool extends XposedLogUtils {
     }
 
     public void findAndHookConstructor(Class<?> hookClass, Object... parameterTypesAndCallback) {
-        XposedHelpers.findAndHookConstructor(hookClass, parameterTypesAndCallback);
+        ReflectionHelper.findAndHookConstructor(hookClass, parameterTypesAndCallback);
     }
 
     public static void findAndHookConstructor(String className, ClassLoader classLoader, Object... parameterTypesAndCallback) {
-        XposedHelpers.findAndHookConstructor(className, classLoader, parameterTypesAndCallback);
+        ReflectionHelper.findAndHookConstructor(className, classLoader, parameterTypesAndCallback);
     }
 
     public void hookAllMethods(String className, String methodName, MethodHook callback) {
         Class<?> hookClass = findClassIfExists(className);
         if (hookClass != null) {
-            XposedBridge.hookAllMethods(hookClass, methodName, callback);
+            HookBridge.hookAllMethods(hookClass, methodName, callback);
         }
     }
 
     public static void hookAllMethods(Class<?> hookClass, String methodName, MethodHook callback) {
-        XposedBridge.hookAllMethods(hookClass, methodName, callback);
+        HookBridge.hookAllMethods(hookClass, methodName, callback);
     }
 
     public static void hookAllMethods(String className, ClassLoader classLoader, String methodName, MethodHook callback) {
-        Class<?> hookClass = XposedHelpers.findClassIfExists(className, classLoader);
+        Class<?> hookClass = ReflectionHelper.findClassIfExists(className, classLoader);
         if (hookClass != null) {
-            XposedBridge.hookAllMethods(hookClass, methodName, callback);
+            HookBridge.hookAllMethods(hookClass, methodName, callback);
         }
     }
 
@@ -282,7 +282,7 @@ public class HookTool extends XposedLogUtils {
         try {
             Class<?> hookClass = findClassIfExists(className);
             if (hookClass != null) {
-                XposedBridge.hookAllMethods(hookClass, methodName, callback);
+                HookBridge.hookAllMethods(hookClass, methodName, callback);
             }
         } catch (Throwable ignored) {
         }
@@ -291,7 +291,7 @@ public class HookTool extends XposedLogUtils {
     public void hookAllMethodsSilently(Class<?> hookClass, String methodName, MethodHook callback) {
         try {
             if (hookClass != null) {
-                XposedBridge.hookAllMethods(hookClass, methodName, callback);
+                HookBridge.hookAllMethods(hookClass, methodName, callback);
             }
         } catch (Throwable ignored) {
         }
@@ -301,7 +301,7 @@ public class HookTool extends XposedLogUtils {
         try {
             Class<?> hookClass = findClassIfExists(className);
             if (hookClass != null) {
-                return !XposedBridge.hookAllMethods(hookClass, methodName, callback).isEmpty();
+                return !HookBridge.hookAllMethods(hookClass, methodName, callback).isEmpty();
             }
         } catch (Throwable ignored) {
             return false;
@@ -312,7 +312,7 @@ public class HookTool extends XposedLogUtils {
     public boolean hookAllMethodsBoolean(Class<?> hookClass, String methodName, MethodHook callback) {
         try {
             if (hookClass != null) {
-                return !XposedBridge.hookAllMethods(hookClass, methodName, callback).isEmpty();
+                return !HookBridge.hookAllMethods(hookClass, methodName, callback).isEmpty();
             }
             return false;
         } catch (Throwable t) {
@@ -323,31 +323,31 @@ public class HookTool extends XposedLogUtils {
     public void hookAllConstructors(String className, MethodHook callback) {
         Class<?> hookClass = findClassIfExists(className);
         if (hookClass != null) {
-            XposedBridge.hookAllConstructors(hookClass, callback);
+            HookBridge.hookAllConstructors(hookClass, callback);
         }
     }
 
     public void hookAllConstructors(Class<?> hookClass, MethodHook callback) {
-        XposedBridge.hookAllConstructors(hookClass, callback);
+        HookBridge.hookAllConstructors(hookClass, callback);
     }
 
     public void hookAllConstructors(String className, ClassLoader classLoader, MethodHook callback) {
-        Class<?> hookClass = XposedHelpers.findClassIfExists(className, classLoader);
+        Class<?> hookClass = ReflectionHelper.findClassIfExists(className, classLoader);
         if (hookClass != null) {
-            XposedBridge.hookAllConstructors(hookClass, callback);
+            HookBridge.hookAllConstructors(hookClass, callback);
         }
     }
 
     public Object getStaticObjectFieldSilently(Class<?> clazz, String fieldName) {
         try {
-            return XposedHelpers.getStaticObjectField(clazz, fieldName);
+            return ReflectionHelper.getStaticObjectField(clazz, fieldName);
         } catch (Throwable t) {
             return null;
         }
     }
 
     public Object proxySystemProperties(String method, String prop, int val, ClassLoader classLoader) {
-        return XposedHelpers.callStaticMethod(findClassIfExists("android.os.SystemProperties", classLoader),
+        return ReflectionHelper.callStaticMethod(findClassIfExists("android.os.SystemProperties", classLoader),
                 method, prop, val);
     }
 
@@ -436,7 +436,7 @@ public class HookTool extends XposedLogUtils {
         return haveMethod.get(0);
     }
 
-    public void setDeclaredField(XC_MethodHook.MethodHookParam param, String iNeedString, Object iNeedTo) {
+    public void setDeclaredField(HookCallback.MethodHookParam param, String iNeedString, Object iNeedTo) {
         if (param != null) {
             try {
                 Field setString = param.thisObject.getClass().getDeclaredField(iNeedString);

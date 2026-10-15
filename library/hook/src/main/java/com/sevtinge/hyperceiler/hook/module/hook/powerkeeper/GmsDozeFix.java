@@ -26,7 +26,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class GmsDozeFix extends BaseHook {
     @Override
@@ -73,26 +73,26 @@ public class GmsDozeFix extends BaseHook {
                     }
 
                     if (mSystemBlackList) {
-                        List blackList = (List) XposedHelpers.getObjectField(methodHookParam.thisObject, "mSystemBlackList");
+                        List blackList = (List) ReflectionHelper.getObjectField(methodHookParam.thisObject, "mSystemBlackList");
                         blackList.remove("com.google.android.gms");
-                        XposedHelpers.setObjectField(methodHookParam.thisObject, "mSystemBlackList", blackList);
+                        ReflectionHelper.setObjectField(methodHookParam.thisObject, "mSystemBlackList", blackList);
                     }
                     if (whiteApps) {
-                        List whiteAppList = (List) XposedHelpers.getObjectField(methodHookParam.thisObject, "whiteApps");
+                        List whiteAppList = (List) ReflectionHelper.getObjectField(methodHookParam.thisObject, "whiteApps");
                         whiteAppList.remove("com.google.android.gms");
                         whiteAppList.remove("com.google.android.ext.services");
-                        XposedHelpers.setObjectField(methodHookParam.thisObject, "whiteApps", whiteAppList);
+                        ReflectionHelper.setObjectField(methodHookParam.thisObject, "whiteApps", whiteAppList);
                     }
                     if (mDataWhiteList) {
-                        List dataWhiteList = (List) XposedHelpers.getObjectField(methodHookParam.thisObject, "mDataWhiteList");
+                        List dataWhiteList = (List) ReflectionHelper.getObjectField(methodHookParam.thisObject, "mDataWhiteList");
                         dataWhiteList.add("com.google.android.gms");
 
-                        XposedHelpers.setObjectField(methodHookParam.thisObject, "mDataWhiteList", dataWhiteList);
+                        ReflectionHelper.setObjectField(methodHookParam.thisObject, "mDataWhiteList", dataWhiteList);
                     }
 
                 }
             });
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             logE(TAG, this.lpparam.packageName, "Hook failed: "+ e);
         }
     }

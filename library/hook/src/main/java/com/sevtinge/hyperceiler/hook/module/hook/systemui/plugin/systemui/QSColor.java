@@ -27,8 +27,8 @@ import android.widget.TextView;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class QSColor extends BaseHook {
     private static boolean small = false;
@@ -44,14 +44,14 @@ public class QSColor extends BaseHook {
         load();
         if (small) {
             try {
-                XposedHelpers.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, Context.class, Context.class, AttributeSet.class, new XC_MethodHook() {
+                ReflectionHelper.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, Context.class, Context.class, AttributeSet.class, new HookCallback() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         setObjectReplacement("miui.systemui.plugin", "color", "qs_icon_enabled_color", color);
                     }
                 });
             } catch (Exception | Error ignore) {
-                XposedHelpers.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, Context.class, Context.class, boolean.class, new XC_MethodHook() {
+                ReflectionHelper.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, Context.class, Context.class, boolean.class, new HookCallback() {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) {
                         setObjectReplacement("miui.systemui.plugin", "color", "qs_icon_enabled_color", color);
@@ -60,7 +60,7 @@ public class QSColor extends BaseHook {
             }
 
             // from YunZiA
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getActiveBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile$State", new XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getActiveBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile$State", new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     Drawable drawable = (Drawable) param.getResult();
@@ -73,24 +73,24 @@ public class QSColor extends BaseHook {
 
             // @deprecated 16.0.4.83.0
             try {
-                XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "updateIcon", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, boolean.class, new XC_MethodHook() {
+                ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "updateIcon", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, boolean.class, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
-                        XposedHelpers.setObjectField(param.thisObject, "iconColor", color);
+                        ReflectionHelper.setObjectField(param.thisObject, "iconColor", color);
                     }
                 });
             } catch (Throwable ignore) {}
         }
 
         if (big) {
-            XposedHelpers.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemIconView", classLoader, Context.class, Context.class, AttributeSet.class, new XC_MethodHook() {
+            ReflectionHelper.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemIconView", classLoader, Context.class, Context.class, AttributeSet.class, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     setObjectReplacement("miui.systemui.plugin", "color", "qs_icon_enabled_color", bigColor);
                 }
             });
 
-            XposedHelpers.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, Context.class, AttributeSet.class, new XC_MethodHook() {
+            ReflectionHelper.findAndHookConstructor("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, Context.class, AttributeSet.class, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     LinearLayout linearLayout = (LinearLayout) param.thisObject;
@@ -100,13 +100,13 @@ public class QSColor extends BaseHook {
                 }
             });
 
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "updateBackground", new XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "updateBackground", new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) throws NoSuchFieldException {
-                    Object state = XposedHelpers.getObjectField(param.thisObject, "state");
-                    // String spec = (String) XposedHelpers.getObjectField(state, "spec");
+                    Object state = ReflectionHelper.getObjectField(param.thisObject, "state");
+                    // String spec = (String) ReflectionHelper.getObjectField(state, "spec");
                     if (state == null) return; // 系统界面组件会先 null 几次才会获取到值，应该是官方写法有问题
-                    int i = XposedHelpers.getIntField(state, "state");
+                    int i = ReflectionHelper.getIntField(state, "state");
                     LinearLayout linearLayout = (LinearLayout) param.thisObject;
                     if (i == 2) {
                         if (id == -1) {
@@ -120,7 +120,7 @@ public class QSColor extends BaseHook {
                 }
             });
 
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "setCornerRadius", float.class, new XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "setCornerRadius", float.class, new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     if (cornerRadiusF != -1) {
@@ -129,11 +129,11 @@ public class QSColor extends BaseHook {
                 }
             });
 
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "updateState", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, boolean.class, new XC_MethodHook() {
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemView", classLoader, "updateState", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, boolean.class, new HookCallback() {
                 @Override
                 protected void afterHookedMethod(MethodHookParam param) {
                     Object state = param.args[0];
-                    int i = XposedHelpers.getIntField(state, "state");
+                    int i = ReflectionHelper.getIntField(state, "state");
                     if (i == 2) {
                         Context context = ((LinearLayout) param.thisObject).getContext();
                         TextView textView, textView1;
@@ -142,14 +142,14 @@ public class QSColor extends BaseHook {
                             int title = context.getResources().getIdentifier("title", "id", "miui.systemui.plugin");
                             int status = context.getResources().getIdentifier("status", "id", "miui.systemui.plugin");
 
-                            textView = (TextView) XposedHelpers.callMethod(param.thisObject, "_$_findCachedViewById", title);
-                            textView1 = (TextView) XposedHelpers.callMethod(param.thisObject, "_$_findCachedViewById", status);
+                            textView = (TextView) ReflectionHelper.callMethod(param.thisObject, "_$_findCachedViewById", title);
+                            textView1 = (TextView) ReflectionHelper.callMethod(param.thisObject, "_$_findCachedViewById", status);
                         } catch (Throwable ignore) {
                             // 17.0.1.19.4 变更
-                            Object binding = XposedHelpers.callMethod(param.thisObject, "getBinding");
+                            Object binding = ReflectionHelper.callMethod(param.thisObject, "getBinding");
 
-                            textView = (TextView) XposedHelpers.getObjectField(binding, "title");
-                            textView1 = (TextView) XposedHelpers.getObjectField(binding, "status");
+                            textView = (TextView) ReflectionHelper.getObjectField(binding, "title");
+                            textView1 = (TextView) ReflectionHelper.getObjectField(binding, "status");
                         }
                         textView.setTextColor(bigColor);
                         textView1.setTextColor(bigColor);
@@ -159,10 +159,10 @@ public class QSColor extends BaseHook {
 
             // @deprecated unknown version
             try {
-                XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemIconView", classLoader, "setIcon", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, new XC_MethodHook() {
+                ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSCardItemIconView", classLoader, "setIcon", "com.android.systemui.plugins.qs.QSTile$State", boolean.class, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
-                        XposedHelpers.setObjectField(param.thisObject, "iconColor", bigColor);
+                        ReflectionHelper.setObjectField(param.thisObject, "iconColor", bigColor);
                     }
                 });
             } catch (Throwable ignore) {}
@@ -188,7 +188,7 @@ public class QSColor extends BaseHook {
             findAndHookConstructor("com.android.systemui.qs.tileimpl.MiuiQSIconViewImpl", Context.class, new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    XposedHelpers.setObjectField(param.thisObject, "mIconColorEnabled", color);
+                    ReflectionHelper.setObjectField(param.thisObject, "mIconColorEnabled", color);
                     setObjectReplacement("com.android.systemui", "color", "qs_tile_icon_enabled_color", color);
                 }
             });

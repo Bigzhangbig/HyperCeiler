@@ -34,7 +34,7 @@ import com.sevtinge.hyperceiler.hook.utils.prefs.PrefType;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsChangeObserver;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ScreenSwipe extends BaseHook {
 
@@ -49,7 +49,7 @@ public class ScreenSwipe extends BaseHook {
         findAndHookMethod(mWorkspace, "onVerticalGesture", int.class, MotionEvent.class, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                if ((boolean) XposedHelpers.callMethod(param.thisObject, "isInNormalEditingMode"))
+                if ((boolean) ReflectionHelper.callMethod(param.thisObject, "isInNormalEditingMode"))
                     return;
                 String key = null;
                 Context helperContext = ((ViewGroup) param.thisObject).getContext();
@@ -76,7 +76,7 @@ public class ScreenSwipe extends BaseHook {
             @Override
             protected void after(final MethodHookParam param) {
                 final Activity act = (Activity) param.thisObject;
-                Handler mHandler = (Handler) XposedHelpers.getObjectField(act, "mHandler");
+                Handler mHandler = (Handler) ReflectionHelper.getObjectField(act, "mHandler");
                 new PrefsChangeObserver(act, mHandler) {
                     @Override
                     public void onChange(PrefType type, Uri uri, String name, Object def) {

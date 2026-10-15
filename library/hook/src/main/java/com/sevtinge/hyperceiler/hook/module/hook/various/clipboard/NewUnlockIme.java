@@ -25,8 +25,8 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 
 import java.util.Arrays;
 import java.util.List;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * 解除全面屏键盘优化限制
  */
-public class NewUnlockIme extends HCBase {
+public class NewUnlockIme extends NativeFeatureModule {
     private static final String TAG = "NewUnlockIme";
     private static boolean shouldHook = false;
     private static int navBarColor = 0;
@@ -111,7 +111,7 @@ public class NewUnlockIme extends HCBase {
         hookMethod("com.android.internal.policy.PhoneWindow",
             "setNavigationBarColor",
             int.class,
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void after() {
                     if ((int) getArg(0) == 0) return;
@@ -124,7 +124,7 @@ public class NewUnlockIme extends HCBase {
 
         hookAllMethod(clazz,
             "addMiuiBottomView",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void after() {
                     customizeBottomViewColor(clazz);
@@ -147,7 +147,7 @@ public class NewUnlockIme extends HCBase {
      * 针对 A10 的修复切换输入法列表
      */
     private static void notDeleteNotSupportIme(@NonNull Class<?> clazz) {
-        if (existsMethod(clazz, "deleteNotSupportIme")) {
+        if (hasMethod(clazz, "deleteNotSupportIme")) {
             hookMethod(clazz, "deleteNotSupportIme", doNothing());
         }
     }
@@ -158,7 +158,7 @@ public class NewUnlockIme extends HCBase {
     private static void fakeSupportImeList(@NonNull ClassLoader classLoader) {
         hookMethod("com.miui.inputmethod.InputMethodBottomManager", classLoader,
             "getSupportIme",
-            new IHook() {
+            new NativeFeatureHook() {
                 @Override
                 public void before() {
                     List<?> list = (List<?>) callMethod(

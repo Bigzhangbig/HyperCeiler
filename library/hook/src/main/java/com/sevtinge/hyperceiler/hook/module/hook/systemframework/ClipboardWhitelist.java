@@ -22,12 +22,12 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.Set;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ClipboardWhitelist extends BaseHook {
     @Override
     public void init() {
-        Class<?> clipboardClass = XposedHelpers.findClass("com.android.server.clipboard.ClipboardService", lpparam.classLoader);
+        Class<?> clipboardClass = ReflectionHelper.findClass("com.android.server.clipboard.ClipboardService", lpparam.classLoader);
         String key = "system_framework_clipboard_whitelist_apps";
         Set<String> selectedApps = mPrefsMap.getStringSet(key);
         hookAllMethods(clipboardClass, "clipboardAccessAllowed", new MethodHook() {

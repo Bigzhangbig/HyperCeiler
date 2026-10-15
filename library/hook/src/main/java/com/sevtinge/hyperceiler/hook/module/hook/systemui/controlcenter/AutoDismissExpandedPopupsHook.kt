@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.utils.getBooleanField
 import com.sevtinge.hyperceiler.hook.utils.getBooleanFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNull
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
@@ -50,7 +50,7 @@ object AutoDismissExpandedPopupsHook : BaseHook() {
         mHeadsUpEntryPhoneClass.methodFinder()
             .filterByName("updateEntry")
             .first().createAfterHook {
-                val headsUpEntry = it.thisObject ?: return@createAfterHook
+                val headsUpEntry = it.thisObjectOrNull ?: return@createAfterHook
                 val expanded =
                     headsUpEntry.getBooleanFieldOrNull("mExpanded") ?:
                     headsUpEntry.getBooleanFieldOrNull("expanded") ?: return@createAfterHook
@@ -61,7 +61,7 @@ object AutoDismissExpandedPopupsHook : BaseHook() {
                 val rowPinned = mEntry.callMethod("isRowPinned") as Boolean
 
                 if (expanded && rowPinned && !remoteInputActive) {
-                    val headsUpManagerPhone = XposedHelpers.getSurroundingThis(headsUpEntry)
+                    val headsUpManagerPhone = ReflectionHelper.getSurroundingThis(headsUpEntry)
                     val mRemoveAlertRunnable = (
                             headsUpEntry.getObjectFieldOrNull("mRemoveRunnable") ?:
                             headsUpEntry.getObjectFieldOrNull("mRemoveAlertRunnable")

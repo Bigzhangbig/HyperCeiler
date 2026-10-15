@@ -32,7 +32,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class DebugMode extends BaseHook {
     @Override
@@ -50,7 +50,7 @@ public class DebugMode extends BaseHook {
         });
         hookMethod(method1, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult("1");
             }
         });
@@ -68,7 +68,7 @@ public class DebugMode extends BaseHook {
         });
         hookMethod(method2, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         });
@@ -86,7 +86,7 @@ public class DebugMode extends BaseHook {
         });
         hookMethod(method3, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         });
@@ -104,7 +104,7 @@ public class DebugMode extends BaseHook {
         });
         hookMethod(method4, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         });

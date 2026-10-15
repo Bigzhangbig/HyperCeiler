@@ -34,7 +34,7 @@ import androidx.annotation.NonNull;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FolderShade extends BaseHook {
 
@@ -43,7 +43,7 @@ public class FolderShade extends BaseHook {
 
     @Override
     public void init() {
-        mWallpaperUtilsCls = XposedHelpers.findClassIfExists("com.miui.home.launcher.WallpaperUtils", lpparam.classLoader);
+        mWallpaperUtilsCls = ReflectionHelper.findClassIfExists("com.miui.home.launcher.WallpaperUtils", lpparam.classLoader);
 
         MethodHook hook = new MethodHook() {
             @Override
@@ -57,7 +57,7 @@ public class FolderShade extends BaseHook {
 
                         if (mWallpaperUtilsCls != null) {
                             try {
-                                isLight = (boolean) XposedHelpers.callStaticMethod(mWallpaperUtilsCls, "hasAppliedLightWallpaper");
+                                isLight = (boolean) ReflectionHelper.callStaticMethod(mWallpaperUtilsCls, "hasAppliedLightWallpaper");
                             } catch (Throwable tr) {
                                 logW(TAG, "isLight is abnormal", tr);
                             }
@@ -92,8 +92,8 @@ public class FolderShade extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 int opt = mPrefsMap.getStringAsInt("home_folder_shade", 0);
-                Object mLauncher = XposedHelpers.getObjectField(param.thisObject, "mLauncher");
-                View folderCling = (View) XposedHelpers.callMethod(mLauncher, "getFolderCling");
+                Object mLauncher = ReflectionHelper.getObjectField(param.thisObject, "mLauncher");
+                View folderCling = (View) ReflectionHelper.callMethod(mLauncher, "getFolderCling");
                 if (opt == 1 || mLauncher == null || folderCling == null) return;
                 Drawable bkg = folderCling.getBackground();
                 if (bkg != null) bkg.setAlpha(Math.round((float) param.args[0] * 255));

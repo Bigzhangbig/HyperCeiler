@@ -31,8 +31,8 @@ import android.widget.TextView;
 import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ViewWifiPasswordHook extends BaseHook {
 
@@ -46,10 +46,10 @@ public class ViewWifiPasswordHook extends BaseHook {
             @Override
 
             protected void after(MethodHookParam param) throws PackageManager.NameNotFoundException {
-                View view = (View) XposedHelpers.getObjectField(param.thisObject, "mView");
+                View view = (View) ReflectionHelper.getObjectField(param.thisObject, "mView");
                 int btnId = view.getResources().getIdentifier("btn_delete", "id", "com.android.settings");
                 Button button = view.findViewById(btnId);
-                Resources modRes = getModuleRes((Context) XposedHelpers.callMethod(param.thisObject, "getContext"));
+                Resources modRes = getModuleRes((Context) ReflectionHelper.callMethod(param.thisObject, "getContext"));
                 button.setText(modRes.getString(titleId));
             }
         });
@@ -78,7 +78,7 @@ public class ViewWifiPasswordHook extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 if (wifiSharedKey[0] != null) {
-                    TextView messageView = (TextView) XposedHelpers.callMethod(param.thisObject, "getMessageView");
+                    TextView messageView = (TextView) ReflectionHelper.callMethod(param.thisObject, "getMessageView");
                     messageView.setTextIsSelectable(true);
                 }
             }
@@ -87,10 +87,10 @@ public class ViewWifiPasswordHook extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 Object wifiEntry = param.args[0];
-                boolean canShare = (boolean) XposedHelpers.callMethod(wifiEntry, "canShare");
+                boolean canShare = (boolean) ReflectionHelper.callMethod(wifiEntry, "canShare");
                 if (canShare) {
                     if (passwordTitle[0] == null) {
-                        Resources modRes = getModuleRes((Context) XposedHelpers.callMethod(param.thisObject, "getContext"));
+                        Resources modRes = getModuleRes((Context) ReflectionHelper.callMethod(param.thisObject, "getContext"));
                         passwordTitle[0] = modRes.getString(R.string.system_settings_wifi_password_label);
                     }
                     String sharedKey = getSharedKey(param, wifiEntry);
@@ -101,7 +101,7 @@ public class ViewWifiPasswordHook extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 Object wifiEntry = param.args[0];
-                boolean canShare = (boolean) XposedHelpers.callMethod(wifiEntry, "canShare");
+                boolean canShare = (boolean) ReflectionHelper.callMethod(wifiEntry, "canShare");
                 if (canShare) {
                     wifiSharedKey[0] = null;
                 }
@@ -109,12 +109,12 @@ public class ViewWifiPasswordHook extends BaseHook {
         });
     }
 
-    private String getSharedKey(XC_MethodHook.MethodHookParam param, Object wifiEntry) {
-        Object mWifiManager = XposedHelpers.getObjectField(param.thisObject, "mWifiManager");
-        Object wifiConfiguration = XposedHelpers.callMethod(wifiEntry, "getWifiConfiguration");
-        Class<?> WifiDppUtilsClass = XposedHelpers.findClass("com.android.settings.wifi.dpp.WifiDppUtils", lpparam.classLoader);
-        String sharedKey = (String) XposedHelpers.callStaticMethod(WifiDppUtilsClass, "getPresharedKey", mWifiManager, wifiConfiguration);
-        sharedKey = (String) XposedHelpers.callStaticMethod(WifiDppUtilsClass, "removeFirstAndLastDoubleQuotes", sharedKey);
+    private String getSharedKey(HookCallback.MethodHookParam param, Object wifiEntry) {
+        Object mWifiManager = ReflectionHelper.getObjectField(param.thisObject, "mWifiManager");
+        Object wifiConfiguration = ReflectionHelper.callMethod(wifiEntry, "getWifiConfiguration");
+        Class<?> WifiDppUtilsClass = ReflectionHelper.findClass("com.android.settings.wifi.dpp.WifiDppUtils", lpparam.classLoader);
+        String sharedKey = (String) ReflectionHelper.callStaticMethod(WifiDppUtilsClass, "getPresharedKey", mWifiManager, wifiConfiguration);
+        sharedKey = (String) ReflectionHelper.callStaticMethod(WifiDppUtilsClass, "removeFirstAndLastDoubleQuotes", sharedKey);
         return sharedKey;
     }
 }

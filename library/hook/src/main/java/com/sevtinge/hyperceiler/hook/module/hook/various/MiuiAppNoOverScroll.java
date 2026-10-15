@@ -22,7 +22,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MiuiAppNoOverScroll extends BaseHook {
 
@@ -37,7 +37,7 @@ public class MiuiAppNoOverScroll extends BaseHook {
             MethodHook hookParam = new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    XposedHelpers.setBooleanField(param.thisObject, "mSpringBackEnable", false);
+                    ReflectionHelper.setBooleanField(param.thisObject, "mSpringBackEnable", false);
                     param.args[0] = false;
                 }
             };
@@ -47,7 +47,7 @@ public class MiuiAppNoOverScroll extends BaseHook {
                 hookAllConstructors(mSpringBackCls, new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) {
-                        XposedHelpers.setBooleanField(param.thisObject, "mSpringBackEnable", false);
+                        ReflectionHelper.setBooleanField(param.thisObject, "mSpringBackEnable", false);
                     }
                 });
 
@@ -60,7 +60,7 @@ public class MiuiAppNoOverScroll extends BaseHook {
                     @Override
                     protected void after(MethodHookParam param) {
                         ((View) param.thisObject).setOverScrollMode(View.OVER_SCROLL_NEVER);
-                        XposedHelpers.setBooleanField(param.thisObject, "mSpringBackEnable", false);
+                        ReflectionHelper.setBooleanField(param.thisObject, "mSpringBackEnable", false);
                     }
                 });
                 findAndHookMethodSilently(mRemixRvCls, "setSpringEnabled", boolean.class, hookParam);

@@ -37,8 +37,8 @@ import androidx.core.content.ContextCompat;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 // com.android.systemui
 public class StatusBarActions extends BaseHook {
@@ -82,7 +82,7 @@ public class StatusBarActions extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 mStatusBar = param.thisObject;
-                Context mStatusBarContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mStatusBarContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 IntentFilter intentfilter = new IntentFilter();
 
                 intentfilter.addAction(StatusBarActionConstants.ACTION_OPEN_NOTIFICATION_CENTER);
@@ -131,25 +131,25 @@ public class StatusBarActions extends BaseHook {
 
                 case StatusBarActionConstants.ACTION_OPEN_NOTIFICATION_CENTER -> {
                     try {
-                        Object mNotificationPanel = XposedHelpers.getObjectField(mStatusBar, "mNotificationPanel");
-                        boolean mPanelExpanded = (boolean) XposedHelpers.getObjectField(mNotificationPanel, "mPanelExpanded");
-                        boolean mQsExpanded = (boolean) XposedHelpers.getObjectField(mNotificationPanel, "mQsExpanded");
+                        Object mNotificationPanel = ReflectionHelper.getObjectField(mStatusBar, "mNotificationPanel");
+                        boolean mPanelExpanded = (boolean) ReflectionHelper.getObjectField(mNotificationPanel, "mPanelExpanded");
+                        boolean mQsExpanded = (boolean) ReflectionHelper.getObjectField(mNotificationPanel, "mQsExpanded");
                         boolean expandOnly = intent.getBooleanExtra(StatusBarActionConstants.EXTRA_EXPAND_ONLY, false);
                         if (mPanelExpanded) {
                             if (!expandOnly) {
                                 if (mQsExpanded) {
-                                    XposedHelpers.callMethod(mStatusBar, "closeQs");
+                                    ReflectionHelper.callMethod(mStatusBar, "closeQs");
                                 } else {
-                                    XposedHelpers.callMethod(mStatusBar, "animateCollapsePanels");
+                                    ReflectionHelper.callMethod(mStatusBar, "animateCollapsePanels");
                                 }
                             }
                         } else {
-                            XposedHelpers.callMethod(mStatusBar, "animateExpandNotificationsPanel");
+                            ReflectionHelper.callMethod(mStatusBar, "animateExpandNotificationsPanel");
                         }
                     } catch (Throwable t) {
                         // Expand only
                         long token = Binder.clearCallingIdentity();
-                        XposedHelpers.callMethod(context.getSystemService("statusbar"), "expandNotificationsPanel");
+                        ReflectionHelper.callMethod(context.getSystemService("statusbar"), "expandNotificationsPanel");
                         Binder.restoreCallingIdentity(token);
                     }
                 }
@@ -163,48 +163,48 @@ public class StatusBarActions extends BaseHook {
                 AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
                 audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, AudioManager.ADJUST_SAME, AudioManager.FLAG_SHOW_UI);
             } catch (Throwable t) {
-                XposedBridge.log(t);
+                HookBridge.log(t);
             }
         } else {
             try {
-                Object mVolumeComponent = XposedHelpers.getObjectField(mStatusBar, "mVolumeComponent");
-                Object mVolumeDialogPlugin = XposedHelpers.getObjectField(mVolumeComponent, "mDialog");
-                Object miuiVolumeDialog = XposedHelpers.getObjectField(mVolumeDialogPlugin, "mVolumeDialogImpl");
+                Object mVolumeComponent = ReflectionHelper.getObjectField(mStatusBar, "mVolumeComponent");
+                Object mVolumeDialogPlugin = ReflectionHelper.getObjectField(mVolumeComponent, "mDialog");
+                Object miuiVolumeDialog = ReflectionHelper.getObjectField(mVolumeDialogPlugin, "mVolumeDialogImpl");
                 if (miuiVolumeDialog == null) {
                     logI("OpenVolumeDialog", "com.android.systemui", "MIUI volume dialog is NULL!");
                     return;
                 }
 
-                Handler mHandler = (Handler) XposedHelpers.getObjectField(miuiVolumeDialog, "mHandler");
+                Handler mHandler = (Handler) ReflectionHelper.getObjectField(miuiVolumeDialog, "mHandler");
                 mHandler.post(() -> {
-                    boolean mShowing = XposedHelpers.getBooleanField(miuiVolumeDialog, "mShowing");
-                    boolean mExpanded = XposedHelpers.getBooleanField(miuiVolumeDialog, "mExpanded");
+                    boolean mShowing = ReflectionHelper.getBooleanField(miuiVolumeDialog, "mShowing");
+                    boolean mExpanded = ReflectionHelper.getBooleanField(miuiVolumeDialog, "mExpanded");
 
                     AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
                     boolean isInCall = am.getMode() == AudioManager.MODE_IN_CALL || am.getMode() == AudioManager.MODE_IN_COMMUNICATION;
                     if (mShowing) {
                         if (mExpanded || isInCall)
-                            XposedHelpers.callMethod(miuiVolumeDialog, "dismissH", 1);
+                            ReflectionHelper.callMethod(miuiVolumeDialog, "dismissH", 1);
                         else {
-                            Object mDialogView = XposedHelpers.getObjectField(miuiVolumeDialog, "mDialogView");
-                            View mExpandButton = (View) XposedHelpers.getObjectField(mDialogView, "mExpandButton");
-                            View.OnClickListener mClickExpand = (View.OnClickListener) XposedHelpers.getObjectField(mDialogView, "expandListener");
+                            Object mDialogView = ReflectionHelper.getObjectField(miuiVolumeDialog, "mDialogView");
+                            View mExpandButton = (View) ReflectionHelper.getObjectField(mDialogView, "mExpandButton");
+                            View.OnClickListener mClickExpand = (View.OnClickListener) ReflectionHelper.getObjectField(mDialogView, "expandListener");
                             mClickExpand.onClick(mExpandButton);
                         }
                     } else {
-                        Object mController = XposedHelpers.getObjectField(mVolumeDialogPlugin, "mController");
+                        Object mController = ReflectionHelper.getObjectField(mVolumeDialogPlugin, "mController");
                         if (isInCall) {
-                            XposedHelpers.callMethod(mController, "setActiveStream", 0);
-                            XposedHelpers.setBooleanField(miuiVolumeDialog, "mNeedReInit", true);
+                            ReflectionHelper.callMethod(mController, "setActiveStream", 0);
+                            ReflectionHelper.setBooleanField(miuiVolumeDialog, "mNeedReInit", true);
                         } else if (am.isMusicActive()) {
-                            XposedHelpers.callMethod(mController, "setActiveStream", 3);
-                            XposedHelpers.setBooleanField(miuiVolumeDialog, "mNeedReInit", true);
+                            ReflectionHelper.callMethod(mController, "setActiveStream", 3);
+                            ReflectionHelper.setBooleanField(miuiVolumeDialog, "mNeedReInit", true);
                         }
-                        XposedHelpers.callMethod(miuiVolumeDialog, "showH", 1);
+                        ReflectionHelper.callMethod(miuiVolumeDialog, "showH", 1);
                     }
                 });
             } catch (Throwable t) {
-                XposedBridge.log(t);
+                HookBridge.log(t);
             }
         }
     }
@@ -214,7 +214,7 @@ public class StatusBarActions extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 mStatusBar = param.thisObject;
-                Context mStatusBarContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mStatusBarContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 IntentFilter intentfilter = new IntentFilter();
 
                 intentfilter.addAction(StatusBarActionConstants.ACTION_RESTART_SYSTEM_UI);

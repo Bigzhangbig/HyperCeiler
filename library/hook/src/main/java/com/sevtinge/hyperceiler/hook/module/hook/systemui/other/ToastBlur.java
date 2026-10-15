@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.lang.ref.WeakReference;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ToastBlur extends BaseHook {
     @Override
@@ -43,16 +43,16 @@ public class ToastBlur extends BaseHook {
         findAndHookMethod("android.widget.ToastPresenter", lpparam.classLoader, "trySendAccessibilityEvent", View.class, String.class, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                View mView = (View) XposedHelpers.getObjectField(param.thisObject, "mView");
+                View mView = (View) ReflectionHelper.getObjectField(param.thisObject, "mView");
                 if (mView == null) return;
                 Class<?> ToastStub = findClassIfExists("android.widget.ToastStub", lpparam.classLoader);
                 Context mContext = mView.getContext();
                 if (ToastStub != null) {
-                    Object toastStub = XposedHelpers.callStaticMethod(ToastStub, "get");
+                    Object toastStub = ReflectionHelper.callStaticMethod(ToastStub, "get");
                     try {
-                        XposedHelpers.callMethod(toastStub, "addBlur", new Class[]{View.class, Context.class, boolean.class}, mView, mContext, false);
+                        ReflectionHelper.callMethod(toastStub, "addBlur", new Class[]{View.class, Context.class, boolean.class}, mView, mContext, false);
                     } catch (NoSuchMethodError e) {
-                        XposedHelpers.callMethod(toastStub, "addBlur", new Class[]{View.class, WeakReference.class, boolean.class}, mView, new WeakReference<>(mContext), false);
+                        ReflectionHelper.callMethod(toastStub, "addBlur", new Class[]{View.class, WeakReference.class, boolean.class}, mView, new WeakReference<>(mContext), false);
                     }
                 }
             }

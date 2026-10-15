@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
@@ -205,7 +205,7 @@ object NoAutoTurnOff : BaseHook() {
                 null3Method.createHook {
                     after {
                         val d = it.thisObject.getObjectField("d")
-                        XposedHelpers.callMethod(d, "removeCallbacks", it.thisObject)
+                        ReflectionHelper.callMethod(d, "removeCallbacks", it.thisObject)
                         logI(
                             TAG, this@NoAutoTurnOff.lpparam.packageName,
                             "null3Method hook success, $d"

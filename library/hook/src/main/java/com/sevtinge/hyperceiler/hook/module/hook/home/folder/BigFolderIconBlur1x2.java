@@ -29,7 +29,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.blur.BlurUtils;
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BigFolderIconBlur1x2 extends BaseHook {
 
@@ -61,9 +61,9 @@ public class BigFolderIconBlur1x2 extends BaseHook {
             protected void after(MethodHookParam param) {
                 int mFolderWidth = DisplayUtils.dp2px(mPrefsMap.getInt("home_big_folder_icon_bg_width_1x2", 62));
                 int mFolderHeight = DisplayUtils.dp2px(mPrefsMap.getInt("home_big_folder_icon_bg_height_1x2", 145));
-                ImageView mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mIconImageView");
+                ImageView mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mIconImageView");
                 FrameLayout mIconContainer = (FrameLayout) mIconImageView.getParent();
-                FrameLayout mDockBlur = (FrameLayout) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDockBlur");
+                FrameLayout mDockBlur = (FrameLayout) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDockBlur");
                 FrameLayout view = new FrameLayout(mIconImageView.getContext());
 
                 mIconImageView.setVisibility(View.GONE);

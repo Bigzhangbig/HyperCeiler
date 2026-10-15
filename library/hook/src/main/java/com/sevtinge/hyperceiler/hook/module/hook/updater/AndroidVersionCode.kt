@@ -20,13 +20,13 @@ package com.sevtinge.hyperceiler.hook.module.hook.updater
 
 import android.os.Build
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 object AndroidVersionCode : BaseHook() {
     private val mAndroidVersionCode =
         mPrefsMap.getString("various_updater_android_version", "14")
 
     override fun init() {
-        XposedHelpers.setStaticObjectField(Build.VERSION::class.java, "RELEASE", mAndroidVersionCode)
+        ReflectionHelper.setStaticObjectField(Build.VERSION::class.java, "RELEASE", mAndroidVersionCode)
     }
 }

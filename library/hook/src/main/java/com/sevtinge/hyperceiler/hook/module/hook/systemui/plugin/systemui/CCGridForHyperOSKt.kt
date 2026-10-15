@@ -22,9 +22,9 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookReplacement
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 // from YunZiA
 object CCGridForHyperOSKt {
@@ -33,7 +33,7 @@ object CCGridForHyperOSKt {
 
     @JvmStatic
     fun initCCGridForHyperOS(classLoader: ClassLoader?) {
-        /*XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getActiveBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : XC_MethodHook(){
+        /*ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getActiveBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : HookCallback(){
             override fun afterHookedMethod(param: MethodHookParam?) {
                 super.afterHookedMethod(param)
                 val drawable = param?.result as Drawable
@@ -41,7 +41,7 @@ object CCGridForHyperOSKt {
                 param.result = drawable
             }
         })
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getDisabledBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : XC_MethodHook(){
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getDisabledBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : HookCallback(){
             override fun afterHookedMethod(param: MethodHookParam?) {
                 super.afterHookedMethod(param)
                 val drawable = param?.result as Drawable
@@ -49,11 +49,11 @@ object CCGridForHyperOSKt {
                 param.result = drawable
             }
         })
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : XC_MethodHook(){
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "getBackgroundDrawable", "com.android.systemui.plugins.qs.QSTile\$State", object : HookCallback(){
             override fun afterHookedMethod(param: MethodHookParam?) {
                 super.afterHookedMethod(param)
                 val state = param?.args?.get(0)
-                val i = XposedHelpers.getIntField(state, "state")
+                val i = ReflectionHelper.getIntField(state, "state")
                 if (i == 0) {
                     val drawable = param?.result as Drawable
                     if (drawable is GradientDrawable) drawable.cornerRadius = radius
@@ -62,7 +62,7 @@ object CCGridForHyperOSKt {
             }
         })*/
 
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "setDisabledBg", Drawable::class.java, object : XC_MethodHook(){
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "setDisabledBg", Drawable::class.java, object : HookCallback(){
             override fun beforeHookedMethod(param: MethodHookParam?) {
                 runCatching {
                     val drawable = param?.args?.get(0) as Drawable
@@ -74,7 +74,7 @@ object CCGridForHyperOSKt {
             }
         })
 
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "setEnabledBg", Drawable::class.java, object : XC_MethodHook(){
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", classLoader, "setEnabledBg", Drawable::class.java, object : HookCallback(){
             override fun beforeHookedMethod(param: MethodHookParam?) {
                 runCatching {
                     val drawable = param?.args?.get(0) as Drawable
@@ -87,9 +87,9 @@ object CCGridForHyperOSKt {
         })
 
         // OS1 可能会有的圆角设置
-        XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView",
+        ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView",
             classLoader, "setCornerRadius", Float::class.java,
-            object : XC_MethodHook(){
+            object : HookCallback(){
                 override fun beforeHookedMethod(param: MethodHookParam?) {
                     runCatching {
                         param?.args?.set(0, radius)
@@ -102,8 +102,8 @@ object CCGridForHyperOSKt {
 
         // OS2 加载磁贴时的圆角
         runCatching {
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView",
-                classLoader, "getCornerRadius", object : XC_MethodReplacement() {
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView",
+                classLoader, "getCornerRadius", object : HookReplacement() {
                     override fun replaceHookedMethod(param: MethodHookParam?): Any {
                         return radius
                     }

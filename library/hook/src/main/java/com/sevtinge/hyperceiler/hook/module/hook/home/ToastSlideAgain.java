@@ -22,11 +22,11 @@ import android.view.MotionEvent;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ToastSlideAgain extends BaseHook {
-    public XC_MethodHook.Unhook unhook = null;
+    public HookCallback.Unhook unhook = null;
 
     @Override
     public void init() {
@@ -62,9 +62,9 @@ public class ToastSlideAgain extends BaseHook {
         );
     }
 
-    public XC_MethodHook.Unhook hookToast() {
-        return XposedHelpers.findAndHookMethod(findClassIfExists("android.widget.Toast"),
-            "show", new XC_MethodHook() {
+    public HookCallback.Unhook hookToast() {
+        return ReflectionHelper.findAndHookMethod(findClassIfExists("android.widget.Toast"),
+            "show", new HookCallback() {
                 @Override
                 protected void beforeHookedMethod(MethodHookParam param) {
                     param.setResult(null);
@@ -74,7 +74,7 @@ public class ToastSlideAgain extends BaseHook {
         );
     }
 
-    public void unHook(XC_MethodHook.Unhook unhook) {
+    public void unHook(HookCallback.Unhook unhook) {
         if (unhook != null) {
             unhook.unhook();
             // logI("the unhook is: " + unhook);

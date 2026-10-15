@@ -19,7 +19,6 @@
 package com.sevtinge.hyperceiler.hook.module.hook.systemframework.display
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XC_MethodHook
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
@@ -28,7 +27,7 @@ import miui.drm.ThemeReceiver
 
 class ThemeProvider : BaseHook() {
     override fun init() {
-        var hook: List<XC_MethodHook.Unhook>? = null
+        var hook: List<io.github.libxposed.api.XposedInterface.HookHandle>? = null
         try {
             ThemeReceiver::class.java.methodFinder().filterByName("validateTheme").first().createHook {
                 before {

@@ -20,9 +20,9 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.IXposedHookZygoteInit;
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.StartupHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockAlwaysOnDisplay extends BaseHook {
 
@@ -30,12 +30,12 @@ public class UnlockAlwaysOnDisplay extends BaseHook {
     public void init() {
         // 理论这一句就够了，但是尚在测试。
         // BaseXposedInit.mXmlTool.setValueReplacement(XmlTool.TAG_BOOL, "is_only_support_keycode_goto", false);
-        XposedHelpers.findAndHookMethod("miui.util.FeatureParser", lpparam.classLoader, "getBoolean",
+        ReflectionHelper.findAndHookMethod("miui.util.FeatureParser", lpparam.classLoader, "getBoolean",
                 String.class, boolean.class,
-                new XC_MethodHook() {
+                new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
-                        // XposedBridge.log(TAG + " " + " key: " + param.args[0] + " def: " + param.args[1]);
+                        // HookBridge.log(TAG + " " + " key: " + param.args[0] + " def: " + param.args[1]);
                         String key = (String) param.args[0];
                         if ("is_only_support_keycode_goto".equals(key)) {
                             param.setResult(false);

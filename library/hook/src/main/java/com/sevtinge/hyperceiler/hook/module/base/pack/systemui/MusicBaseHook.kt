@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.hook.module.base.pack.systemui
 
 import android.annotation.SuppressLint
-import android.app.AndroidAppHelper
+import com.sevtinge.hyperceiler.hook.api.AppContext
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -50,7 +50,7 @@ import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 
 abstract class MusicBaseHook : BaseHook() {
-    val context: Application by lazy { AndroidAppHelper.currentApplication() }
+    val context: Application by lazy { AppContext.currentApplication() }
     private val nSize by lazy {
         mPrefsMap.getInt("system_ui_statusbar_music_size_n", 15).toFloat()
     }

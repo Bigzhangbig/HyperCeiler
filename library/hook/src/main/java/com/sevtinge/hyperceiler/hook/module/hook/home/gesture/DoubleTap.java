@@ -26,7 +26,7 @@ import android.view.ViewConfiguration;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.skip.GlobalActions;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DoubleTap extends BaseHook {
 
@@ -39,23 +39,23 @@ public class DoubleTap extends BaseHook {
         hookAllConstructors(mWorkspace, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Object mDoubleTapControllerEx = XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx");
+                Object mDoubleTapControllerEx = ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx");
                 if (mDoubleTapControllerEx != null) return;
                 mDoubleTapControllerEx = new DoubleTapController((Context) param.args[0], "prefs_key_home_gesture_double_tap");
-                XposedHelpers.setAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx", mDoubleTapControllerEx);
+                ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx", mDoubleTapControllerEx);
             }
         });
 
         findAndHookMethod(mWorkspace, "dispatchTouchEvent", MotionEvent.class, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                DoubleTapController mDoubleTapControllerEx = (DoubleTapController) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx");
+                DoubleTapController mDoubleTapControllerEx = (DoubleTapController) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDoubleTapControllerEx");
                 if (mDoubleTapControllerEx == null) return;
                 if (!mDoubleTapControllerEx.isDoubleTapEvent((MotionEvent) param.args[0])) return;
-                int mCurrentScreenIndex = XposedHelpers.getIntField(param.thisObject, lpparam.packageName.equals("com.miui.home") ? "mCurrentScreenIndex" : "mCurrentScreen");
-                Object cellLayout = XposedHelpers.callMethod(param.thisObject, "getCellLayout", mCurrentScreenIndex);
-                if ((boolean) XposedHelpers.callMethod(cellLayout, "lastDownOnOccupiedCell")) return;
-                if ((boolean) XposedHelpers.callMethod(param.thisObject, "isInNormalEditingMode")) return;
+                int mCurrentScreenIndex = ReflectionHelper.getIntField(param.thisObject, lpparam.packageName.equals("com.miui.home") ? "mCurrentScreenIndex" : "mCurrentScreen");
+                Object cellLayout = ReflectionHelper.callMethod(param.thisObject, "getCellLayout", mCurrentScreenIndex);
+                if ((boolean) ReflectionHelper.callMethod(cellLayout, "lastDownOnOccupiedCell")) return;
+                if ((boolean) ReflectionHelper.callMethod(param.thisObject, "isInNormalEditingMode")) return;
                 mDoubleTapControllerEx.onDoubleTapEvent();
             }
         });

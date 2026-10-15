@@ -23,7 +23,7 @@ import android.widget.FrameLayout;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SwitchCCAndNotification extends BaseHook {
     @Override
@@ -34,12 +34,12 @@ public class SwitchCCAndNotification extends BaseHook {
                 MotionEvent.class, new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        boolean useCC = (boolean) XposedHelpers.callMethod(XposedHelpers.getObjectField(param.thisObject, "mPanelController"), "isExpandable");
+                        boolean useCC = (boolean) ReflectionHelper.callMethod(ReflectionHelper.getObjectField(param.thisObject, "mPanelController"), "isExpandable");
                         if (useCC) {
                             FrameLayout bar = (FrameLayout) param.thisObject;
-                            Object mControlPanelWindowManager = XposedHelpers.getObjectField(param.thisObject, "mControlPanelWindowManager");
-                            boolean dispatchToControlPanel = (boolean) XposedHelpers.callMethod(mControlPanelWindowManager, "dispatchToControlPanel", param.args[0], bar.getWidth());
-                            XposedHelpers.setObjectField(mControlPanelWindowManager, "transToControlPanel", dispatchToControlPanel);
+                            Object mControlPanelWindowManager = ReflectionHelper.getObjectField(param.thisObject, "mControlPanelWindowManager");
+                            boolean dispatchToControlPanel = (boolean) ReflectionHelper.callMethod(mControlPanelWindowManager, "dispatchToControlPanel", param.args[0], bar.getWidth());
+                            ReflectionHelper.setObjectField(mControlPanelWindowManager, "transToControlPanel", dispatchToControlPanel);
                             param.setResult(dispatchToControlPanel);
                             return;
                         }
@@ -54,28 +54,28 @@ public class SwitchCCAndNotification extends BaseHook {
                 new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        boolean added = XposedHelpers.getBooleanField(param.thisObject, "added");
+                        boolean added = ReflectionHelper.getBooleanField(param.thisObject, "added");
                         if (added) {
                             boolean useCC;
                             Object controlCenterWindowView;
 
-                            useCC = XposedHelpers.getBooleanField(XposedHelpers.getObjectField(param.thisObject, "controlCenterController"), "useControlCenter");
+                            useCC = ReflectionHelper.getBooleanField(ReflectionHelper.getObjectField(param.thisObject, "controlCenterController"), "useControlCenter");
                             if (useCC) {
                                 MotionEvent motionEvent = (MotionEvent) param.args[0];
                                 if (motionEvent.getActionMasked() == 0) {
-                                    XposedHelpers.setObjectField(param.thisObject, "downX", motionEvent.getRawX());
+                                    ReflectionHelper.setObjectField(param.thisObject, "downX", motionEvent.getRawX());
                                 }
 
-                                controlCenterWindowView = XposedHelpers.getObjectField(param.thisObject, "windowView");
+                                controlCenterWindowView = ReflectionHelper.getObjectField(param.thisObject, "windowView");
 
                                 if (controlCenterWindowView == null) {
                                     param.setResult(false);
                                 } else {
                                     float mDownX;
-                                    mDownX = XposedHelpers.getFloatField(param.thisObject, "downX");
+                                    mDownX = ReflectionHelper.getFloatField(param.thisObject, "downX");
                                     float width = (float) param.args[1];
                                     if (mDownX < width / 2.0f) {
-                                        param.setResult(XposedHelpers.callMethod(controlCenterWindowView, "handleMotionEvent", motionEvent, true));
+                                        param.setResult(ReflectionHelper.callMethod(controlCenterWindowView, "handleMotionEvent", motionEvent, true));
                                     } else {
                                         param.setResult(false);
                                     }

@@ -18,7 +18,7 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.systemui.controlcenter;
 
-import static de.robv.android.xposed.XposedHelpers.setBooleanField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setBooleanField;
 
 import android.app.admin.DevicePolicyManager;
 import android.graphics.drawable.Drawable;

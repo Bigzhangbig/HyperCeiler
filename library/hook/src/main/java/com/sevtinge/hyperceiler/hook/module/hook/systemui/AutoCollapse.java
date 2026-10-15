@@ -24,7 +24,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AutoCollapse extends BaseHook {
     @Override
@@ -32,13 +32,13 @@ public class AutoCollapse extends BaseHook {
         MethodHook method = new MethodHook() {
             @Override
             protected void after(MethodHookParam param) {
-                Object mState = XposedHelpers.callMethod(param.thisObject, "getState");
-                int state = XposedHelpers.getIntField(mState, "state");
+                Object mState = ReflectionHelper.callMethod(param.thisObject, "getState");
+                int state = ReflectionHelper.getIntField(mState, "state");
                 if (state != 0) {
-                    String tileSpec = (String) XposedHelpers.callMethod(param.thisObject, "getTileSpec");
+                    String tileSpec = (String) ReflectionHelper.callMethod(param.thisObject, "getTileSpec");
                     if (!"edit".equals(tileSpec)) {
-                        Object mHost = XposedHelpers.getObjectField(param.thisObject, "mHost");
-                        XposedHelpers.callMethod(mHost, "collapsePanels");
+                        Object mHost = ReflectionHelper.getObjectField(param.thisObject, "mHost");
+                        ReflectionHelper.callMethod(mHost, "collapsePanels");
                     }
                 }
             }

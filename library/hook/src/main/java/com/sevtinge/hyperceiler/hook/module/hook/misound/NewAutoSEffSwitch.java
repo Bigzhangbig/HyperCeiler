@@ -30,7 +30,7 @@ import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 
-import com.hchen.hooktool.HCBase;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
 import com.hchen.hooktool.utils.SystemPropTool;
 import com.sevtinge.hyperceiler.hook.IEffectInfo;
 
@@ -39,7 +39,7 @@ import com.sevtinge.hyperceiler.hook.IEffectInfo;
  *
  * @author 焕晨HChen
  */
-public class NewAutoSEffSwitch extends HCBase {
+public class NewAutoSEffSwitch extends NativeFeatureModule {
     public static final String TAG = "NewAutoSEffSwitch";
     private Context mContext;
     public static AudioManager mAudioManager;

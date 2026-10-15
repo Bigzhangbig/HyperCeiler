@@ -34,7 +34,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory;
 import io.github.kyuubiran.ezxhelper.xposed.interfaces.IMethodHookCallback;
 
@@ -65,7 +65,7 @@ public class PreventBatteryWitelist extends BaseHook {
             public void accept(HookFactory hookFactory) {
                 hookFactory.before(new IMethodHookCallback() {
                     @Override
-                    public void onMethodHooked(@NonNull XC_MethodHook.MethodHookParam methodHookParam) {
+                    public void onMethodHooked(@NonNull HookCallback.MethodHookParam methodHookParam) {
                         String[] strArr = (String[]) methodHookParam.args[0];
                         if (strArr.length > 1) {
                             methodHookParam.setResult(null);

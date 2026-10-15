@@ -37,8 +37,8 @@ import com.sevtinge.hyperceiler.hook.utils.api.ProjectApi;
 import java.util.HashMap;
 import java.util.List;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DualRowSignalHook extends BaseHook {
     private final int rightMargin = mPrefsMap.getInt("system_ui_statusbar_mobile_network_icon_right_margin", 8) - 8;
@@ -70,7 +70,7 @@ public class DualRowSignalHook extends BaseHook {
             protected void after(MethodHookParam param) throws Throwable {
                 if (!isHooked) {
                     isHooked = true;
-                    Context mContext = (Context) XposedHelpers.callMethod(param.thisObject, "getApplicationContext");
+                    Context mContext = (Context) ReflectionHelper.callMethod(param.thisObject, "getApplicationContext");
                     Resources modRes = getModuleRes(mContext);
                     for (int slot = 1; slot <= 2; slot++) {
                         for (int lvl = 0; lvl <= 5; lvl++) {
@@ -111,7 +111,7 @@ public class DualRowSignalHook extends BaseHook {
             protected void before(MethodHookParam param) {
                 if (!isHooked) {
                     isHooked = true;
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     Resources res = mContext.getResources();
                     signalResToLevelMap.put(res.getIdentifier("stat_sys_signal_0", "drawable", lpparam.packageName), 0);
                     signalResToLevelMap.put(res.getIdentifier("stat_sys_signal_1", "drawable", lpparam.packageName), 1);
@@ -125,10 +125,10 @@ public class DualRowSignalHook extends BaseHook {
                 if (iconStates.size() == 2) {
                     Object mainIconState = iconStates.get(0);
                     Object subIconState = iconStates.get(1);
-                    boolean subDataConnected = (boolean) XposedHelpers.getObjectField(subIconState, "dataConnected");
-                    XposedHelpers.setObjectField(subIconState, "visible", false);
-                    int mainSignalResId = (int) XposedHelpers.getObjectField(mainIconState, "strengthId");
-                    int subSignalResId = (int) XposedHelpers.getObjectField(subIconState, "strengthId");
+                    boolean subDataConnected = (boolean) ReflectionHelper.getObjectField(subIconState, "dataConnected");
+                    ReflectionHelper.setObjectField(subIconState, "visible", false);
+                    int mainSignalResId = (int) ReflectionHelper.getObjectField(mainIconState, "strengthId");
+                    int subSignalResId = (int) ReflectionHelper.getObjectField(subIconState, "strengthId");
                     int mainLevel = signalResToLevelMap.get(mainSignalResId);
                     int subLevel = signalResToLevelMap.get(subSignalResId);
                     int level;
@@ -136,13 +136,13 @@ public class DualRowSignalHook extends BaseHook {
                         level = subLevel * 10 + mainLevel;
                         String[] syncFields = {"showName", "activityIn", "activityOut"};
                         for (String field : syncFields) {
-                            XposedHelpers.setObjectField(mainIconState, field, XposedHelpers.getObjectField(subIconState, field));
+                            ReflectionHelper.setObjectField(mainIconState, field, ReflectionHelper.getObjectField(subIconState, field));
                         }
-                        XposedHelpers.setObjectField(mainIconState, "dataConnected", true);
+                        ReflectionHelper.setObjectField(mainIconState, "dataConnected", true);
                     } else {
                         level = mainLevel * 10 + subLevel;
                     }
-                    XposedHelpers.setObjectField(mainIconState, "strengthId", level);
+                    ReflectionHelper.setObjectField(mainIconState, "strengthId", level);
                     param.args[1] = iconStates;
                 }
             }
@@ -155,24 +155,24 @@ public class DualRowSignalHook extends BaseHook {
                 @Override
                 protected void before(final MethodHookParam param) {
                     Object mobileIconState = param.args[0];
-                    boolean visible = (boolean) XposedHelpers.getObjectField(mobileIconState, "visible");
-                    boolean airplane = (boolean) XposedHelpers.getObjectField(mobileIconState, "airplane");
-                    int level = (int) XposedHelpers.getObjectField(mobileIconState, "strengthId");
+                    boolean visible = (boolean) ReflectionHelper.getObjectField(mobileIconState, "visible");
+                    boolean airplane = (boolean) ReflectionHelper.getObjectField(mobileIconState, "airplane");
+                    int level = (int) ReflectionHelper.getObjectField(mobileIconState, "strengthId");
                     if (!visible || airplane || level == 0 || level > 100) {
-                        XposedHelpers.setAdditionalInstanceField(param.thisObject, "subStrengthId", -1);
+                        ReflectionHelper.setAdditionalInstanceField(param.thisObject, "subStrengthId", -1);
                     } else {
-                        XposedHelpers.setAdditionalInstanceField(param.thisObject, "subStrengthId", level % 10);
+                        ReflectionHelper.setAdditionalInstanceField(param.thisObject, "subStrengthId", level % 10);
                     }
                 }
 
                 @Override
                 protected void after(final MethodHookParam param) {
-                    int subStrengthId = (int) XposedHelpers.getAdditionalInstanceField(param.thisObject, "subStrengthId");
+                    int subStrengthId = (int) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "subStrengthId");
                     if (subStrengthId < 0) return;
-                    Object mSmallHd = XposedHelpers.getObjectField(param.thisObject, "mSmallHd");
-                    XposedHelpers.callMethod(mSmallHd, "setVisibility", 8);
-                    Object mSmallRoaming = XposedHelpers.getObjectField(param.thisObject, "mSmallRoaming");
-                    XposedHelpers.callMethod(mSmallRoaming, "setVisibility", 0);
+                    Object mSmallHd = ReflectionHelper.getObjectField(param.thisObject, "mSmallHd");
+                    ReflectionHelper.callMethod(mSmallHd, "setVisibility", 8);
+                    Object mSmallRoaming = ReflectionHelper.getObjectField(param.thisObject, "mSmallRoaming");
+                    ReflectionHelper.callMethod(mSmallRoaming, "setVisibility", 0);
                 }
             };
 
@@ -184,26 +184,26 @@ public class DualRowSignalHook extends BaseHook {
             @Override
             protected void before(final MethodHookParam param) {
                 Object mobileIconState = param.args[0];
-                boolean visible = (boolean) XposedHelpers.getObjectField(mobileIconState, "visible");
-                boolean airplane = (boolean) XposedHelpers.getObjectField(mobileIconState, "airplane");
-                int level = (int) XposedHelpers.getObjectField(mobileIconState, "strengthId");
+                boolean visible = (boolean) ReflectionHelper.getObjectField(mobileIconState, "visible");
+                boolean airplane = (boolean) ReflectionHelper.getObjectField(mobileIconState, "airplane");
+                int level = (int) ReflectionHelper.getObjectField(mobileIconState, "strengthId");
                 if (!visible || airplane || level == 0 || level > 100) {
-                    XposedHelpers.setAdditionalInstanceField(param.thisObject, "subStrengthId", -1);
+                    ReflectionHelper.setAdditionalInstanceField(param.thisObject, "subStrengthId", -1);
                 } else {
-                    XposedHelpers.setAdditionalInstanceField(param.thisObject, "subStrengthId", level % 10);
-                    XposedHelpers.setObjectField(mobileIconState, "fiveGDrawableId", 0);
+                    ReflectionHelper.setAdditionalInstanceField(param.thisObject, "subStrengthId", level % 10);
+                    ReflectionHelper.setObjectField(mobileIconState, "fiveGDrawableId", 0);
                 }
             }
         };
         MethodHook afterUpdate = new MethodHook() {
             @Override
             protected void after(final MethodHookParam param) {
-                int subStrengthId = (int) XposedHelpers.getAdditionalInstanceField(param.thisObject, "subStrengthId");
+                int subStrengthId = (int) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "subStrengthId");
                 if (subStrengthId < 0) return;
-                Object mSmallHd = XposedHelpers.getObjectField(param.thisObject, "mSmallHd");
-                XposedHelpers.callMethod(mSmallHd, "setVisibility", 8);
-                Object mSmallRoaming = XposedHelpers.getObjectField(param.thisObject, "mSmallRoaming");
-                XposedHelpers.callMethod(mSmallRoaming, "setVisibility", 0);
+                Object mSmallHd = ReflectionHelper.getObjectField(param.thisObject, "mSmallHd");
+                ReflectionHelper.callMethod(mSmallHd, "setVisibility", 8);
+                Object mSmallRoaming = ReflectionHelper.getObjectField(param.thisObject, "mSmallRoaming");
+                ReflectionHelper.callMethod(mSmallRoaming, "setVisibility", 0);
             }
         };
         hookAllMethods("com.android.systemui.statusbar.StatusBarMobileView", lpparam.classLoader, "applyMobileState", beforeUpdate);
@@ -214,17 +214,17 @@ public class DualRowSignalHook extends BaseHook {
         MethodHook resetImageDrawable = new MethodHook() {
             @Override
             protected void before(final MethodHookParam param) {
-                int subStrengthId = (int) XposedHelpers.getAdditionalInstanceField(param.thisObject, "subStrengthId");
+                int subStrengthId = (int) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "subStrengthId");
                 if (subStrengthId < 0) return;
                 if (subStrengthId == 6) subStrengthId = 0;
-                Object mobileIconState = XposedHelpers.getObjectField(param.thisObject, "mState");
-                int level1 = (int) XposedHelpers.getObjectField(mobileIconState, "strengthId");
+                Object mobileIconState = ReflectionHelper.getObjectField(param.thisObject, "mState");
+                int level1 = (int) ReflectionHelper.getObjectField(mobileIconState, "strengthId");
                 level1 = level1 / 10;
                 if (level1 == 6) level1 = 0;
-                boolean mLight = (boolean) XposedHelpers.getObjectField(param.thisObject, "mLight");
-                boolean mUseTint = (boolean) XposedHelpers.getObjectField(param.thisObject, "mUseTint");
-                Object mSmallRoaming = XposedHelpers.getObjectField(param.thisObject, "mSmallRoaming");
-                Object mMobile = XposedHelpers.getObjectField(param.thisObject, "mMobile");
+                boolean mLight = (boolean) ReflectionHelper.getObjectField(param.thisObject, "mLight");
+                boolean mUseTint = (boolean) ReflectionHelper.getObjectField(param.thisObject, "mUseTint");
+                Object mSmallRoaming = ReflectionHelper.getObjectField(param.thisObject, "mSmallRoaming");
+                Object mMobile = ReflectionHelper.getObjectField(param.thisObject, "mMobile");
                 String colorMode = "";
                 if (mUseTint && !selectedIconStyle.equals("theme")) {
                     colorMode = "_tint";
@@ -248,8 +248,8 @@ public class DualRowSignalHook extends BaseHook {
                 }
                 int sim1ResId = dualSignalResMap.get(sim1IconId);
                 int sim2ResId = dualSignalResMap.get(sim2IconId);
-                XposedHelpers.callMethod(mMobile, "setImageResource", sim1ResId);
-                XposedHelpers.callMethod(mSmallRoaming, "setImageResource", sim2ResId);
+                ReflectionHelper.callMethod(mMobile, "setImageResource", sim1ResId);
+                ReflectionHelper.callMethod(mSmallRoaming, "setImageResource", sim2ResId);
             }
         };
         findAndHookMethod("com.android.systemui.statusbar.StatusBarMobileView", lpparam.classLoader, "applyDarknessInternal", resetImageDrawable);
@@ -281,21 +281,21 @@ public class DualRowSignalHook extends BaseHook {
         }
     }
 
-    private void getDualRowView(XC_MethodHook.MethodHookParam param) {
+    private void getDualRowView(HookCallback.MethodHookParam param) {
         LinearLayout mobileView;
         View mMobile;
         View mSmallRoaming;
 
         if (isHyperOSVersion(1f)) {
             mobileView = (LinearLayout) param.getResult();
-            mMobile = (View) XposedHelpers.getObjectField(param.getResult(), "mMobile");
-            mSmallRoaming = (View) XposedHelpers.getObjectField(param.getResult(), "mSmallRoaming");
+            mMobile = (View) ReflectionHelper.getObjectField(param.getResult(), "mMobile");
+            mSmallRoaming = (View) ReflectionHelper.getObjectField(param.getResult(), "mSmallRoaming");
 
             setDualRowStyleMargin(mobileView, mMobile, mSmallRoaming); // 边距设置
         } else {
             mobileView = (LinearLayout) param.thisObject;
-            mMobile = (View) XposedHelpers.getObjectField(param.thisObject, "mMobile");
-            mSmallRoaming = (View) XposedHelpers.getObjectField(param.thisObject, "mSmallRoaming");
+            mMobile = (View) ReflectionHelper.getObjectField(param.thisObject, "mMobile");
+            mSmallRoaming = (View) ReflectionHelper.getObjectField(param.thisObject, "mSmallRoaming");
 
             setDualRowStyleMargin(mobileView, mMobile, mSmallRoaming); // 边距设置
         }

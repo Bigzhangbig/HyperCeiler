@@ -20,8 +20,8 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.statusbar.icon.all;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class WifiStandard extends BaseHook {
 
@@ -39,13 +39,13 @@ public class WifiStandard extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 Object mWifiIconState = param.args[0];
-                int mWifiStandard = XposedHelpers.getIntField(mWifiIconState, "wifiStandard");
+                int mWifiStandard = ReflectionHelper.getIntField(mWifiIconState, "wifiStandard");
                 if (mWifiIconState != null) {
                     int opt = mPrefsMap.getStringAsInt("system_ui_status_bar_icon_wifi_standard", 0);
                     if (opt == 1) {
-                        XposedHelpers.setBooleanField(mWifiIconState, "showWifiStandard", mWifiStandard != 0);
+                        ReflectionHelper.setBooleanField(mWifiIconState, "showWifiStandard", mWifiStandard != 0);
                     } else if (opt == 2) {
-                        XposedHelpers.setBooleanField(mWifiIconState, "showWifiStandard", false);
+                        ReflectionHelper.setBooleanField(mWifiIconState, "showWifiStandard", false);
                     }
                 }
             }
@@ -53,12 +53,12 @@ public class WifiStandard extends BaseHook {
     }
 
     private void setWifiStandardIconState(MethodHookParam param) {
-        int wifiStandard = XposedHelpers.getIntField(param.thisObject, "wifiStandard");
+        int wifiStandard = ReflectionHelper.getIntField(param.thisObject, "wifiStandard");
         int key = mPrefsMap.getStringAsInt("system_ui_status_bar_icon_wifi_standard", 0);
         if (key == 1) {
-            XposedHelpers.setBooleanField(param.thisObject, "showWifiStandard", wifiStandard != 0);
+            ReflectionHelper.setBooleanField(param.thisObject, "showWifiStandard", wifiStandard != 0);
         } else if (key == 2) {
-            XposedHelpers.setBooleanField(param.thisObject, "showWifiStandard", false);
+            ReflectionHelper.setBooleanField(param.thisObject, "showWifiStandard", false);
         }
     }
 }

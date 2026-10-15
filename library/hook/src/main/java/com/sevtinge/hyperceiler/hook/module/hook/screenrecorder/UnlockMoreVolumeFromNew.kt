@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.screenrecorder
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 import java.lang.reflect.*
 
 object UnlockMoreVolumeFromNew : BaseHook() {
@@ -57,7 +57,7 @@ object UnlockMoreVolumeFromNew : BaseHook() {
         findAndHookConstructor(getClass, object : MethodHook() {
             override fun after(param: MethodHookParam) {
                 for (i in fieldData) {
-                    XposedHelpers.setObjectField(param.thisObject, i.name, true)
+                    ReflectionHelper.setObjectField(param.thisObject, i.name, true)
                 }
             } })
 

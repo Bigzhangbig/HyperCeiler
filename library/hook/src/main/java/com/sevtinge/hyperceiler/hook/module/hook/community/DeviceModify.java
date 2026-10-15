@@ -33,7 +33,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DeviceModify extends BaseHook {
 
@@ -48,9 +48,9 @@ public class DeviceModify extends BaseHook {
         mModel = mPrefsMap.getString("community_device_modify_model", "");
         mManufacturer = mPrefsMap.getString("community_device_modify_manufacturer", "");
 
-        XposedHelpers.setStaticObjectField(Build.class, "DEVICE", mDevice);
-        XposedHelpers.setStaticObjectField(Build.class, "MODEL", mModel);
-        XposedHelpers.setStaticObjectField(Build.class, "MANUFACTURER", mManufacturer);
+        ReflectionHelper.setStaticObjectField(Build.class, "DEVICE", mDevice);
+        ReflectionHelper.setStaticObjectField(Build.class, "MODEL", mModel);
+        ReflectionHelper.setStaticObjectField(Build.class, "MANUFACTURER", mManufacturer);
 
         Method method1 = DexKit.findMember("SystemPropertiesGetStringWithNull", new IDexKit() {
             @Override

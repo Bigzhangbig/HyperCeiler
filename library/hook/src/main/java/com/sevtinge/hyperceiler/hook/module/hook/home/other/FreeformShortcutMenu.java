@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.other;
 
 import static com.sevtinge.hyperceiler.hook.module.base.tool.OtherTool.getModuleRes;
 import static com.sevtinge.hyperceiler.hook.utils.devicesdk.MiDeviceAppUtilsKt.isPad;
-import static de.robv.android.xposed.XposedHelpers.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -39,8 +39,8 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FreeformShortcutMenu extends BaseHook {
 
@@ -56,7 +56,7 @@ public class FreeformShortcutMenu extends BaseHook {
 
     Context mContext;
 
-    XC_MethodHook.Unhook mShortCutMenuItemHook;
+    HookCallback.Unhook mShortCutMenuItemHook;
 
     @Override
     public void init() {
@@ -82,7 +82,7 @@ public class FreeformShortcutMenu extends BaseHook {
             hookAllMethods(mViewDarkModeHelper, "onConfigurationChanged", new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    XposedHelpers.callStaticMethod(mSystemShortcutMenuItem, "createAllSystemShortcutMenuItems");
+                    ReflectionHelper.callStaticMethod(mSystemShortcutMenuItem, "createAllSystemShortcutMenuItems");
                 }
             });
 
@@ -113,7 +113,7 @@ public class FreeformShortcutMenu extends BaseHook {
                     CharSequence mShortTitle = (CharSequence) callMethod(obj, "getShortTitle");
 
                     if (mShortTitle.equals(modRes.getString(R.string.share_center))) {
-                        XposedHelpers.callStaticMethod(mRecentsAndFSGestureUtils, "startWorld", mContext);
+                        ReflectionHelper.callStaticMethod(mRecentsAndFSGestureUtils, "startWorld", mContext);
                     } else if (mShortTitle.equals(modRes.getString(R.string.floating_window))) {
                         param.setResult(getFreeformOnClickListener(obj, false));
                     } else if (mShortTitle.equals(modRes.getString(R.string.new_task))) {
@@ -143,10 +143,10 @@ public class FreeformShortcutMenu extends BaseHook {
 
                     Resources modRes = getModuleRes(mContext);
 
-                    List mAllSystemShortcutMenuItems = (List) XposedHelpers.getStaticObjectField(mSystemShortcutMenuItem, "sAllSystemShortcutMenuItems");
+                    List mAllSystemShortcutMenuItems = (List) ReflectionHelper.getStaticObjectField(mSystemShortcutMenuItem, "sAllSystemShortcutMenuItems");
 
-                    Object mSmallWindowInstance = XposedHelpers.newInstance(mAppDetailsShortcutMenuItem);
-                    Object mNewTasksInstance = XposedHelpers.newInstance(mAppDetailsShortcutMenuItem);
+                    Object mSmallWindowInstance = ReflectionHelper.newInstance(mAppDetailsShortcutMenuItem);
+                    Object mNewTasksInstance = ReflectionHelper.newInstance(mAppDetailsShortcutMenuItem);
                     if (mPrefsMap.getBoolean("home_other_freeform_shortcut_menu")) {
                         callMethod(mSmallWindowInstance, "setShortTitle", modRes.getString(R.string.floating_window));
                         callMethod(mSmallWindowInstance, "setIconDrawable", ContextCompat.getDrawable(mContext, mContext.getResources().getIdentifier("ic_task_small_window", "drawable", mContext.getPackageName())));
@@ -162,7 +162,7 @@ public class FreeformShortcutMenu extends BaseHook {
                     if (mPrefsMap.getBoolean("home_other_tasks_shortcut_menu"))
                         sAllSystemShortcutMenuItems.add(mNewTasksInstance);
                     sAllSystemShortcutMenuItems.addAll(mAllSystemShortcutMenuItems);
-                    XposedHelpers.setStaticObjectField(mSystemShortcutMenuItem, "sAllSystemShortcutMenuItems", sAllSystemShortcutMenuItems);
+                    ReflectionHelper.setStaticObjectField(mSystemShortcutMenuItem, "sAllSystemShortcutMenuItems", sAllSystemShortcutMenuItems);
                 }
             });
 
@@ -184,7 +184,7 @@ public class FreeformShortcutMenu extends BaseHook {
             if (isNewTaskOnClick) {
                 intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK);
             }
-            Object makeFreeformActivityOptions = XposedHelpers.callStaticMethod(mActivityUtilsCompat, "makeFreeformActivityOptions", mContext1, mComponentName.getPackageName());
+            Object makeFreeformActivityOptions = ReflectionHelper.callStaticMethod(mActivityUtilsCompat, "makeFreeformActivityOptions", mContext1, mComponentName.getPackageName());
 
             if (makeFreeformActivityOptions != null) {
                 mContext1.startActivity(intent, (Bundle) callMethod(makeFreeformActivityOptions, "toBundle", new Object[0]));

@@ -20,14 +20,14 @@ package com.sevtinge.hyperceiler.hook.module.hook.milink;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class UnlockMiShare extends BaseHook {
     @Override
     public void init() {
         hookAllMethods("com.miui.circulate.world.auth.AuthUtil", "doPermissionCheck", new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) {
+            protected void before(HookCallback.MethodHookParam param) {
                 param.setResult(null);
             }
         });

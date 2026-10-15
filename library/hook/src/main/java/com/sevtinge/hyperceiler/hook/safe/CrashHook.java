@@ -40,8 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 /**
  * 推荐使用的方法，直接 Hook 系统，
@@ -53,7 +53,7 @@ public class CrashHook extends HookTool {
     private static HashMap<String, String> swappedMap = new HashMap<>();
     private final String ACTION_APP_CRASH = "hyperceiler.intent.action.APP_CRASH";
 
-    public CrashHook(XC_LoadPackage.LoadPackageParam loadPackageParam) throws Exception {
+    public CrashHook(PackageContext.LoadPackageParam loadPackageParam) throws Exception {
         backgroundActivity(loadPackageParam.classLoader);
         init(loadPackageParam.classLoader);
         scopeMap = CrashData.scopeData();
@@ -80,7 +80,7 @@ public class CrashHook extends HookTool {
         HookTool.hookMethod(hookError, new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) {
-                        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                         Object proc = param.args[0];
                         ApplicationErrorReport.CrashInfo crashInfo = (ApplicationErrorReport.CrashInfo) param.args[1];
                         String shortMsg = (String) param.args[2];
@@ -128,8 +128,8 @@ public class CrashHook extends HookTool {
                             String pkg = (String) param.args[2];
                             if (pkg == null) return;
                             if (ProjectApi.mAppModulePkg.equals(pkg)) {
-                                Object balAllowDefault = XposedHelpers.getStaticObjectField(
-                                    XposedHelpers.findClass("com.android.server.wm.BackgroundActivityStartController$BalVerdict",
+                                Object balAllowDefault = ReflectionHelper.getStaticObjectField(
+                                    ReflectionHelper.findClass("com.android.server.wm.BackgroundActivityStartController$BalVerdict",
                                         lpparam.classLoader),
                                     "BAL_ALLOW_DEFAULT"
                                 );
@@ -149,8 +149,8 @@ public class CrashHook extends HookTool {
                                 String pkg = (String) param.args[2];
                                 if (pkg == null) return;
                                 if (ProjectApi.mAppModulePkg.equals(pkg)) {
-                                    Object balAllowDefault = XposedHelpers.getStaticObjectField(
-                                            XposedHelpers.findClass("com.android.server.wm.BackgroundActivityStartController$BalVerdict",
+                                    Object balAllowDefault = ReflectionHelper.getStaticObjectField(
+                                            ReflectionHelper.findClass("com.android.server.wm.BackgroundActivityStartController$BalVerdict",
                                                     lpparam.classLoader),
                                             "BAL_ALLOW_DEFAULT"
                                     );
@@ -214,7 +214,7 @@ public class CrashHook extends HookTool {
 
     private void recordCrash(Context mContext, Object proc, ApplicationErrorReport.CrashInfo crashInfo,
                              String shortMsg, String longMsg, String stackTrace, long timeMillis, int pid, int uid) {
-        ApplicationInfo info = (ApplicationInfo) XposedHelpers.getObjectField(proc, "info");
+        ApplicationInfo info = (ApplicationInfo) ReflectionHelper.getObjectField(proc, "info");
         mPkg = info.packageName;
         this.mContext = mContext;
         this.timeMillis = timeMillis;

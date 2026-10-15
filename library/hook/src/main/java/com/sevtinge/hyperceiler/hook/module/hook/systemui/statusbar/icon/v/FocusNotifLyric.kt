@@ -31,8 +31,7 @@ import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.hook.utils.setFloatField
 import com.sevtinge.hyperceiler.hook.utils.setLongField
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.ConstructorFinder.`-Static`.constructorFinder
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -80,7 +79,7 @@ object FocusNotifLyric : MusicBaseHook() {
         }
 
         // 拦截初始化状态栏焦点通知文本布局
-        var unhook: XC_MethodHook.Unhook? = null
+        var unhook: io.github.libxposed.api.XposedInterface.HookHandle? = null
         loadClass("com.android.systemui.statusbar.phone.MiuiCollapsedStatusBarFragment").methodFinder()
             .filterByName("onCreateView")
             .first().createHook {
@@ -144,7 +143,7 @@ object FocusNotifLyric : MusicBaseHook() {
         focusTextViewList.forEach { textView ->
             textView.post {
                 if (lastLyric == textView.text) {
-                    if (XposedHelpers.getAdditionalStaticField(textView, "is_scrolling") == 1) {
+                    if (ReflectionHelper.getAdditionalStaticField(textView, "is_scrolling") == 1) {
                         val m0 = textView.getObjectFieldOrNull("mMarquee")
                         m0?.apply {
                             // 设置速度并且调用停止函数,重置歌词位置
@@ -198,7 +197,7 @@ object FocusNotifLyric : MusicBaseHook() {
                 m.setObjectField("mRestartCallback", Choreographer.FrameCallback {})
                 // 滚动完成后清理状态
                 textView.postDelayed({
-                    XposedHelpers.setAdditionalStaticField(textView, "is_scrolling", 1)
+                    ReflectionHelper.setAdditionalStaticField(textView, "is_scrolling", 1)
                     runnablePool.remove(key) //移除任务引用
                 }, computeScrollDuration(lineWidth, width, speed)) // 根据速度和距离计算时长
             }

@@ -26,7 +26,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ScramblePIN extends BaseHook {
 
@@ -39,7 +39,7 @@ public class ScramblePIN extends BaseHook {
         findAndHookMethod(mKeyguardPINView, "onFinishInflate", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                View[][] mViews = (View[][]) XposedHelpers.getObjectField(param.thisObject, "mViews");
+                View[][] mViews = (View[][]) ReflectionHelper.getObjectField(param.thisObject, "mViews");
                 ArrayList<View> mRandomViews = new ArrayList<>();
                 for (int row = 1; row <= 3; row++) {
                     for (int col = 0; col <= 2; col++) {
@@ -78,7 +78,7 @@ public class ScramblePIN extends BaseHook {
                 mViews[4] = new View[]{null, mRandomViews.get(9), mViews[4][2]};
                 row4.addView(mRandomViews.get(9), 1);
 
-                XposedHelpers.setObjectField(param.thisObject, "mViews", mViews);
+                ReflectionHelper.setObjectField(param.thisObject, "mViews", mViews);
             }
         });
     }

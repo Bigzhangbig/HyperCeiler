@@ -26,8 +26,8 @@ import com.sevtinge.hyperceiler.hook.utils.ContextUtils;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
-import de.robv.android.xposed.IXposedHookZygoteInit;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.StartupHook;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * Xml 钩子
@@ -36,7 +36,7 @@ import de.robv.android.xposed.XposedHelpers;
  */
 public class XmlTool {
     private static final String TAG = "XmlTool";
-    private IXposedHookZygoteInit.StartupParam startupParam = null;
+    private StartupHook.StartupParam startupParam = null;
     private boolean hooksApplied = false;
     private int index = -1;
 
@@ -55,7 +55,7 @@ public class XmlTool {
     public static final String TAG_STRING = "string";
     public static final String TAG_STRING_ARRAY = "string-array";
 
-    public XmlTool(IXposedHookZygoteInit.StartupParam startupParam) {
+    public XmlTool(StartupHook.StartupParam startupParam) {
         this.startupParam = startupParam;
         applyHook();
     }
@@ -63,9 +63,9 @@ public class XmlTool {
     private void applyHook() {
         if (hooksApplied) return;
         hooksApplied = true;
-        Class<?> KXmlParser = XposedHelpers.findClassIfExists("com.android.org.kxml2.io.KXmlParser",
+        Class<?> KXmlParser = ReflectionHelper.findClassIfExists("com.android.org.kxml2.io.KXmlParser",
                 startupParam.getClass().getClassLoader());
-        Class<?> XmlBlock = XposedHelpers.findClassIfExists("android.content.res.XmlBlock$Parser",
+        Class<?> XmlBlock = ReflectionHelper.findClassIfExists("android.content.res.XmlBlock$Parser",
                 startupParam.getClass().getClassLoader());
         if (KXmlParser != null) {
             Method[] xmlMethods = KXmlParser.getDeclaredMethods();
@@ -160,8 +160,8 @@ public class XmlTool {
         @Override
         protected void after(MethodHookParam param) {
             if (index == -1) return;
-            String[] attributes = (String[]) XposedHelpers.getObjectField(param.thisObject, "attributes");
-            String type = (String) XposedHelpers.callMethod(param.thisObject, "getName");
+            String[] attributes = (String[]) ReflectionHelper.getObjectField(param.thisObject, "attributes");
+            String type = (String) ReflectionHelper.callMethod(param.thisObject, "getName");
             if (type == null) return;
             String key = attributes[(index * 4) + 3];
             // String result = (String) param.getResult();

@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.utils.MathUtils;
 
 import java.util.ArrayList;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FixColor extends BaseHook {
     @Override
@@ -33,14 +33,14 @@ public class FixColor extends BaseHook {
         findAndHookMethod("com.android.systemui.controlcenter.phone.widget.NotificationShadeFakeStatusBarClock", "updateHeaderColor", new MethodHook(){
             @Override
             protected void before(MethodHookParam param) {
-                Color bigTimeColor = (Color) XposedHelpers.getObjectField(param.thisObject, "bigTimeColor");
-                Color tintColor = Color.valueOf((int) XposedHelpers.getObjectField(param.thisObject, "mTint"));
-                Color lightColor = Color.valueOf((int) XposedHelpers.getObjectField(param.thisObject, "mLightColor"));
-                Color darkColor = Color.valueOf((int) XposedHelpers.getObjectField(param.thisObject, "mDarkColor"));
-                float whiteFraction = (float) XposedHelpers.getObjectField(param.thisObject, "mWhiteFraction");
-                ArrayList<?> areas = (ArrayList<?>) XposedHelpers.getObjectField(param.thisObject, "mAreas");
-                float darkIntensity = (float) XposedHelpers.getObjectField(param.thisObject, "mDarkIntensity");
-                boolean useTint = (boolean) XposedHelpers.getObjectField(param.thisObject, "mUseTint");
+                Color bigTimeColor = (Color) ReflectionHelper.getObjectField(param.thisObject, "bigTimeColor");
+                Color tintColor = Color.valueOf((int) ReflectionHelper.getObjectField(param.thisObject, "mTint"));
+                Color lightColor = Color.valueOf((int) ReflectionHelper.getObjectField(param.thisObject, "mLightColor"));
+                Color darkColor = Color.valueOf((int) ReflectionHelper.getObjectField(param.thisObject, "mDarkColor"));
+                float whiteFraction = (float) ReflectionHelper.getObjectField(param.thisObject, "mWhiteFraction");
+                ArrayList<?> areas = (ArrayList<?>) ReflectionHelper.getObjectField(param.thisObject, "mAreas");
+                float darkIntensity = (float) ReflectionHelper.getObjectField(param.thisObject, "mDarkIntensity");
+                boolean useTint = (boolean) ReflectionHelper.getObjectField(param.thisObject, "mUseTint");
                 int inTintColor = Color.argb(
                     MathUtils.lerp(tintColor.alpha(), bigTimeColor.alpha(), whiteFraction),
                     MathUtils.lerp(tintColor.red(), bigTimeColor.red(), whiteFraction),
@@ -59,8 +59,8 @@ public class FixColor extends BaseHook {
                     MathUtils.lerp(darkColor.green(), bigTimeColor.green(), whiteFraction),
                     MathUtils.lerp(darkColor.blue(), bigTimeColor.blue(), whiteFraction)
                 );
-                Object getBigTime = XposedHelpers.callMethod(param.thisObject, "getBigTime");
-                XposedHelpers.callMethod(getBigTime, "onDarkChanged", areas, darkIntensity, inTintColor, inLightColor, inDarkColor, useTint);
+                Object getBigTime = ReflectionHelper.callMethod(param.thisObject, "getBigTime");
+                ReflectionHelper.callMethod(getBigTime, "onDarkChanged", areas, darkIntensity, inTintColor, inLightColor, inDarkColor, useTint);
                 param.setResult(null);
             }
         });

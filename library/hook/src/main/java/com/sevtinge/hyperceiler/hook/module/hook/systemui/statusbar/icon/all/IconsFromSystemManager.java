@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.statusbar.icon.all;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class IconsFromSystemManager extends BaseHook {
 
@@ -40,7 +40,7 @@ public class IconsFromSystemManager extends BaseHook {
                 protected void before(MethodHookParam param) {
                     String slotName = (String) param.args[0];
                     if (checkSlot(slotName)) {
-                        XposedHelpers.setObjectField(param.args[1], "visible", false);
+                        ReflectionHelper.setObjectField(param.args[1], "visible", false);
                     }
                 }
             }
@@ -55,8 +55,8 @@ public class IconsFromSystemManager extends BaseHook {
                     protected void before(MethodHookParam param) {
                         String slotName = (String) param.args[0];
                         if (checkSlot(slotName)) {
-                            Object statusBarIconInstance = XposedHelpers.getObjectField(param.args[1], "mIcon");
-                            XposedHelpers.setObjectField(statusBarIconInstance, "visible", false);
+                            Object statusBarIconInstance = ReflectionHelper.getObjectField(param.args[1], "mIcon");
+                            ReflectionHelper.setObjectField(statusBarIconInstance, "visible", false);
                         }
                     }
                 });

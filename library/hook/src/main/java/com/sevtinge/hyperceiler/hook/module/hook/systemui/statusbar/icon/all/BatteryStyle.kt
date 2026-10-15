@@ -25,8 +25,8 @@ import android.widget.TextView
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreAndroidVersion
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
@@ -132,14 +132,14 @@ object BatteryStyle : BaseHook() {
         }
     }
 
-    private fun hookStatusBattery(param: XC_MethodHook.MethodHookParam) {
+    private fun hookStatusBattery(param: HookParam) {
         val batteryView = param.thisObject as LinearLayout
         val mBatteryPercentView =
-            XposedHelpers.getObjectField(param.thisObject, "mBatteryPercentView") as TextView
+            ReflectionHelper.getObjectField(param.thisObject, "mBatteryPercentView") as TextView
         val mBatteryPercentMarkView =
-            XposedHelpers.getObjectField(param.thisObject, "mBatteryPercentMarkView") as TextView
+            ReflectionHelper.getObjectField(param.thisObject, "mBatteryPercentMarkView") as TextView
         val mBatteryTextDigitView =
-            XposedHelpers.getObjectField(param.thisObject, "mBatteryTextDigitView") as TextView
+            ReflectionHelper.getObjectField(param.thisObject, "mBatteryTextDigitView") as TextView
 
         // 交换电池图标与电量位置（电量外显下才能正常交换）
         if (isChangeLocation) {

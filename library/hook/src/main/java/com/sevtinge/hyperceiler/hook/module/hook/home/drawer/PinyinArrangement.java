@@ -26,7 +26,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.Locale;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class PinyinArrangement extends BaseHook {
     LocaleList locale;
@@ -45,23 +45,23 @@ public class PinyinArrangement extends BaseHook {
                             logE(TAG, "Pinyin is null!");
                             return;
                         }
-                        String trim = (String) XposedHelpers.callStaticMethod(findClass("com.miui.home.launcher.common.Utilities"), "trim", charSequence);
-                        if (charSequence.length() > 0 && (boolean) XposedHelpers.callStaticMethod(Pinyin, "isChinese", charSequence.charAt(0))) {
+                        String trim = (String) ReflectionHelper.callStaticMethod(findClass("com.miui.home.launcher.common.Utilities"), "trim", charSequence);
+                        if (charSequence.length() > 0 && (boolean) ReflectionHelper.callStaticMethod(Pinyin, "isChinese", charSequence.charAt(0))) {
                             bucketLabel = String.valueOf(
-                                    ((String) XposedHelpers.callStaticMethod(Pinyin, "toPinyin", charSequence.toString(), "")).charAt(0));
+                                    ((String) ReflectionHelper.callStaticMethod(Pinyin, "toPinyin", charSequence.toString(), "")).charAt(0));
                         } else {
-                            Object o = XposedHelpers.getObjectField(param.thisObject, "mBaseIndex");
-                            bucketLabel = (String) XposedHelpers.callMethod(o, "getBucketLabel", XposedHelpers.callMethod(o, "getBucketIndex", trim));
+                            Object o = ReflectionHelper.getObjectField(param.thisObject, "mBaseIndex");
+                            bucketLabel = (String) ReflectionHelper.callMethod(o, "getBucketLabel", ReflectionHelper.callMethod(o, "getBucketIndex", trim));
                         }
                         // logE("bucketLabel: " + bucketLabel + " trim1: " + trim);
-                        String trim2 = (String) XposedHelpers.callStaticMethod(findClass("com.miui.home.launcher.common.Utilities"), "trim", bucketLabel);
+                        String trim2 = (String) ReflectionHelper.callStaticMethod(findClass("com.miui.home.launcher.common.Utilities"), "trim", bucketLabel);
                         // logE("trim2: " + trim2);
                         if (!trim2.isEmpty() || trim.length() <= 0) {
                             param.setResult(bucketLabel);
                             return;
                         }
                         int codePointAt = trim.codePointAt(0);
-                        param.setResult(Character.isDigit(codePointAt) ? "…" : Character.isLetter(codePointAt) ? (String) XposedHelpers.getObjectField(param.thisObject, "mDefaultMiscLabel") : "∙");
+                        param.setResult(Character.isDigit(codePointAt) ? "…" : Character.isLetter(codePointAt) ? (String) ReflectionHelper.getObjectField(param.thisObject, "mDefaultMiscLabel") : "∙");
                     }
                 }
         );
@@ -70,7 +70,7 @@ public class PinyinArrangement extends BaseHook {
                 "onAppsUpdated", new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        activity = (Activity) XposedHelpers.getObjectField(param.thisObject, "mLauncher");
+                        activity = (Activity) ReflectionHelper.getObjectField(param.thisObject, "mLauncher");
                         locale = activity.getResources().getConfiguration().getLocales();
                         activity.getResources().getConfiguration().setLocale(Locale.SIMPLIFIED_CHINESE);
                     }

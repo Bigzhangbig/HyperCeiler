@@ -38,7 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import de.robv.android.xposed.XposedBridge;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
 
 public class PrefsUtils {
     public static SharedPreferences mSharedPreferences = null;
@@ -108,7 +108,7 @@ public class PrefsUtils {
                 return prefValue;
             } else XposedLogUtils.logI("ContentResolver", "[" + name + "] Cursor fail: " + cursor);
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            HookBridge.log(t);
         }
 
         if (mPrefsMap.containsKey(name))
@@ -132,7 +132,7 @@ public class PrefsUtils {
                 XposedLogUtils.logI("ContentResolver", "[" + name + "] Cursor fail: null");
             }
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            HookBridge.log(t);
         }
 
         LinkedHashSet<String> empty = new LinkedHashSet<>();
@@ -154,7 +154,7 @@ public class PrefsUtils {
                 return prefValue;
             } else XposedLogUtils.logI("ContentResolver", "[" + name + "] Cursor fail: " + cursor);
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            HookBridge.log(t);
         }
 
         if (mPrefsMap.containsKey(name))
@@ -173,7 +173,7 @@ public class PrefsUtils {
                 return prefValue == 1;
             } else XposedLogUtils.logI("ContentResolver", "[" + name + "] Cursor fail: " + cursor);
         } catch (Throwable t) {
-            XposedBridge.log(t);
+            HookBridge.log(t);
         }
 
         if (mPrefsMap.containsKey(name))

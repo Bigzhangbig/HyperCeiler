@@ -32,7 +32,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class UnlockSubscription extends BaseHook {
     @Override
@@ -53,7 +53,7 @@ public class UnlockSubscription extends BaseHook {
         logD(TAG, lpparam.packageName, "method is "+method);
         hookMethod(method, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 logD(TAG, lpparam.packageName, "1");
                 try {
                     findAndHookMethod(findClass("android.app.SharedPreferencesImpl$EditorImpl"), "putBoolean", String.class, boolean.class, new MethodHook() {

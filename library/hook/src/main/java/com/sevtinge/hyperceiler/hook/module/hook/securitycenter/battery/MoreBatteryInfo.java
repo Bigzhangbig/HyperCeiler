@@ -19,8 +19,8 @@
 
 package com.sevtinge.hyperceiler.hook.module.hook.securitycenter.battery;
 
-import static de.robv.android.xposed.XposedHelpers.callMethod;
-import static de.robv.android.xposed.XposedHelpers.getObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getObjectField;
 
 import android.os.Bundle;
 import android.os.Message;
@@ -135,7 +135,7 @@ public class MoreBatteryInfo extends BaseHook {
                     protected void before(MethodHookParam param) throws Throwable {
                         for (Field f : fieldList) {
                             if (f != field) {
-                                /*Context context = AndroidAppHelper.currentApplication().getApplicationContext();
+                                /*Context context = AppContext.currentApplication().getApplicationContext();
                                 BatteryManager mBatteryManager = context.getSystemService(BatteryManager.class);
                                 // BATTERY_PROPERTY_MANUFACTURING_DATE = 7
                                 // BATTERY_PROPERTY_FIRST_USAGE_DATE = 8

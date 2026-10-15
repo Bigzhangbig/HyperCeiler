@@ -20,14 +20,14 @@ package com.sevtinge.hyperceiler.hook.module.hook.gallery;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class EnablePhotoMovie extends BaseHook {
     @Override
     public void init() {
         MethodHook hook = new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(true);
             }
         };

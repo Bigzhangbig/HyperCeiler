@@ -18,15 +18,15 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.systemui.plugin.systemui;
 
-import static de.robv.android.xposed.XposedHelpers.findAndHookMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findAndHookMethod;
 
 import android.content.Context;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class UnlockCarSicknessTile {
     public static void initUnlockCarSicknessTile(ClassLoader classLoader) {
-        findAndHookMethod("miui.systemui.util.DeviceUtils", classLoader, "isSupportCarSickness", Context.class, new XC_MethodHook() {
+        findAndHookMethod("miui.systemui.util.DeviceUtils", classLoader, "isSupportCarSickness", Context.class, new HookCallback() {
             @Override
             protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                 param.setResult(true);

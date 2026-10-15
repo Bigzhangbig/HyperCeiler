@@ -21,7 +21,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.lockscreen
 
 import android.view.*
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 
 // from https://github.com/Art-Chen/MIUI-Extra-YukiAPI/blob/f5a3ba5d17e0e62114fc355c3ff1a8daa9da94ff/app/src/main/java/moe/chenxy/miuiextra/hooker/entity/systemui/LinkageAnimCustomer.kt
 class LinkageAnimCustomer : BaseHook() {
@@ -44,7 +44,7 @@ class LinkageAnimCustomer : BaseHook() {
 
         animConfig =
             findClass("miuix.animation.base.AnimConfig").declaredConstructors[0].newInstance()
-        val listeners = XposedHelpers.getObjectField(animConfig, "listeners") as HashSet<Any>
+        val listeners = ReflectionHelper.getObjectField(animConfig, "listeners") as HashSet<Any>
         listeners.add(listener!!)
     }
 
@@ -68,25 +68,25 @@ class LinkageAnimCustomer : BaseHook() {
 
                     if (toAod) {
                         val mWallpaperHideEase =
-                            XposedHelpers.getObjectField(param.thisObject, "mWallpaperHideEase")
-                        XposedHelpers.callMethod(mWallpaperHideEase, "setDuration", off.toLong())
+                            ReflectionHelper.getObjectField(param.thisObject, "mWallpaperHideEase")
+                        ReflectionHelper.callMethod(mWallpaperHideEase, "setDuration", off.toLong())
                     } else {
                         initAnim()
 
-                        XposedHelpers.callMethod(showEase, "setDuration", on.toLong())
-                        val stateStyle = XposedHelpers.callStaticMethod(
+                        ReflectionHelper.callMethod(showEase, "setDuration", on.toLong())
+                        val stateStyle = ReflectionHelper.callStaticMethod(
                             findClass("miuix.animation.Folme"),
                             "useValue",
                             arrayOf("WallpaperParam")
                         )
-                        XposedHelpers.callMethod(animConfig, "setEase", showEase)
-                        XposedHelpers.callMethod(
+                        ReflectionHelper.callMethod(animConfig, "setEase", showEase)
+                        ReflectionHelper.callMethod(
                             stateStyle,
                             "to",
                             arrayOf("wallpaperBlack", 0f, animConfig)
                         )
 
-                        XposedHelpers.callMethod(param.thisObject, "doAnimationToAod", false, hasNotification)
+                        ReflectionHelper.callMethod(param.thisObject, "doAnimationToAod", false, hasNotification)
                         param.result = null
                     }
                 }

@@ -27,8 +27,8 @@ import com.sevtinge.hyperceiler.hook.utils.TileUtils;
 
 import java.util.Objects;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SnowLeopardModeTile extends TileUtils {
     private static boolean isInSnowLeopardMode = false;
@@ -72,7 +72,7 @@ public class SnowLeopardModeTile extends TileUtils {
             rootExecCmd("kill $(pidof android.hardware.audio.service_64) && chmod 000 /dev/snd/pcm*");
             isInSnowLeopardMode = true;
         }
-        XposedHelpers.callMethod(param.thisObject, "refreshState");
+        ReflectionHelper.callMethod(param.thisObject, "refreshState");
     }
 
     @Override

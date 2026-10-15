@@ -55,7 +55,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 /**
  * @author 焕晨HChen
@@ -66,7 +66,7 @@ public class DexKit {
     private static volatile boolean isInit = false;
     private static final int mVersion = 6;
     private static final String MMKV_PATH = "/files/hyperceiler/mmkv";
-    private static XC_LoadPackage.LoadPackageParam mParam;
+    private static PackageContext.LoadPackageParam mParam;
     private static final String TYPE_METHOD = "METHOD";
     private static final String TYPE_CLASS = "CLASS";
     private static final String TYPE_FIELD = "FIELD";
@@ -75,7 +75,7 @@ public class DexKit {
     private static volatile Gson mGson = null;
     private static volatile DexKitBridge mDexKitBridge = null;
 
-    public static void ready(XC_LoadPackage.LoadPackageParam param, String tag) {
+    public static void ready(PackageContext.LoadPackageParam param, String tag) {
         mParam = param;
         TAG = tag;
         isInit = false;

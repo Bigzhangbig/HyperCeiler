@@ -31,7 +31,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class ImOldDevice extends BaseHook {
     @Override
@@ -48,7 +48,7 @@ public class ImOldDevice extends BaseHook {
         });
         hookMethod(method, new MethodHook() {
             @Override
-            protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected void before(HookCallback.MethodHookParam param) throws Throwable {
                 param.setResult(false);
             }
         });

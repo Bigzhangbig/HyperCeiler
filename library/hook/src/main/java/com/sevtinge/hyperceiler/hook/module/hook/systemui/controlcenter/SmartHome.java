@@ -23,7 +23,7 @@ import android.widget.RelativeLayout;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SmartHome extends BaseHook {
 
@@ -41,7 +41,7 @@ public class SmartHome extends BaseHook {
                         findAndHookMethod("miui.systemui.devicecontrols.ui.MiuiControlsUiControllerImpl", mPluginLoader, "updateOrientation", new MethodHook() {
                             @Override
                             protected void after(MethodHookParam param) throws Throwable {
-                                RelativeLayout mParent = (RelativeLayout) XposedHelpers.getObjectField(param.thisObject, "parent");
+                                RelativeLayout mParent = (RelativeLayout) ReflectionHelper.getObjectField(param.thisObject, "parent");
                             }
                         });
                     }

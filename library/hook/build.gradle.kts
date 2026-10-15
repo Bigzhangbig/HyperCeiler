@@ -61,7 +61,6 @@ dependencies {
     api(libs.core.ktx)
     api(libs.expansion)
     compileOnlyApi(projects.library.hiddenApi)
-    compileOnlyApi(libs.xposed.api)
     compileOnlyApi(libs.libxposed.api)
     api(libs.libxposed.service)
 
@@ -72,6 +71,7 @@ dependencies {
     api(libs.ezxhelper.android.utils)
     api(libs.hiddenapibypass)
     api(libs.gson)
+    api(libs.commons.lang3)
     api(libs.hooktool)
     api(libs.hyperfocusapi)
     api(libs.superlyricapi)

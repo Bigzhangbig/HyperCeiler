@@ -38,7 +38,7 @@ import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.hook.utils.hookBeforeMethod
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
 import com.sevtinge.hyperceiler.hook.utils.shell.ShellUtils
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClassOrNull
 import java.io.BufferedReader
@@ -256,11 +256,11 @@ object NewFlashLight : TileUtils() {
                     max = (max * 500).roundToInt().toFloat()
                     val exp: Float
                     val GAMMA_SPACE_MAX =
-                        XposedHelpers.getStaticIntField(BrightnessUtils, "GAMMA_SPACE_MAX")
-                    val R = XposedHelpers.getStaticFloatField(BrightnessUtils, "R")
-                    val A = XposedHelpers.getStaticFloatField(BrightnessUtils, "A")
-                    val B = XposedHelpers.getStaticFloatField(BrightnessUtils, "B")
-                    val C = XposedHelpers.getStaticFloatField(BrightnessUtils, "C")
+                        ReflectionHelper.getStaticIntField(BrightnessUtils, "GAMMA_SPACE_MAX")
+                    val R = ReflectionHelper.getStaticFloatField(BrightnessUtils, "R")
+                    val A = ReflectionHelper.getStaticFloatField(BrightnessUtils, "A")
+                    val B = ReflectionHelper.getStaticFloatField(BrightnessUtils, "B")
+                    val C = ReflectionHelper.getStaticFloatField(BrightnessUtils, "C")
                     val norm =
                         MathUtils.norm(0.0f, GAMMA_SPACE_MAX.toFloat(), (it.args[if (b) 0 else 2] as Int).toFloat())
                     exp = if (norm <= R)

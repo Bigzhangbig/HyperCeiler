@@ -22,7 +22,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AddGoogleListHeader extends BaseHook {
     @Override
@@ -32,7 +32,7 @@ public class AddGoogleListHeader extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 List<?> list = (List<?>) param.args[0];
-                XposedHelpers.callMethod(param.thisObject, "AddGoogleSettingsHeaders", list);
+                ReflectionHelper.callMethod(param.thisObject, "AddGoogleSettingsHeaders", list);
             }
         });
     }

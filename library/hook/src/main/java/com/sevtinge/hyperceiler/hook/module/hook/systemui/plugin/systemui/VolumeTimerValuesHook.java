@@ -25,14 +25,14 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.tool.HookTool;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class VolumeTimerValuesHook {
     public static void initVolumeTimerValuesHook(ClassLoader classLoader) {
-        XposedHelpers.findAndHookMethod("com.android.systemui.miui.volume.MiuiVolumeTimerDrawableHelper", classLoader, "initTimerString", new HookTool.MethodHook() {
+        ReflectionHelper.findAndHookMethod("com.android.systemui.miui.volume.MiuiVolumeTimerDrawableHelper", classLoader, "initTimerString", new HookTool.MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 String[] mTimeSegmentTitle = new String[11];
                 int timerOffId = mContext.getResources().getIdentifier("timer_off", "string", "miui.systemui.plugin");
                 int minuteId = mContext.getResources().getIdentifier("timer_30_minutes", "string", "miui.systemui.plugin");
@@ -48,16 +48,16 @@ public class VolumeTimerValuesHook {
                 mTimeSegmentTitle[8] = mContext.getResources().getString(hourId, 8);
                 mTimeSegmentTitle[9] = mContext.getResources().getString(hourId, 10);
                 mTimeSegmentTitle[10] = mContext.getResources().getString(hourId, 12);
-                XposedHelpers.setObjectField(param.thisObject, "mTimeSegmentTitle", mTimeSegmentTitle);
+                ReflectionHelper.setObjectField(param.thisObject, "mTimeSegmentTitle", mTimeSegmentTitle);
             }
         });
 
-        XposedHelpers.findAndHookMethod("com.android.systemui.miui.volume.TimerItem", classLoader, "getTimePos", int.class, new HookTool.MethodHook() {
+        ReflectionHelper.findAndHookMethod("com.android.systemui.miui.volume.TimerItem", classLoader, "getTimePos", int.class, new HookTool.MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                Object timer = XposedHelpers.getObjectField(param.thisObject, "mTimerTime");
-                float halfTimerWidth = ((int) XposedHelpers.callMethod(timer, "getWidth")) / 2.0f;
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Object timer = ReflectionHelper.getObjectField(param.thisObject, "mTimerTime");
+                float halfTimerWidth = ((int) ReflectionHelper.callMethod(timer, "getWidth")) / 2.0f;
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 Object mTimerSeekbarWidth = getObjectFieldSilently(param.thisObject, "mTimerSeekbarWidth");
                 int seekbarWidthResId;
                 if ("ObjectFieldNotExist".equals(mTimerSeekbarWidth)) {
@@ -68,24 +68,24 @@ public class VolumeTimerValuesHook {
                 int mTimerSeekbarMarginLeft = mContext.getResources().getIdentifier("miui_volume_timer_seekbar_margin_left", "dimen", "miui.systemui.plugin");
                 float seekWidth = mContext.getResources().getDimension(seekbarWidthResId);
                 int marginLeft = mContext.getResources().getDimensionPixelSize(mTimerSeekbarMarginLeft);
-                int seg = (int) XposedHelpers.getObjectField(param.thisObject, "mDeterminedSegment");
+                int seg = (int) ReflectionHelper.getObjectField(param.thisObject, "mDeterminedSegment");
                 param.setResult(seekWidth / 10 * seg + marginLeft - halfTimerWidth);
             }
         });
 
-        XposedHelpers.findAndHookMethod("com.android.systemui.miui.volume.MiuiVolumeTimerDrawableHelper", classLoader, "updateDrawables", new HookTool.MethodHook() {
+        ReflectionHelper.findAndHookMethod("com.android.systemui.miui.volume.MiuiVolumeTimerDrawableHelper", classLoader, "updateDrawables", new HookTool.MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                int mCurrentSegment = XposedHelpers.getIntField(param.thisObject, "mCurrentSegment");
-                if (mCurrentSegment < 3 || (mCurrentSegment == 3 && XposedHelpers.getIntField(param.thisObject, "mDeterminedSegment") == 3)) {
-                    XposedHelpers.setIntField(param.thisObject, "mCurrentSegment", 0);
+                int mCurrentSegment = ReflectionHelper.getIntField(param.thisObject, "mCurrentSegment");
+                if (mCurrentSegment < 3 || (mCurrentSegment == 3 && ReflectionHelper.getIntField(param.thisObject, "mDeterminedSegment") == 3)) {
+                    ReflectionHelper.setIntField(param.thisObject, "mCurrentSegment", 0);
                 }
                 param.setObjectExtra("originalValue", mCurrentSegment);
             }
 
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setIntField(param.thisObject, "mCurrentSegment", (int) param.getObjectExtra("originalValue"));
+                ReflectionHelper.setIntField(param.thisObject, "mCurrentSegment", (int) param.getObjectExtra("originalValue"));
             }
         });
     }

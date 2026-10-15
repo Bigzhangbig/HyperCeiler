@@ -47,7 +47,7 @@ public class HideCrbt extends BaseHook {
             logE(TAG, this.lpparam.packageName, "method hooked failed! " + e);
         }
     }
-    /*public final void beforeHookedMethod(XC_MethodHook.MethodHookParam methodHookParam) {
+    /*public final void beforeHookedMethod(HookCallback.MethodHookParam methodHookParam) {
         HideCrbt.super.before(methodHookParam);
         methodHookParam.args[0]=0;
         methodHookParam.args[1]=Boolean.FALSE;

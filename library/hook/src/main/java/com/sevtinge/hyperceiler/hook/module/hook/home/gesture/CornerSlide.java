@@ -18,7 +18,7 @@
 */
 package com.sevtinge.hyperceiler.hook.module.hook.home.gesture;
 
-import android.app.AndroidAppHelper;
+import com.sevtinge.hyperceiler.hook.api.AppContext;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -26,7 +26,7 @@ import android.view.MotionEvent;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.module.skip.GlobalActions;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CornerSlide extends BaseHook {
     public int inDirection = 0;
@@ -44,10 +44,10 @@ public class CornerSlide extends BaseHook {
             new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    boolean isDisabled = (boolean) XposedHelpers.callStaticMethod(FsGestureAssistHelper,
+                    boolean isDisabled = (boolean) ReflectionHelper.callStaticMethod(FsGestureAssistHelper,
                         "isAssistantGestureDisabled", param.args[2]);
                     if (!isDisabled) {
-                        int mAssistantWidth = (int) XposedHelpers.getObjectField(param.thisObject, "mAssistantWidth");
+                        int mAssistantWidth = (int) ReflectionHelper.getObjectField(param.thisObject, "mAssistantWidth");
                         float f = (float) param.args[0];
                         float f2 = (float) param.args[1];
                         if (f < mAssistantWidth || f > f2 - mAssistantWidth) {
@@ -67,8 +67,8 @@ public class CornerSlide extends BaseHook {
                 protected void after(MethodHookParam param) {
                     MotionEvent motionEvent = (MotionEvent) param.args[0];
                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                        float mDownX = XposedHelpers.getFloatField(param.thisObject, "mDownX");
-                        int mAssistantWidth = XposedHelpers.getIntField(param.thisObject, "mAssistantWidth");
+                        float mDownX = ReflectionHelper.getFloatField(param.thisObject, "mDownX");
+                        int mAssistantWidth = ReflectionHelper.getIntField(param.thisObject, "mAssistantWidth");
                         inDirection = mDownX < mAssistantWidth ? 0 : 1;
                     }
                 }
@@ -95,14 +95,14 @@ public class CornerSlide extends BaseHook {
                     }
                     String direction = inDirection == 1 ? "right" : "left";
                     GlobalActions.handleAction(
-                        AndroidAppHelper.currentApplication(),
+                        AppContext.currentApplication(),
                         "prefs_key_home_navigation_assist_" + direction + "_slide"
                     );
                     /*logE(TAG, "bundle: " + bundle+" rig: "+direction);
                     if (mPrefsMap.getInt("home_navigation_assist_" + direction + "_slide_action", 0) == 10) {
 
-                        ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) XposedHelpers.callMethod(
-                            XposedHelpers.callStaticMethod(findClassIfExists("com.miui.home.recents.RecentsModel"), "getInstance",
+                        ActivityManager.RunningTaskInfo runningTaskInfo = (ActivityManager.RunningTaskInfo) ReflectionHelper.callMethod(
+                            ReflectionHelper.callStaticMethod(findClassIfExists("com.miui.home.recents.RecentsModel"), "getInstance",
                                 mContext), "getRunningTaskContainHome");
                         LockApp.needLockApp(mContext, runningTaskInfo, lpparam);
                     } else {

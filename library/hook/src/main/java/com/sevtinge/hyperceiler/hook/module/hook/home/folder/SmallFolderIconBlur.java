@@ -28,7 +28,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.blur.BlurUtils;
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SmallFolderIconBlur extends BaseHook {
 
@@ -56,17 +56,17 @@ public class SmallFolderIconBlur extends BaseHook {
         hookAllConstructors(mFolderIcon, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                 try {
-                    mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mImageView");
+                    mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mImageView");
                 } catch (Exception e) {
-                    mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mIconImageView");
+                    mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mIconImageView");
                 }
 
-                FrameLayout mDockBlur = (FrameLayout) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDockBlur");
+                FrameLayout mDockBlur = (FrameLayout) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDockBlur");
                 if (mDockBlur != null) return;
                 mDockBlur = new FrameLayout(mContext);
-                XposedHelpers.setAdditionalInstanceField(param.thisObject, "mDockBlur", mDockBlur);
+                ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mDockBlur", mDockBlur);
             }
         });
 
@@ -74,16 +74,16 @@ public class SmallFolderIconBlur extends BaseHook {
             @Override
             protected void after(MethodHookParam param) {
                 try {
-                    mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mImageView");
+                    mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mImageView");
                 } catch (Exception e) {
-                    mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mIconImageView");
+                    mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mIconImageView");
                 }
 
                 Context mContext = mIconImageView.getContext();
                 mFolderIconSize = DisplayUtils.dp2px(mPrefsMap.getInt("home_small_folder_icon_bg_size", 56));
 
                 FrameLayout mIconContainer = (FrameLayout) mIconImageView.getParent();
-                FrameLayout mDockBlur = (FrameLayout) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDockBlur");
+                FrameLayout mDockBlur = (FrameLayout) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDockBlur");
                 FrameLayout view = new FrameLayout(mContext);
 
                 mIconImageView.setVisibility(View.GONE);
@@ -151,7 +151,7 @@ public class SmallFolderIconBlur extends BaseHook {
             protected void after(MethodHookParam param) throws Throwable {
                 View dragView = (View) param.thisObject;
                 dragView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-                Object mDragInfo = XposedHelpers.getObjectField(param.thisObject, "mDragInfo");
+                Object mDragInfo = ReflectionHelper.getObjectField(param.thisObject, "mDragInfo");
             }
         });*/
     }

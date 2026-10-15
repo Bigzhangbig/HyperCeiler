@@ -18,13 +18,13 @@
 */
 package com.sevtinge.hyperceiler.hook.module.hook.systemui;
 
-import static de.robv.android.xposed.XposedHelpers.findClassIfExists;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findClassIfExists;
 
 import com.hchen.hooktool.utils.ResInjectTool;
 import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.module.base.tool.HookTool;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NotificationVolumeSeparateSlider {
     public static void initHideDeviceControlEntry(ClassLoader pluginLoader) {
@@ -47,7 +47,7 @@ public class NotificationVolumeSeparateSlider {
                 if (param.args.length != 4) return;
                 int streamType = (int) param.args[0];
                 if (streamType == 4) {
-                    XposedHelpers.callMethod(param.thisObject, "addColumn", 5, notifVolumeOnResId, notifVolumeOffResId, true, false);
+                    ReflectionHelper.callMethod(param.thisObject, "addColumn", 5, notifVolumeOnResId, notifVolumeOffResId, true, false);
                 }
             }
         });

@@ -24,9 +24,9 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.XposedHelpers.getAdditionalInstanceField
-import de.robv.android.xposed.XposedHelpers.setAdditionalInstanceField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getAdditionalInstanceField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setAdditionalInstanceField
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHook
@@ -71,7 +71,7 @@ object LockScreenDoubleTapToSleep : BaseHook() {
                                 v.context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
 
                             if (keyguardMgr.isKeyguardLocked) {
-                                XposedHelpers.callMethod(
+                                ReflectionHelper.callMethod(
                                     v.context.getSystemService(Context.POWER_SERVICE),
                                     "goToSleep",
                                     SystemClock.uptimeMillis()

@@ -32,7 +32,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BypassAdbInstallVerify extends BaseHook {
     @Override
@@ -63,10 +63,10 @@ public class BypassAdbInstallVerify extends BaseHook {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 Object instance = param.thisObject;
-                Object adbInstallVerifyActivityInstance = XposedHelpers.newInstance(XposedHelpers.findClass("com.miui.permcenter.install.AdbInstallVerifyActivity$b", lpparam.classLoader), instance);
-                XposedHelpers.setObjectField(instance, "d", adbInstallVerifyActivityInstance);
-                Object threadPoolExecutor = XposedHelpers.getStaticObjectField(XposedHelpers.findClass("android.os.AsyncTask", lpparam.classLoader), "THREAD_POOL_EXECUTOR");
-                XposedHelpers.callMethod(adbInstallVerifyActivityInstance, "executeOnExecutor", threadPoolExecutor, new Void[]{});
+                Object adbInstallVerifyActivityInstance = ReflectionHelper.newInstance(ReflectionHelper.findClass("com.miui.permcenter.install.AdbInstallVerifyActivity$b", lpparam.classLoader), instance);
+                ReflectionHelper.setObjectField(instance, "d", adbInstallVerifyActivityInstance);
+                Object threadPoolExecutor = ReflectionHelper.getStaticObjectField(ReflectionHelper.findClass("android.os.AsyncTask", lpparam.classLoader), "THREAD_POOL_EXECUTOR");
+                ReflectionHelper.callMethod(adbInstallVerifyActivityInstance, "executeOnExecutor", threadPoolExecutor, new Void[]{});
                 param.setResult(null);
 
             }

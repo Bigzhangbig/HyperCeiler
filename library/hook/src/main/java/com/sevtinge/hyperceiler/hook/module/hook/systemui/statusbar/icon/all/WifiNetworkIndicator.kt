@@ -26,7 +26,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.getStaticObjectField
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 object WifiNetworkIndicator : BaseHook() {
     private val mStatusBarWifiViewNew by lazy {
@@ -66,7 +66,7 @@ object WifiNetworkIndicator : BaseHook() {
                 override fun after(param: MethodHookParam) {
                     val mWifiActivityView =
                         param.thisObject.getObjectField("mWifiActivityView")
-                    XposedHelpers.callMethod(mWifiActivityView, "setVisibility", View.GONE)
+                    ReflectionHelper.callMethod(mWifiActivityView, "setVisibility", View.GONE)
                 }
             })
     }

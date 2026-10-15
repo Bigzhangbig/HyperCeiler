@@ -28,7 +28,7 @@ import androidx.annotation.NonNull;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SeekPoints extends BaseHook {
 
@@ -100,14 +100,14 @@ public class SeekPoints extends BaseHook {
 
     private void showSeekBar(View workspace) {
         if (!"Workspace".equals(workspace.getClass().getSimpleName())) return;
-        boolean isInEditingMode = (boolean) XposedHelpers.callMethod(workspace, "isInNormalEditingMode");
-        View mScreenSeekBar = (View) XposedHelpers.getObjectField(workspace, "mScreenSeekBar");
+        boolean isInEditingMode = (boolean) ReflectionHelper.callMethod(workspace, "isInNormalEditingMode");
+        View mScreenSeekBar = (View) ReflectionHelper.getObjectField(workspace, "mScreenSeekBar");
         if (mScreenSeekBar == null) {
             logI(TAG, this.lpparam.packageName, "showSeekBar HideSeekPointsHook Cannot find seekbar");
             return;
         }
         Context mContext = workspace.getContext();
-        Handler mHandler = (Handler) XposedHelpers.getAdditionalInstanceField(workspace, "mHandlerEx");
+        Handler mHandler = (Handler) ReflectionHelper.getAdditionalInstanceField(workspace, "mHandlerEx");
         if (mHandler == null) {
             mHandler = new Handler(mContext.getMainLooper()) {
                 @Override
@@ -117,7 +117,7 @@ public class SeekPoints extends BaseHook {
                         seekBar.animate().alpha(0.0f).setDuration(600).withEndAction(() -> seekBar.setVisibility(View.GONE));
                 }
             };
-            XposedHelpers.setAdditionalInstanceField(workspace, "mHandlerEx", mHandler);
+            ReflectionHelper.setAdditionalInstanceField(workspace, "mHandlerEx", mHandler);
         }
         if (mHandler == null) {
             logI(TAG, this.lpparam.packageName, "showSeekBar HideSeekPointsHook Cannot create handler");

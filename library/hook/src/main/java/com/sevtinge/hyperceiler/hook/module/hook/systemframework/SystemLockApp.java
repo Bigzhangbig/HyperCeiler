@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * @author 焕晨HChen
@@ -50,7 +50,7 @@ public class SystemLockApp extends BaseHook {
                     @Override
                     protected void after(MethodHookParam param) {
                         try {
-                            Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                            Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                             if (context == null) return;
                             if (!isObserver) {
                                 ContentObserver contentObserver = new ContentObserver(new Handler(context.getMainLooper())) {
@@ -59,10 +59,10 @@ public class SystemLockApp extends BaseHook {
                                         isLock = getLockApp(context) != -1;
                                         if (isLock) {
                                             taskId = getLockApp(context);
-                                            XposedHelpers.callMethod(param.thisObject, "startSystemLockTaskMode", taskId);
+                                            ReflectionHelper.callMethod(param.thisObject, "startSystemLockTaskMode", taskId);
                                             needLockScreen = getMyLockScreen(context) == 1;
                                         } else {
-                                            new Handler(context.getMainLooper()).postDelayed(() -> XposedHelpers.callMethod(param.thisObject, "stopSystemLockTaskMode"),300);
+                                            new Handler(context.getMainLooper()).postDelayed(() -> ReflectionHelper.callMethod(param.thisObject, "stopSystemLockTaskMode"),300);
                                         }
                                     }
                                 };
@@ -88,7 +88,7 @@ public class SystemLockApp extends BaseHook {
                             return; // 不知道为什么还是需要重启才生效
                         String shortcut = (String) param.args[1];
                         if ("imperceptible_press_power_key".equals(shortcut) || "long_press_power_key".equals(shortcut)) {
-                            Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                            Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                             isLock = getLockApp(context) != -1;
                             if (isLock) {
                                 setLockApp(context, -1);

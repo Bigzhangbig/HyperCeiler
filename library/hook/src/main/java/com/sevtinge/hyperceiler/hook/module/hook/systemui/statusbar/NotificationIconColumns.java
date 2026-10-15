@@ -31,7 +31,7 @@ import androidx.annotation.Nullable;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NotificationIconColumns extends BaseHook {
 
@@ -54,8 +54,8 @@ public class NotificationIconColumns extends BaseHook {
                 new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) {
-                        mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                        mCurrentUserId = (int) XposedHelpers.getObjectField(param.thisObject, "mCurrentUserId");
+                        mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                        mCurrentUserId = (int) ReflectionHelper.getObjectField(param.thisObject, "mCurrentUserId");
                         mShowNotificationIcons = getSettings(mContext, mCurrentUserId) == 1;
                         listening(mContext);
                     }
@@ -78,10 +78,10 @@ public class NotificationIconColumns extends BaseHook {
                     @Override
                     protected void before(MethodHookParam param) {
                         if (isMoreAndroidVersion(35)) {
-                            XposedHelpers.setObjectField(param.thisObject, "mMaxIcons", maxIconsNum);
+                            ReflectionHelper.setObjectField(param.thisObject, "mMaxIcons", maxIconsNum);
                         } else {
-                            XposedHelpers.setObjectField(param.thisObject, "mMaxStaticIcons", maxIconsNum);
-                            XposedHelpers.setObjectField(param.thisObject, "mIsStaticLayout", true);
+                            ReflectionHelper.setObjectField(param.thisObject, "mMaxStaticIcons", maxIconsNum);
+                            ReflectionHelper.setObjectField(param.thisObject, "mIsStaticLayout", true);
                         }
                     }
                 }
@@ -93,10 +93,10 @@ public class NotificationIconColumns extends BaseHook {
                     @Override
                     protected void before(MethodHookParam param) {
                         if (isMoreAndroidVersion(35)) {
-                            XposedHelpers.setObjectField(param.thisObject, "mMaxIcons", maxIconsNum);
+                            ReflectionHelper.setObjectField(param.thisObject, "mMaxIcons", maxIconsNum);
                         } else {
-                            XposedHelpers.setObjectField(param.thisObject, "mMaxStaticIcons", maxIconsNum);
-                            XposedHelpers.setObjectField(param.thisObject, "mIsStaticLayout", true);
+                            ReflectionHelper.setObjectField(param.thisObject, "mMaxStaticIcons", maxIconsNum);
+                            ReflectionHelper.setObjectField(param.thisObject, "mIsStaticLayout", true);
                         }
                     }
                 }
@@ -108,7 +108,7 @@ public class NotificationIconColumns extends BaseHook {
                     new MethodHook() {
                         @Override
                         protected void before(MethodHookParam param) {
-                            XposedHelpers.setObjectField(param.thisObject, "mMaxIconsOnLockscreen", maxIconsNum);
+                            ReflectionHelper.setObjectField(param.thisObject, "mMaxIconsOnLockscreen", maxIconsNum);
                         }
                     }
             );
@@ -123,7 +123,7 @@ public class NotificationIconColumns extends BaseHook {
                 mShowNotificationIcons = getSettings(context, mCurrentUserId) == 1;
             }
         };
-        XposedHelpers.callMethod(XposedHelpers.callMethod(context, "getContentResolver"),
+        ReflectionHelper.callMethod(ReflectionHelper.callMethod(context, "getContentResolver"),
                 "registerContentObserver",
                 Settings.System.getUriFor("status_bar_show_notification_icon"), false,
                 contentObserver, -1);
@@ -132,7 +132,7 @@ public class NotificationIconColumns extends BaseHook {
     public int getSettings(Context context, int mCurrentUserId) {
         try {
             Class<?>[] classes = {ContentResolver.class, String.class, int.class, int.class};
-            return (int) XposedHelpers.callStaticMethod(findClass("android.provider.Settings$System"),
+            return (int) ReflectionHelper.callStaticMethod(findClass("android.provider.Settings$System"),
                     "getIntForUser",
                     classes,
                     context.getContentResolver(), "status_bar_show_notification_icon", 1, mCurrentUserId

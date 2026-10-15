@@ -32,8 +32,8 @@ import androidx.annotation.NonNull;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.utils.input.ContentModel;
 import com.sevtinge.hyperceiler.hook.utils.input.FileHelper;
 
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  *
  * @author 焕晨HChen
  */
-public class ClipboardLimit extends HCBase {
+public class ClipboardLimit extends NativeFeatureModule {
     private static final String TAG = "ClipboardList";
     private static ClassLoader classLoader;
     private static Gson mGson;
@@ -110,7 +110,7 @@ public class ClipboardLimit extends HCBase {
     }
 
     private static boolean isNewVersion() {
-        isNewVersion = existsClass("com.miui.inputmethod.MiuiClipboardManager", classLoader);
+        isNewVersion = hasClass("com.miui.inputmethod.MiuiClipboardManager", classLoader);
         return isNewVersion;
     }
 
@@ -119,7 +119,7 @@ public class ClipboardLimit extends HCBase {
 
         buildChain("com.miui.inputmethod.MiuiClipboardManager", classLoader)
             .findAllMethod("addClipDataToPhrase")
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     Object clipboardContentModel = getArg(2);
@@ -132,7 +132,7 @@ public class ClipboardLimit extends HCBase {
             }) // 添加剪贴板条目
 
             .findMethod("getClipboardData", Context.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     setResult(
@@ -142,7 +142,7 @@ public class ClipboardLimit extends HCBase {
             }) // 获取剪贴板数据
 
             .findAllMethod("setClipboardModelList")
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     List<?> dataList = (List<?>) getArg(1);
@@ -153,8 +153,8 @@ public class ClipboardLimit extends HCBase {
                 }
             }) // 保存剪贴板数据
 
-            .findMethodIfExist("clearClipBoardData", Context.class)
-            .hook(new IHook() {
+            .findMethod("clearClipBoardData", Context.class).ignoreThrow()
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void after() {
                     FileHelper.write(mDataPath, "[]");
@@ -164,7 +164,7 @@ public class ClipboardLimit extends HCBase {
             })
 
             .findAllMethod("commitClipDataAndTrack")
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     Integer type = (Integer) getArg(3);
@@ -176,7 +176,7 @@ public class ClipboardLimit extends HCBase {
             })  // 修复小米的 BUG
 
             .findMethod("processSingleItemOfClipData", ClipData.class, String.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     ClipData clipData = (ClipData) getArg(0);
@@ -188,7 +188,7 @@ public class ClipboardLimit extends HCBase {
             }) // 解除 5000 字限制
 
             .findMethod("buildClipDataItemModelBasedTextData", String.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (mMaxSize == -1) {
@@ -210,11 +210,11 @@ public class ClipboardLimit extends HCBase {
                 }
             }); // 解除 5000 字限制
 
-        if (existsMethod("com.miui.inputmethod.InputMethodClipboardPhrasePopupView", classLoader, "setRemoteDataToView")) {
+        if (hasMethod("com.miui.inputmethod.InputMethodClipboardPhrasePopupView", classLoader, "setRemoteDataToView")) {
             hookMethod("com.miui.inputmethod.InputMethodClipboardPhrasePopupView",
                 classLoader,
                 "setRemoteDataToView",
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void before() {
                         returnNull();
@@ -227,7 +227,7 @@ public class ClipboardLimit extends HCBase {
     private static void oldVersionHook() {
         buildChain("com.miui.inputmethod.InputMethodUtil", classLoader)
             .findMethod("getClipboardData", Context.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     setResult(
@@ -237,7 +237,7 @@ public class ClipboardLimit extends HCBase {
             }) // 读取剪贴板数据
 
             .findMethod("addClipboard", String.class, String.class, int.class, Context.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     String content = (String) getArg(1);
@@ -255,7 +255,7 @@ public class ClipboardLimit extends HCBase {
             }) // 添加剪贴板条目
 
             .findMethod("setClipboardModelList", Context.class, ArrayList.class)
-            .hook(new IHook() {
+            .hook(new NativeFeatureHook() {
                 @Override
                 public void before() {
                     ArrayList<?> dataList = (ArrayList<?>) getArg(1);
@@ -340,8 +340,7 @@ public class ClipboardLimit extends HCBase {
     @NonNull
     private static Object restoreContentModel(@NonNull ContentModel contentModel) {
         return callStaticMethod(
-            "com.miui.inputmethod.ClipboardContentModel",
-            classLoader,
+            findClass("com.miui.inputmethod.ClipboardContentModel", classLoader),
             "fromJSONObject",
             contentModel.toJSONObject()
         );

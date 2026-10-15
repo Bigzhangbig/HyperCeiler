@@ -24,7 +24,7 @@
 -keep class org.lsposed.** { *; }
 -keep class io.github.kyuubiran.ezxhelper.** { *; }
 -keep class com.hchen.hooktool.** { *; }
--keep class * extends com.hchen.hooktool.HCBase
+-keep class * extends com.hchen.hooktool.AbsModule
 
 -keep class com.sevtinge.hyperceiler.hook.XposedInit { *; }
 -keep class com.sevtinge.hyperceiler.hook.ModernXposedInit { *; }

@@ -35,7 +35,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MaxScreenBrightness extends BaseHook {
 
@@ -59,7 +59,7 @@ public class MaxScreenBrightness extends BaseHook {
         hookMethod(method, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Activity activity = (Activity) XposedHelpers.callMethod(param.thisObject, "getActivity");
+                Activity activity = (Activity) ReflectionHelper.callMethod(param.thisObject, "getActivity");
                 setScreenBrightnessToMax(activity);
             }
 

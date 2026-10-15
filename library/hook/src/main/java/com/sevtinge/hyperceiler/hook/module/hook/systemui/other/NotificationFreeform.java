@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.other;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NotificationFreeform extends BaseHook {
     @Override
@@ -29,7 +29,7 @@ public class NotificationFreeform extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 super.after(param);
-                XposedHelpers.setObjectField(param.thisObject, "mCanSlide", true);
+                ReflectionHelper.setObjectField(param.thisObject, "mCanSlide", true);
             }
         });
 

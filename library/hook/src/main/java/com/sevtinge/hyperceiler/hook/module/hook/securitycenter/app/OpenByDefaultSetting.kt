@@ -33,12 +33,12 @@ import com.sevtinge.hyperceiler.hook.R
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit
 import com.sevtinge.hyperceiler.hook.module.base.tool.OtherTool
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.getObjectField
-import de.robv.android.xposed.XposedHelpers.newInstance
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookBridge
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getObjectField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.newInstance
 import io.github.kyuubiran.ezxhelper.core.ClassLoaderProvider.classLoader
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed.appContext
 import java.lang.reflect.Method
@@ -133,24 +133,24 @@ class OpenByDefaultSetting : BaseHook() {
 
         if (Activity::class.java.isAssignableFrom(appDetailsView)) {
             // v1, v2
-            XposedBridge.hookMethod(onLoadDataFinishMethod, object : XC_MethodHook() {
+            HookBridge.hookMethod(onLoadDataFinishMethod, object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     handleActivityOnLoadDataFinish(param.thisObject as Activity)
                 }
             })
         } else {
             // v3
-            XposedBridge.hookMethod(onLoadDataFinishMethod, object : XC_MethodHook() {
+            HookBridge.hookMethod(onLoadDataFinishMethod, object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     handleFragmentOnLoadDataFinish(param.thisObject)
                 }
             })
 
             // injectClassLoader()
-            XposedHelpers.findAndHookMethod(appDetailsView,
+            ReflectionHelper.findAndHookMethod(appDetailsView,
                 "onPreferenceClick",
                 "androidx.preference.Preference",
-                object : XC_MethodHook() {
+                object : HookCallback() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val pref = param.args[0]
                         if (callMethod(pref, "getKey") == "app_default_pref") {
@@ -183,7 +183,7 @@ class OpenByDefaultSetting : BaseHook() {
 
     // v2
     private fun createOpenDefaultView(activity: Activity): View {
-        val appmanagerTextBannerViewClass = XposedHelpers.findClass(
+        val appmanagerTextBannerViewClass = ReflectionHelper.findClass(
             "com.miui.appmanager.widget.AppDetailTextBannerView", classLoader
         )
 

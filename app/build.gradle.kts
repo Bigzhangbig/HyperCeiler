@@ -75,7 +75,7 @@ android {
         applicationId = namespace
         minSdk = 34
         targetSdk = 36
-        versionCode = 4258
+        versionCode = 4259
         versionName = "2.6.161"
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {

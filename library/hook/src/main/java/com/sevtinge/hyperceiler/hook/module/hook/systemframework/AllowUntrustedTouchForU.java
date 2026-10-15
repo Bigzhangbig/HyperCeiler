@@ -27,7 +27,7 @@ public class AllowUntrustedTouchForU  extends BaseHook {
     @Override
     public void init() {
         //mInputManager = findClassIfExists("android.hardware.input.InputManager");
-        //XposedHelpers.setStaticLongField(mInputManager, "BLOCK_UNTRUSTED_TOUCHES", 0x96aec7eL);
+        //ReflectionHelper.setStaticLongField(mInputManager, "BLOCK_UNTRUSTED_TOUCHES", 0x96aec7eL);
         findAndHookMethod("com.android.server.wm.WindowState", "getTouchOcclusionMode", new MethodHook(){
             @Override
             protected void after(MethodHookParam param) throws Throwable {

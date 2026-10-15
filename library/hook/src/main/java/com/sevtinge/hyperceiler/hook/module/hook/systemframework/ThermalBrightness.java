@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class ThermalBrightness extends BaseHook {
     public final String displayPowerControllerImpl = "com.android.server.display.DisplayPowerControllerImpl";
@@ -44,7 +44,7 @@ public class ThermalBrightness extends BaseHook {
                     }
                 }
             );
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             logE(TAG, "android", "No found class: " + e);
         }
 
@@ -58,7 +58,7 @@ public class ThermalBrightness extends BaseHook {
                     }
                 }
             );
-        } catch (XposedHelpers.ClassNotFoundError e) {
+        } catch (ReflectionHelper.ClassNotFoundError e) {
             logE(TAG, "android", "No found class: " + e);
         }
 
@@ -74,7 +74,7 @@ public class ThermalBrightness extends BaseHook {
             );
         } catch (NoSuchMethodException e) {
             logE(TAG, "android", "Don't Have updateTemperature: " + e);
-        } catch (XposedHelpers.ClassNotFoundError ne) {
+        } catch (ReflectionHelper.ClassNotFoundError ne) {
             logE(TAG, "android", "Class not found: " + ne);
         }
 
@@ -90,7 +90,7 @@ public class ThermalBrightness extends BaseHook {
             );
         } catch (NoSuchMethodException e) {
             logE(TAG, "android", "Don't Have updateTemperature: " + e);
-        } catch (XposedHelpers.ClassNotFoundError ne) {
+        } catch (ReflectionHelper.ClassNotFoundError ne) {
             logE(TAG, "android", "Class not found: " + ne);
         }
 

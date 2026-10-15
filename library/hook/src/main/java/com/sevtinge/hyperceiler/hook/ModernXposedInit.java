@@ -1,34 +1,36 @@
-/*
- * This file is part of HyperCeiler, licensed under the GNU AGPL version 3 or later.
- */
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
 package com.sevtinge.hyperceiler.hook;
 
-import android.content.pm.ApplicationInfo;
 import android.util.Log;
-
+import com.hchen.hooktool.ModuleConfig;
+import com.hchen.hooktool.ModuleEntrance;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
+import com.sevtinge.hyperceiler.hook.utils.log.LogManager;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
+import io.github.kyuubiran.ezxhelper.xposed.EzXposed;
 
-import java.lang.reflect.Constructor;
-import java.util.concurrent.CopyOnWriteArraySet;
-
-import de.robv.android.xposed.IXposedHookZygoteInit.StartupParam;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
-import io.github.libxposed.api.XposedModule;
-
-/**
- * API101 entry and official preference transport for the Android 14 hook backend.
- * Target 101 intentionally retains LSPosed's documented legacy-hook compatibility.
- * No module code is loaded into zygote and no NSP files are read.
- */
-public final class ModernXposedInit extends XposedModule {
+/** API102 entry. Every feature hook executes through libxposed's native interceptor API. */
+public final class ModernXposedInit extends ModuleEntrance {
     private static final String TAG = "HyperCeiler";
     private XposedInit backend;
     private ModuleLoadedParam process;
     private boolean initialized;
 
-    @Override
-    public void onModuleLoaded(ModuleLoadedParam param) {
+    @Override public void initModuleConfig() {
+        ModuleConfig.setLogTag(TAG);
+        ModuleConfig.setLogLevel(LogManager.getLogLevel());
+        ModuleConfig.setPrefsName(PrefsUtils.mPrefsName);
+        ModuleConfig.setShowHookSuccessLog(false);
+    }
+
+    /** Feature static state and hook handles are not yet transferable across module reloads. */
+    @Override public boolean isHotReloadingAllowed(String packageName) { return false; }
+
+    @Override public void handleModuleLoaded(ModuleLoadedParam param) {
         process = param;
+        HookBridge.initialize(this);
+        EzXposed.initOnModuleLoaded(this, param);
         initializeBackend();
     }
 
@@ -38,69 +40,46 @@ public final class ModernXposedInit extends XposedModule {
             PrefsUtils.attachHookPreferences(getRemotePreferences(PrefsUtils.mPrefsName), this::deoptimize);
             if (!PrefsUtils.mPrefsMap.getBoolean("allow_hook")) return false;
             backend = new XposedInit();
-            // These are legacy helper data objects, not framework lifecycle entry points.
-            Constructor<StartupParam> constructor = StartupParam.class.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            StartupParam startup = constructor.newInstance();
-            startup.modulePath = getModuleApplicationInfo().sourceDir;
-            startup.startsSystemServer = process.isSystemServer();
-            backend.initZygote(startup);
+            backend.initializeBackend(getModuleApplicationInfo().sourceDir, process.isSystemServer());
             initialized = true;
-            log(Log.INFO, TAG, "Android 14 hooks initialized with framework remote preferences in "
+            log(Log.INFO, TAG, "Android 14 native API102 hooks initialized with framework remote preferences in "
                 + process.getProcessName());
             return true;
         } catch (Throwable error) {
-            log(Log.ERROR, TAG, "Cannot initialize the Android 14 hook backend", error);
+            log(Log.ERROR, TAG, "Cannot initialize the Android 14 native hook backend", error);
             return false;
         }
     }
 
-    @Override
-    public void onSystemServerStarting(SystemServerStartingParam param) {
-        dispatch("android", "android", param.getClassLoader(), null, true);
+    @Override public void handleSystemServerStarting(SystemServerStartingParam param) {
+        EzXposed.initOnSystemServerStarting(param);
+        PackageContext.LoadPackageParam context = new PackageContext.LoadPackageParam();
+        context.packageName = "android";
+        context.processName = "android";
+        context.classLoader = param.getClassLoader();
+        context.isFirstApplication = true;
+        context.systemServerStartingParam = param;
+        dispatch(context);
     }
 
-    @Override
-    public void onPackageReady(PackageReadyParam param) {
-        dispatch(param.getPackageName(), process.getProcessName(), param.getClassLoader(),
-            param.getApplicationInfo(), param.isFirstPackage());
+    @Override public void handlePackageReady(PackageReadyParam param) {
+        EzXposed.initOnPackageReady(param);
+        PackageContext.LoadPackageParam context = new PackageContext.LoadPackageParam();
+        context.packageName = param.getPackageName();
+        context.processName = process.getProcessName();
+        context.classLoader = param.getClassLoader();
+        context.appInfo = param.getApplicationInfo();
+        context.isFirstApplication = param.isFirstPackage();
+        context.packageReadyParam = param;
+        dispatch(context);
     }
 
-    private void dispatch(String packageName, String processName, ClassLoader loader,
-                          ApplicationInfo appInfo, boolean firstPackage) {
+    private void dispatch(PackageContext.LoadPackageParam context) {
         if (!initializeBackend()) return;
         try {
-            XC_LoadPackage.LoadPackageParam legacy = newLoadPackageParam();
-            legacy.packageName = packageName;
-            legacy.processName = processName;
-            legacy.classLoader = loader;
-            legacy.appInfo = appInfo;
-            legacy.isFirstApplication = firstPackage;
-            backend.handleLoadPackage(legacy);
+            backend.handleLoadPackage(context);
         } catch (Throwable error) {
-            log(Log.ERROR, TAG, "Cannot initialize hooks for " + packageName, error);
+            log(Log.ERROR, TAG, "Cannot initialize hooks for " + context.packageName, error);
         }
-    }
-
-    private static XC_LoadPackage.LoadPackageParam newLoadPackageParam() throws ReflectiveOperationException {
-        // The API82 compile-time stubs omit the runtime callback-set constructor.
-        // LSPosed 2.2 uses CopyOnWriteArraySet; other API101 implementations use a sorted set.
-        for (Constructor<?> constructor : XC_LoadPackage.LoadPackageParam.class.getDeclaredConstructors()) {
-            Class<?>[] types = constructor.getParameterTypes();
-            constructor.setAccessible(true);
-            if (types.length == 0) return (XC_LoadPackage.LoadPackageParam) constructor.newInstance();
-            if (types.length == 1) {
-                Object callbacks;
-                if (types[0].isAssignableFrom(CopyOnWriteArraySet.class)) {
-                    callbacks = new CopyOnWriteArraySet<>();
-                } else if (types[0].getSimpleName().equals("CopyOnWriteSortedSet")) {
-                    Constructor<?> emptySet = types[0].getDeclaredConstructor();
-                    emptySet.setAccessible(true);
-                    callbacks = emptySet.newInstance();
-                } else continue;
-                return (XC_LoadPackage.LoadPackageParam) constructor.newInstance(callbacks);
-            }
-        }
-        throw new NoSuchMethodException("Unsupported legacy LoadPackageParam constructor");
     }
 }

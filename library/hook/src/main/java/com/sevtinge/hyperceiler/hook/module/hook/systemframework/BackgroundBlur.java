@@ -22,9 +22,9 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BackgroundBlur extends BaseHook {
     private final static String TAG = "MYBackgroundBlur";
@@ -53,7 +53,7 @@ public class BackgroundBlur extends BaseHook {
         }
     }
 
-    XC_MethodHook xcMethodHook = new XC_MethodHook() {
+    HookCallback xcMethodHook = new HookCallback() {
         @Override
         protected void afterHookedMethod(MethodHookParam param) {
             if (done) return;
@@ -84,14 +84,14 @@ public class BackgroundBlur extends BaseHook {
     };
 
     private void hookProp(Method method) {
-        XposedBridge.hookMethod(method, xcMethodHook);
+        HookBridge.hookMethod(method, xcMethodHook);
     }
 
     private void setProp() throws Throwable {
-        XposedHelpers.callStaticMethod(SystemProperties, "set", supported, String.valueOf(true));
-        XposedHelpers.callStaticMethod(SystemProperties, "set", status, String.valueOf(true));
-        XposedHelpers.callStaticMethod(SystemProperties, "set", mode, String.valueOf(0));
-        XposedHelpers.callStaticMethod(SystemProperties, "set", version, String.valueOf(2));
+        ReflectionHelper.callStaticMethod(SystemProperties, "set", supported, String.valueOf(true));
+        ReflectionHelper.callStaticMethod(SystemProperties, "set", status, String.valueOf(true));
+        ReflectionHelper.callStaticMethod(SystemProperties, "set", mode, String.valueOf(0));
+        ReflectionHelper.callStaticMethod(SystemProperties, "set", version, String.valueOf(2));
     }
 
     private Object isBlurProp(String key) {

@@ -20,12 +20,12 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.layout;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class ShowClock extends BaseHook {
 
     @Override
     public void init() {
-        findAndHookMethod("com.miui.home.launcher.Workspace", "isScreenHasClockGadget", long.class, XC_MethodReplacement.returnConstant(false));
+        findAndHookMethod("com.miui.home.launcher.Workspace", "isScreenHasClockGadget", long.class, HookReplacement.returnConstant(false));
     }
 }

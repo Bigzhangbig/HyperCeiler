@@ -23,7 +23,7 @@ import android.view.View;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.blur.BlurUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DialogBlur extends BaseHook {
 
@@ -35,7 +35,7 @@ public class DialogBlur extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
 
-                View mParentPanel = (View) XposedHelpers.getObjectField(param.thisObject, "mParentPanel");
+                View mParentPanel = (View) ReflectionHelper.getObjectField(param.thisObject, "mParentPanel");
 
                 if (mParentPanel != null) {
                     /*new BlurUtils(mParentPanel);*/
@@ -48,7 +48,7 @@ public class DialogBlur extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 super.after(param);
-                View mParentPanel = (View) XposedHelpers.getObjectField(param.thisObject, "mParentPanel");
+                View mParentPanel = (View) ReflectionHelper.getObjectField(param.thisObject, "mParentPanel");
                 mParentPanel.setVisibility(View.INVISIBLE);
             }
         });

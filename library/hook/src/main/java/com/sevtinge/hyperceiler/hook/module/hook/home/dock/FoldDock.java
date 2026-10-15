@@ -22,7 +22,7 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class FoldDock extends BaseHook {
 
@@ -39,39 +39,39 @@ public class FoldDock extends BaseHook {
         mDeviceConfig = findClassIfExists("com.miui.home.launcher.DeviceConfig");
         mApplication = findClassIfExists("com.miui.home.launcher.Application");
 
-        findAndHookMethod(mHotSeatsListRecentsAppProvider, "getLimitCount", XC_MethodReplacement.returnConstant(0));
+        findAndHookMethod(mHotSeatsListRecentsAppProvider, "getLimitCount", HookReplacement.returnConstant(0));
 
-        findAndHookMethod(mDeviceConfig, "getHotseatMaxCount", XC_MethodReplacement.returnConstant(5));
+        findAndHookMethod(mDeviceConfig, "getHotseatMaxCount", HookReplacement.returnConstant(5));
 
 
         findAndHookMethod("com.miui.home.launcher.hotseats.HotSeats", "initContent", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 findAndHookMethod(mDeviceConfig, "isFoldDevice",
-                    XC_MethodReplacement.returnConstant(true));
+                    HookReplacement.returnConstant(true));
             }
 
             @Override
             protected void after(MethodHookParam param) throws Throwable {
 
                 findAndHookMethod(mDeviceConfig, "isFoldDevice",
-                    XC_MethodReplacement.returnConstant(false));
+                    HookReplacement.returnConstant(false));
             }
         });
         findAndHookMethod("com.miui.home.launcher.hotseats.HotSeats", "updateContentView", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
                 findAndHookMethod(mApplication, "isInFoldLargeScreen",
-                    XC_MethodReplacement.returnConstant(true));
+                    HookReplacement.returnConstant(true));
             }
 
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 findAndHookMethod(mApplication, "isInFoldLargeScreen",
-                    XC_MethodReplacement.returnConstant(false));
+                    HookReplacement.returnConstant(false));
             }
         });
 
-        findAndHookMethod("com.miui.home.launcher.allapps.LauncherMode", "isHomeSupportSearchBar", Context.class, XC_MethodReplacement.returnConstant(false));
+        findAndHookMethod("com.miui.home.launcher.allapps.LauncherMode", "isHomeSupportSearchBar", Context.class, HookReplacement.returnConstant(false));
     }
 }

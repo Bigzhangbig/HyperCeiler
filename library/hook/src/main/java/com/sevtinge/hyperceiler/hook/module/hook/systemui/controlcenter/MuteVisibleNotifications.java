@@ -23,7 +23,7 @@ import android.os.PowerManager;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MuteVisibleNotifications extends BaseHook {
     String NotificationLoadClass;
@@ -35,7 +35,7 @@ public class MuteVisibleNotifications extends BaseHook {
         hookAllMethods(NotificationLoadClass, lpparam.classLoader, "buzzBeepBlink", new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     PowerManager powerMgr = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
                     if (powerMgr.isInteractive()) {
                         param.setResult(null);

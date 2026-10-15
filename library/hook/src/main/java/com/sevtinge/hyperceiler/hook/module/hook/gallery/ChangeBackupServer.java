@@ -20,8 +20,8 @@ package com.sevtinge.hyperceiler.hook.module.hook.gallery;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class ChangeBackupServer extends BaseHook {
     @Override
@@ -31,11 +31,11 @@ public class ChangeBackupServer extends BaseHook {
         boolean isOneDrive = mPrefsMap.getStringAsInt("gallery_backup_server", 0) == 3;
         if (isOneDrive) {
             findAndHookMethod("com.miui.gallery.ui.GallerySettingsFragment", "initGlobalBackupPreference", new MethodHook() {
-                XC_MethodHook.Unhook isInternationalHook;
+                HookCallback.Unhook isInternationalHook;
 
                 @Override
                 protected void before(MethodHookParam param) throws Throwable {
-                    isInternationalHook = findAndHookMethodUseUnhook("com.miui.gallery.util.BaseBuildUtil", lpparam.classLoader, "isInternational", XC_MethodReplacement.returnConstant(true));
+                    isInternationalHook = findAndHookMethodUseUnhook("com.miui.gallery.util.BaseBuildUtil", lpparam.classLoader, "isInternational", HookReplacement.returnConstant(true));
                 }
 
                 @Override
@@ -53,11 +53,11 @@ public class ChangeBackupServer extends BaseHook {
         } else {
             if (isXiaomi) {
                 findAndHookMethod("com.miui.gallery.ui.GallerySettingsFragment", "initGlobalBackupPreference", new MethodHook() {
-                    XC_MethodHook.Unhook isInternationalHook;
+                    HookCallback.Unhook isInternationalHook;
 
                     @Override
                     protected void before(MethodHookParam param) throws Throwable {
-                        isInternationalHook = findAndHookMethodUseUnhook("com.miui.gallery.util.BaseBuildUtil", lpparam.classLoader, "isInternational", XC_MethodReplacement.returnConstant(false));
+                        isInternationalHook = findAndHookMethodUseUnhook("com.miui.gallery.util.BaseBuildUtil", lpparam.classLoader, "isInternational", HookReplacement.returnConstant(false));
                     }
 
                     @Override

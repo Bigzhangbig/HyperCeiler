@@ -20,15 +20,15 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.other
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.getValueByField
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedBridge
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookBridge
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 
 class EnableVolumeBlur : BaseHook() {
     override fun init() {
         hookClassInPlugin { classLoader ->
             try {
-                val volumeUtilClass = XposedHelpers.callMethod(
+                val volumeUtilClass = ReflectionHelper.callMethod(
                     classLoader,
                     "loadClass",
                     "com.android.systemui.miui.volume.Util"
@@ -40,10 +40,10 @@ class EnableVolumeBlur : BaseHook() {
                 }
                 allVolumeUtilMethods.forEach { method ->
                     if (method.name == "isSupportBlurS") {
-                        XposedBridge.hookAllMethods(
+                        HookBridge.hookAllMethods(
                             volumeUtilClass,
                             "isSupportBlurS",
-                            object : XC_MethodHook() {
+                            object : HookCallback() {
                                 override fun afterHookedMethod(param: MethodHookParam) {
                                     try {
                                         if (param.result is Boolean) {
@@ -70,19 +70,19 @@ class EnableVolumeBlur : BaseHook() {
             "com.android.systemui.shared.plugins.PluginInstanceManager\$PluginHandler"
         )
         if (pluginHandlerClass != null) {
-            XposedBridge.hookAllMethods(pluginHandlerClass, "handleLoadPlugin",
-                object : XC_MethodHook() {
+            HookBridge.hookAllMethods(pluginHandlerClass, "handleLoadPlugin",
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val componentName = param.args[0]
                         val className =
-                            XposedHelpers.callMethod(componentName, "getClassName") as String
+                            ReflectionHelper.callMethod(componentName, "getClassName") as String
                         if (className != "miui.systemui.volume.VolumeDialogPlugin") {
                             return
                         }
                         try {
                             val pluginContextWrapper =
                                 getValueByField(param.result ?: return, "mPluginContext") ?: return
-                            val classLoader = XposedHelpers.callMethod(
+                            val classLoader = ReflectionHelper.callMethod(
                                 pluginContextWrapper,
                                 "getClassLoader"
                             ) as ClassLoader
@@ -100,12 +100,12 @@ class EnableVolumeBlur : BaseHook() {
             "com.android.systemui.shared.plugins.PluginActionManager"
         )
         if (pluginActionManagerClass != null) {
-            XposedBridge.hookAllMethods(pluginActionManagerClass, "loadPluginComponent",
-                object : XC_MethodHook() {
+            HookBridge.hookAllMethods(pluginActionManagerClass, "loadPluginComponent",
+                object : HookCallback() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val componentName = param.args[0]
                         val className =
-                            XposedHelpers.callMethod(componentName, "getClassName") as String
+                            ReflectionHelper.callMethod(componentName, "getClassName") as String
                         if (className != "miui.systemui.volume.VolumeDialogPlugin") {
                             return
                         }
@@ -113,7 +113,7 @@ class EnableVolumeBlur : BaseHook() {
                             val pluginContextWrapper =
                                 getValueByField(param.result ?: return, "mPluginContext")
                                     ?: return
-                            val classLoader = XposedHelpers.callMethod(
+                            val classLoader = ReflectionHelper.callMethod(
                                 pluginContextWrapper,
                                 "getClassLoader"
                             ) as ClassLoader

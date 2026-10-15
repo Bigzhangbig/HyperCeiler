@@ -26,7 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class LanguageMenuShowAllApps extends BaseHook {
     @Override
@@ -50,7 +50,7 @@ public class LanguageMenuShowAllApps extends BaseHook {
         findAndHookMethod("com.android.settings.localepicker.LocalePickerWithRegion", "filterTheLanguagesNotSupportedInApp", boolean.class, HashSet.class, new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                param.setResult(XposedHelpers.getObjectField(param.thisObject, "mLocaleList"));
+                param.setResult(ReflectionHelper.getObjectField(param.thisObject, "mLocaleList"));
             }
         });
 

@@ -39,7 +39,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DisableLiteVersion extends BaseHook {
     @Override
@@ -79,11 +79,11 @@ public class DisableLiteVersion extends BaseHook {
                 return fieldData;
             }
         });
-        XposedHelpers.setStaticBooleanField(field.getDeclaringClass(), field.getName(), false);
+        ReflectionHelper.setStaticBooleanField(field.getDeclaringClass(), field.getName(), false);
         findAndHookMethod("com.miui.personalassistant.PAApplication", "onCreate", new MethodHook(){
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setStaticBooleanField(field.getDeclaringClass(), field.getName(), false);
+                ReflectionHelper.setStaticBooleanField(field.getDeclaringClass(), field.getName(), false);
             }
         });
     }

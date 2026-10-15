@@ -20,27 +20,27 @@ package com.sevtinge.hyperceiler.hook.module.hook.gallery;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
 public class EnablePdf extends BaseHook {
-    XC_MethodHook.Unhook isGlobal;
+    HookCallback.Unhook isGlobal;
 
     @Override
     public void init() {
         try {
             findAndHookMethod("com.miui.gallery.request.PicToPdfHelper", "isPicToPdfSupport", new MethodHook() {
                 @Override
-                protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+                protected void before(HookCallback.MethodHookParam param) throws Throwable {
                     param.setResult(true);
                 }
             });
         } catch (Throwable e) {
             hookAllConstructors("com.miui.gallery.ui.ProduceCreationDialogWithMediaEditorConfig",  new MethodHook() {
                 @Override
-                protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+                protected void before(HookCallback.MethodHookParam param) throws Throwable {
                     isGlobal = findAndHookMethodUseUnhook("com.miui.gallery.util.BuildUtil", lpparam.classLoader, "isGlobal", new MethodHook() {
                         @Override
-                        protected void before(XC_MethodHook.MethodHookParam param) throws Throwable {
+                        protected void before(HookCallback.MethodHookParam param) throws Throwable {
                             param.setResult(false);
                         }
                     });

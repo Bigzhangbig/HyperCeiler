@@ -23,24 +23,24 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AntiQues extends BaseHook {
-    XC_MethodHook.Unhook clHook;
+    HookCallback.Unhook clHook;
 
     @Override
     public void init() throws NoSuchMethodException {
-        clHook = XposedHelpers.findAndHookMethod("com.android.server.SystemServiceManager", lpparam.classLoader,
-                "loadClassFromLoader", String.class, ClassLoader.class, new XC_MethodHook() {
+        clHook = ReflectionHelper.findAndHookMethod("com.android.server.SystemServiceManager", lpparam.classLoader,
+                "loadClassFromLoader", String.class, ClassLoader.class, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) {
                         try {
                             String clzName = (String) param.args[0];
                             ClassLoader cl = (ClassLoader) param.args[1];
                             if (clzName.equals("com.android.server.wifi.WifiService")) {
-                                XposedHelpers.findAndHookMethod("com.android.server.wifi.Utils", cl, "checkDeviceNameIsIllegalSync", Context.class, int.class, String.class,
-                                        new XC_MethodHook() {
+                                ReflectionHelper.findAndHookMethod("com.android.server.wifi.Utils", cl, "checkDeviceNameIsIllegalSync", Context.class, int.class, String.class,
+                                        new HookCallback() {
                                             @Override
                                             protected void beforeHookedMethod(MethodHookParam param) {
                                                 param.setResult(false);

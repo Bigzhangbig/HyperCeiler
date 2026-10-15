@@ -37,7 +37,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DisplayMoreApkInfo extends BaseHook {
 
@@ -52,7 +52,7 @@ public class DisplayMoreApkInfo extends BaseHook {
 
         if (mAppInfoViewObject != null) {
             Class<?> ViewHolderClass = findClassIfExists("com.miui.packageInstaller.ui.listcomponets.AppInfoViewObject$ViewHolder");
-            Method[] methods = XposedHelpers.findMethodsByExactParameters(mAppInfoViewObject, void.class, ViewHolderClass);
+            Method[] methods = ReflectionHelper.findMethodsByExactParameters(mAppInfoViewObject, void.class, ViewHolderClass);
             if (methods.length == 0) {
                 logI(TAG, this.lpparam.packageName, "Cannot find appropriate method");
                 return;
@@ -72,12 +72,12 @@ public class DisplayMoreApkInfo extends BaseHook {
                 protected void after(MethodHookParam param) throws Throwable {
                     Object viewHolder = param.args[0];
                     if (viewHolder == null) return;
-                    TextView tvAppSize = (TextView) XposedHelpers.callMethod(viewHolder, "getAppSize");
+                    TextView tvAppSize = (TextView) ReflectionHelper.callMethod(viewHolder, "getAppSize");
                     if (tvAppSize == null) return;
 
-                    Object apkInfo = XposedHelpers.getObjectField(param.thisObject, finalApkInfoFieldName);
-                    ApplicationInfo mAppInfo = (ApplicationInfo) XposedHelpers.callMethod(apkInfo, "getInstalledPackageInfo");
-                    PackageInfo mPkgInfo = (PackageInfo) XposedHelpers.callMethod(apkInfo, "getPackageInfo");
+                    Object apkInfo = ReflectionHelper.getObjectField(param.thisObject, finalApkInfoFieldName);
+                    ApplicationInfo mAppInfo = (ApplicationInfo) ReflectionHelper.callMethod(apkInfo, "getInstalledPackageInfo");
+                    PackageInfo mPkgInfo = (PackageInfo) ReflectionHelper.callMethod(apkInfo, "getPackageInfo");
                     Resources modRes = getModuleRes(tvAppSize.getContext());
 
                     LinearLayout layout = (LinearLayout) tvAppSize.getParent();
@@ -125,8 +125,8 @@ public class DisplayMoreApkInfo extends BaseHook {
                     String mAppVersionCode;
                     String mAppSdk;
                     if (mAppInfo != null) {
-                        mAppVersionName = XposedHelpers.callMethod(apkInfo, "getInstalledVersionName") + " ➟ " + mPkgInfo.versionName;
-                        mAppVersionCode = XposedHelpers.callMethod(apkInfo, "getInstalledVersionCode") + " ➟ " + mPkgInfo.getLongVersionCode();
+                        mAppVersionName = ReflectionHelper.callMethod(apkInfo, "getInstalledVersionName") + " ➟ " + mPkgInfo.versionName;
+                        mAppVersionCode = ReflectionHelper.callMethod(apkInfo, "getInstalledVersionCode") + " ➟ " + mPkgInfo.getLongVersionCode();
                         mAppSdk = mAppInfo.minSdkVersion + "-" + mAppInfo.targetSdkVersion + " ➟ " + mPkgInfo.applicationInfo.minSdkVersion + "-" + mPkgInfo.applicationInfo.targetSdkVersion;
                     } else {
                         mAppVersionName = mPkgInfo.versionName;

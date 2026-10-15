@@ -21,16 +21,16 @@ package com.sevtinge.hyperceiler.hook.module.hook;
 import android.app.Application;
 import android.content.Context;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.core.ParamTool;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.hchen.hooktool.hook.AbsHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.callback.IAttachBaseContext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class ApplicationHook extends HCBase {
+public class ApplicationHook extends NativeFeatureModule {
     public static IAttachBaseContext[] iAttachBaseContexts;
 
     public ApplicationHook(IAttachBaseContext... attachBaseContexts) {
@@ -50,7 +50,7 @@ public class ApplicationHook extends HCBase {
 
     @Override
     public void init() {
-        hookMethod(Application.class, "attach", Context.class, new IHook() {
+        hookMethod(Application.class, "attach", Context.class, new NativeFeatureHook() {
             @Override
             public void before() {
                 callBackBefore(this, (Context) getArg(0));
@@ -63,7 +63,7 @@ public class ApplicationHook extends HCBase {
         });
     }
 
-    private void callBackBefore(ParamTool param, Context context) {
+    private void callBackBefore(AbsHook param, Context context) {
         if (iAttachBaseContexts != null) {
             Arrays.stream(iAttachBaseContexts).forEach(new Consumer<IAttachBaseContext>() {
                 @Override
@@ -74,7 +74,7 @@ public class ApplicationHook extends HCBase {
         }
     }
 
-    private void callBackAfter(ParamTool param, Context context) {
+    private void callBackAfter(AbsHook param, Context context) {
         if (iAttachBaseContexts != null) {
             Arrays.stream(iAttachBaseContexts).forEach(new Consumer<IAttachBaseContext>() {
                 @Override

@@ -23,7 +23,7 @@ import android.text.TextUtils;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class VersionCodeModify extends BaseHook {
 
@@ -39,7 +39,7 @@ public class VersionCodeModify extends BaseHook {
             protected void before(MethodHookParam param) {
                 String mVersionCode = mPrefsMap.getString("various_updater_miui_version", "V14.0.22.11.26.DEV");
                 if (!TextUtils.isEmpty(mVersionCode)) {
-                    XposedHelpers.setStaticObjectField(Build.VERSION.class, "INCREMENTAL", mVersionCode);
+                    ReflectionHelper.setStaticObjectField(Build.VERSION.class, "INCREMENTAL", mVersionCode);
                 }
             }
         });

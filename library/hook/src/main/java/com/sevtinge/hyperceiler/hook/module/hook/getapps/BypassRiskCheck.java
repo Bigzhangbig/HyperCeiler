@@ -20,8 +20,8 @@
 package com.sevtinge.hyperceiler.hook.module.hook.getapps;
 
 import static com.sevtinge.hyperceiler.hook.module.base.tool.AppsTool.getPackageVersionCode;
-import static de.robv.android.xposed.XposedHelpers.getStaticObjectField;
-import static de.robv.android.xposed.XposedHelpers.setObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getStaticObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setObjectField;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 

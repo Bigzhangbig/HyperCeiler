@@ -22,8 +22,8 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class MobileNetwork extends BaseHook {
     Class<?> mStatusBarMobileView;
@@ -78,7 +78,7 @@ public class MobileNetwork extends BaseHook {
             protected void before(MethodHookParam param) {
                 int opt = mPrefsMap.getStringAsInt("system_ui_status_bar_icon_new_hd", 0);
                 if (opt == 2) {
-                    XposedHelpers.setBooleanField(param.thisObject, "mWifiAvailable", true);
+                    ReflectionHelper.setBooleanField(param.thisObject, "mWifiAvailable", true);
                 }
             }
         });
@@ -88,13 +88,13 @@ public class MobileNetwork extends BaseHook {
         boolean isMobileConnected = false;
         int opt = mPrefsMap.getStringAsInt(key, 0);
         if (opt != 0) {
-            View view = (View) XposedHelpers.getObjectField(param.thisObject, fieldName);
+            View view = (View) ReflectionHelper.getObjectField(param.thisObject, fieldName);
             switch (opt) {
                 case 1 -> view.setVisibility(View.VISIBLE);
                 case 2 -> view.setVisibility(View.GONE);
                 case 3 -> {
                     view.setVisibility(View.GONE);
-                    isMobileConnected = (boolean) XposedHelpers.getObjectField(param.args[0], "dataConnected");
+                    isMobileConnected = (boolean) ReflectionHelper.getObjectField(param.args[0], "dataConnected");
                 }
             }
 

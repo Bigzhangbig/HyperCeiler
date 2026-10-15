@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework.volume;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class VolumeSteps extends BaseHook {
 
@@ -35,12 +35,12 @@ public class VolumeSteps extends BaseHook {
             @Override
             protected void before(MethodHookParam param) {
 
-                int[] maxStreamVolume = (int[]) XposedHelpers.getStaticObjectField(mAudioService, "MAX_STREAM_VOLUME");
+                int[] maxStreamVolume = (int[]) ReflectionHelper.getStaticObjectField(mAudioService, "MAX_STREAM_VOLUME");
                 int mult = mPrefsMap.getInt("system_framework_volume_steps", 0);
                 if (mult <= 0) return;
                 for (int i = 0; i < maxStreamVolume.length; i++)
                     maxStreamVolume[i] = Math.round(maxStreamVolume[i] * mult / 100.0f);
-                XposedHelpers.setStaticObjectField(mAudioService, "MAX_STREAM_VOLUME", maxStreamVolume);
+                ReflectionHelper.setStaticObjectField(mAudioService, "MAX_STREAM_VOLUME", maxStreamVolume);
             }
         });
     }

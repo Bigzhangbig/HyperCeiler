@@ -37,7 +37,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.module.hook.systemui.base.controlcenter.PublicClass.miuiMediaControlPanel
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
-import de.robv.android.xposed.XC_MethodHook
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
 
@@ -74,7 +74,7 @@ object MediaPicture : BaseHook() {
 
     fun optPicture(
         mMediaViewHolder: Any,
-        param: XC_MethodHook.MethodHookParam,
+        param: HookParam,
         context: Context
     ) {
         val albumView = mMediaViewHolder.getObjectFieldOrNullAs<ImageView>("albumView")

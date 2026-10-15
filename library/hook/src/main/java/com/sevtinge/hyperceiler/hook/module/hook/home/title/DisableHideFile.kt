@@ -21,18 +21,18 @@ package com.sevtinge.hyperceiler.hook.module.hook.home.title
 import android.content.*
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isInternational
-import de.robv.android.xposed.*
+import com.sevtinge.hyperceiler.hook.api.*
 
 object DisableHideFile : BaseHook() {
     override fun init() {
         if (isInternational()) return
 
-        XposedHelpers.findAndHookConstructor(
+        ReflectionHelper.findAndHookConstructor(
             "com.miui.home.launcher.AppFilter",
             lpparam.classLoader,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun afterHookedMethod(param: MethodHookParam) {
-                    val skippedItem = XposedHelpers.getObjectField(
+                    val skippedItem = ReflectionHelper.getObjectField(
                         param.thisObject,
                         "mSkippedItems"
                     ) as HashSet<ComponentName>

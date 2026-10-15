@@ -22,7 +22,7 @@ import android.os.Message;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NetworkSpeedSpacing extends BaseHook {
     public boolean handler;
@@ -53,8 +53,8 @@ public class NetworkSpeedSpacing extends BaseHook {
                             @Override
                             protected void after(MethodHookParam param) {
                                 Message message = (Message) param.args[0];
-                                Object handleMessage = XposedHelpers.getObjectField(param.thisObject, "this$0");
-                                Object mBgHandler = XposedHelpers.getObjectField(handleMessage, "mBgHandler");
+                                Object handleMessage = ReflectionHelper.getObjectField(param.thisObject, "this$0");
+                                Object mBgHandler = ReflectionHelper.getObjectField(handleMessage, "mBgHandler");
                                 if (message.what == 200001) {
                                     handleMessage(mBgHandler, true);
                                     // logE(TAG, "200001: " + mBgHandler);
@@ -68,8 +68,8 @@ public class NetworkSpeedSpacing extends BaseHook {
                             @Override
                             protected void after(MethodHookParam param) {
                                 Message message = (Message) param.args[0];
-                                Object handleMessage = XposedHelpers.getObjectField(param.thisObject, "this$0");
-                                Object mBgHandler = XposedHelpers.getObjectField(handleMessage, "mBgHandler");
+                                Object handleMessage = ReflectionHelper.getObjectField(param.thisObject, "this$0");
+                                Object mBgHandler = ReflectionHelper.getObjectField(handleMessage, "mBgHandler");
                                 if (message.what == 200001) {
                                     handleMessage(mBgHandler, true);
                                     // logE(TAG, "200001: " + mBgHandler);
@@ -82,9 +82,9 @@ public class NetworkSpeedSpacing extends BaseHook {
     }
 
     public void handleMessage(Object mBgHandler, boolean z) {
-        XposedHelpers.callMethod(mBgHandler, "removeMessages", 200001);
+        ReflectionHelper.callMethod(mBgHandler, "removeMessages", 200001);
         if (z) {
-            XposedHelpers.callMethod(mBgHandler, "sendEmptyMessageDelayed", 200001,
+            ReflectionHelper.callMethod(mBgHandler, "sendEmptyMessageDelayed", 200001,
                 mPrefsMap.getInt("system_ui_statusbar_network_speed_update_spacings",
                     40
                 ) * 100L

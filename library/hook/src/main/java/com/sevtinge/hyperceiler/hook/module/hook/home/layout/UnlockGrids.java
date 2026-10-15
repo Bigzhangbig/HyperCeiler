@@ -25,9 +25,9 @@ import com.sevtinge.hyperceiler.hook.module.base.pack.home.HomeBaseHook;
 
 import java.util.ArrayList;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockGrids extends HomeBaseHook {
 
@@ -39,22 +39,22 @@ public class UnlockGrids extends HomeBaseHook {
         /*
         mDeviceConfig = findClassIfExists("com.miui.home.launcher.DeviceConfig");
 
-        hookAllMethodsSilently("com.miui.home.launcher.compat.LauncherCellCountCompatDevice", "shouldUseDeviceValue", XC_MethodReplacement.returnConstant(false));
+        hookAllMethodsSilently("com.miui.home.launcher.compat.LauncherCellCountCompatDevice", "shouldUseDeviceValue", HookReplacement.returnConstant(false));
 
         findAndHookMethod("com.miui.home.settings.MiuiHomeSettings", "onCreatePreferences", Bundle.class, String.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.callMethod(XposedHelpers.getObjectField(param.thisObject, "mScreenCellsConfig"), "setVisible", true);
+                ReflectionHelper.callMethod(ReflectionHelper.getObjectField(param.thisObject, "mScreenCellsConfig"), "setVisible", true);
             }
         });
 
         findAndHookMethod(mDeviceConfig, "loadCellsCountConfig", Context.class, boolean.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                int sCellCountY = (int) XposedHelpers.getStaticObjectField(mDeviceConfig, "sCellCountY");
+                int sCellCountY = (int) ReflectionHelper.getStaticObjectField(mDeviceConfig, "sCellCountY");
                 if (sCellCountY > 6) {
-                    int cellHeight = (int) XposedHelpers.callStaticMethod(mDeviceConfig, "getCellHeight");
-                    XposedHelpers.setStaticObjectField(mDeviceConfig, "sFolderCellHeight", cellHeight);
+                    int cellHeight = (int) ReflectionHelper.callStaticMethod(mDeviceConfig, "getCellHeight");
+                    ReflectionHelper.setStaticObjectField(mDeviceConfig, "sFolderCellHeight", cellHeight);
                 }
             }
         });
@@ -67,17 +67,17 @@ public class UnlockGrids extends HomeBaseHook {
         findAndHookMethod("com.miui.home.settings.MiuiHomeSettings", "onCreatePreferences", Bundle.class, String.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.callMethod(XposedHelpers.getObjectField(param.thisObject, "mScreenCellsConfig"), "setVisible", true);
+                ReflectionHelper.callMethod(ReflectionHelper.getObjectField(param.thisObject, "mScreenCellsConfig"), "setVisible", true);
             }
         });
-        Class<?> DeviceConfigClass = XposedHelpers.findClass("com.miui.home.launcher.DeviceConfig", lpparam.classLoader);
+        Class<?> DeviceConfigClass = ReflectionHelper.findClass("com.miui.home.launcher.DeviceConfig", lpparam.classLoader);
         findAndHookMethod(DeviceConfigClass, "loadCellsCountConfig", Context.class, boolean.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                int sCellCountY = (int) XposedHelpers.getStaticObjectField(DeviceConfigClass, "sCellCountY");
+                int sCellCountY = (int) ReflectionHelper.getStaticObjectField(DeviceConfigClass, "sCellCountY");
                 if (sCellCountY > 6) {
-                    int cellHeight = (int) XposedHelpers.callStaticMethod(DeviceConfigClass, "getCellHeight");
-                    XposedHelpers.setStaticObjectField(DeviceConfigClass, "sFolderCellHeight", cellHeight);
+                    int cellHeight = (int) ReflectionHelper.callStaticMethod(DeviceConfigClass, "getCellHeight");
+                    ReflectionHelper.setStaticObjectField(DeviceConfigClass, "sFolderCellHeight", cellHeight);
                 }
             }
         });
@@ -107,11 +107,11 @@ public class UnlockGrids extends HomeBaseHook {
         });
 
         hookAllMethods("com.miui.home.launcher.DeviceConfig", lpparam.classLoader, "isCellSizeChangedByTheme", new MethodHook() {
-            XC_MethodHook.Unhook nowordHook;
+            HookCallback.Unhook nowordHook;
 
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                nowordHook = findAndHookMethodUseUnhook("com.miui.home.launcher.common.Utilities", lpparam.classLoader, "isNoWordModel", XC_MethodReplacement.returnConstant(false));
+                nowordHook = findAndHookMethodUseUnhook("com.miui.home.launcher.common.Utilities", lpparam.classLoader, "isNoWordModel", HookReplacement.returnConstant(false));
             }
 
             @Override

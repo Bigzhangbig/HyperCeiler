@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CleanShareMenu extends BaseHook {
 
@@ -49,8 +49,8 @@ public class CleanShareMenu extends BaseHook {
         findAndHookMethod(mPackageManagerService, "systemReady", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                Handler mHandler = (Handler) XposedHelpers.getObjectField(param.thisObject, "mHandler");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                Handler mHandler = (Handler) ReflectionHelper.getObjectField(param.thisObject, "mHandler");
 
                 new PrefsChangeObserver(mContext, mHandler, true, "prefs_key_system_framework_clean_share_apps");
             }
@@ -75,7 +75,7 @@ public class CleanShareMenu extends BaseHook {
                     Set<String> selectedApps = mPrefsMap.getStringSet("system_framework_clean_share_apps");
                     List<ResolveInfo> resolved = (List<ResolveInfo>) param.getResult();
                     ResolveInfo resolveInfo;
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     PackageManager pm = mContext.getPackageManager();
                     Iterator<ResolveInfo> itr = resolved.iterator();
                     while (itr.hasNext()) {
@@ -84,7 +84,7 @@ public class CleanShareMenu extends BaseHook {
                         boolean removeDual = selectedApps.contains(resolveInfo.activityInfo.packageName + "|999");
                         boolean hasDual = false;
                         try {
-                            hasDual = XposedHelpers.callMethod(pm, "getPackageInfoAsUser", resolveInfo.activityInfo.packageName, 0, 999) != null;
+                            hasDual = ReflectionHelper.callMethod(pm, "getPackageInfoAsUser", resolveInfo.activityInfo.packageName, 0, 999) != null;
                         } catch (Throwable ignore) {
                         }
                         if ((removeOriginal && !hasDual) || removeOriginal && hasDual && removeDual)
@@ -104,7 +104,7 @@ public class CleanShareMenu extends BaseHook {
         hookAllMethods("miui.securityspace.XSpaceResolverActivityHelper.ResolverActivityRunner", lpparam.classLoader, "run", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Intent mOriginalIntent = (Intent) XposedHelpers.getObjectField(param.thisObject, "mOriginalIntent");
+                Intent mOriginalIntent = (Intent) ReflectionHelper.getObjectField(param.thisObject, "mOriginalIntent");
                 if (mOriginalIntent == null) return;
                 String action = mOriginalIntent.getAction();
                 if (action == null) return;
@@ -113,11 +113,11 @@ public class CleanShareMenu extends BaseHook {
                 if (mOriginalIntent.getDataString() != null && mOriginalIntent.getDataString().contains(":"))
                     return;
 
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                String mAimPackageName = (String) XposedHelpers.getObjectField(param.thisObject, "mAimPackageName");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                String mAimPackageName = (String) ReflectionHelper.getObjectField(param.thisObject, "mAimPackageName");
                 if (mContext == null || mAimPackageName == null) return;
                 Set<String> selectedApps = mPrefsMap.getStringSet("prefs_key_system_framework_clean_share_apps");
-                View mRootView = (View) XposedHelpers.getObjectField(param.thisObject, "mRootView");
+                View mRootView = (View) ReflectionHelper.getObjectField(param.thisObject, "mRootView");
                 int appResId1 = mContext.getResources().getIdentifier("app1", "id", "android.miui");
                 int appResId2 = mContext.getResources().getIdentifier("app2", "id", "android.miui");
                 boolean removeOriginal = selectedApps.contains(mAimPackageName) || selectedApps.contains(mAimPackageName + "|0");

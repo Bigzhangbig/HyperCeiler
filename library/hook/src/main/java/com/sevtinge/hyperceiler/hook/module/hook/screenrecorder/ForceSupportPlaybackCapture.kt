@@ -19,20 +19,20 @@
 package com.sevtinge.hyperceiler.hook.module.hook.screenrecorder
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import java.util.*
 
 class ForceSupportPlaybackCapture : BaseHook() {
     override fun init() {
         // if (!xPrefs.getBoolean("force_support_playbackcapture", true)) return
 
-        XposedHelpers.findAndHookMethod("android.os.SystemProperties",
+        ReflectionHelper.findAndHookMethod("android.os.SystemProperties",
             lpparam.classLoader,
             "getBoolean",
             String::class.java,
             Boolean::class.javaPrimitiveType,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     val param0 = param.args[0] as String
                     if (Objects.equals(param0, "ro.vendor.audio.playbackcapture.screen"))

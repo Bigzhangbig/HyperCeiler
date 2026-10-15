@@ -34,7 +34,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.getStaticObjectFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.setObjectField
-import de.robv.android.xposed.XC_MethodHook
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.invokeStaticMethodBestMatch
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -98,7 +98,7 @@ object ChargingCVP : BaseHook() {
     private fun setShowSpacing(
         clazzDependency: Class<*>,
         clazzKeyguardIndicationController: Class<*>,
-        param: XC_MethodHook.MethodHookParam
+        param: HookParam
     ) {
         val screenOnOffReceiver = object : BroadcastReceiver() {
             val keyguardIndicationController = runCatching {

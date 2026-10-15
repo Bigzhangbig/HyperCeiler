@@ -41,7 +41,7 @@ import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
 import com.sevtinge.hyperceiler.hook.utils.invokeOriginalMethod
 import com.sevtinge.hyperceiler.hook.utils.replaceMethod
-import de.robv.android.xposed.XC_MethodHook
+import com.sevtinge.hyperceiler.hook.api.HookCallback
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createAfterHook
@@ -74,7 +74,7 @@ object HideFakeStatusBar : MusicBaseHook() {
         loadClass("com.android.systemui.qs.MiuiNotificationHeaderView")
     }
 
-    private var unhook0: XC_MethodHook.Unhook? = null
+    private var unhook0: HookCallback.Unhook? = null
 
     private fun updateLayout() {
         if (isShowingFocused.value && isLyric.value && !showCLock) {

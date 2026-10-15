@@ -22,7 +22,7 @@ import android.os.Build
 import android.text.TextUtils
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBeforeHook
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createHooks
 import java.lang.reflect.Method
@@ -70,7 +70,7 @@ object VersionCodeNew : BaseHook() {
         findAndHookMethod(mApplication, "onCreate", object : MethodHook() {
             override fun before(param: MethodHookParam) {
                 if (!TextUtils.isEmpty(mVersionCode)) {
-                    XposedHelpers.setStaticObjectField(
+                    ReflectionHelper.setStaticObjectField(
                         Build.VERSION::class.java,
                         "INCREMENTAL",
                         "$mOldVersionCode.${mVersionCode.substringAfter(".")}"

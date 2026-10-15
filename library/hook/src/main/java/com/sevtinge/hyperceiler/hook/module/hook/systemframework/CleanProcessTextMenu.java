@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CleanProcessTextMenu extends BaseHook {
 
@@ -48,8 +48,8 @@ public class CleanProcessTextMenu extends BaseHook {
         findAndHookMethod(mPackageManagerService, "systemReady", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                Handler mHandler = (Handler) XposedHelpers.getObjectField(param.thisObject, "mHandler");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                Handler mHandler = (Handler) ReflectionHelper.getObjectField(param.thisObject, "mHandler");
                 new PrefsChangeObserver(mContext, mHandler, true,
                         "prefs_key_system_framework_clean_process_text_apps");
             }
@@ -73,7 +73,7 @@ public class CleanProcessTextMenu extends BaseHook {
                     Set<String> selectedApps = mPrefsMap.getStringSet("system_framework_clean_process_text_apps");
                     List<ResolveInfo> resolved = (List<ResolveInfo>) param.getResult();
                     ResolveInfo resolveInfo;
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     PackageManager pm = mContext.getPackageManager();
                     Iterator<ResolveInfo> itr = resolved.iterator();
                     while (itr.hasNext()) {
@@ -85,7 +85,7 @@ public class CleanProcessTextMenu extends BaseHook {
                                 selectedApps.contains(resolveInfo.activityInfo.packageName + "|999");
                         boolean hasDual = false;
                         try {
-                            hasDual = XposedHelpers.callMethod(pm, "getPackageInfoAsUser",
+                            hasDual = ReflectionHelper.callMethod(pm, "getPackageInfoAsUser",
                                     resolveInfo.activityInfo.packageName, 0, 999) != null;
                         } catch (Throwable ignore) {
                         }

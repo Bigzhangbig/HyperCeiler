@@ -20,12 +20,12 @@ package com.sevtinge.hyperceiler.hook.module.hook.aod;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockAodAon extends BaseHook {
     @Override
     public void init() throws NoSuchMethodException {
         Class<?> mAodUtils = findClassIfExists("com.miui.aod.Utils");
-        XposedHelpers.setStaticBooleanField(mAodUtils, "SUPPORT_AOD_AON", true);
+        ReflectionHelper.setStaticBooleanField(mAodUtils, "SUPPORT_AOD_AON", true);
     }
 }

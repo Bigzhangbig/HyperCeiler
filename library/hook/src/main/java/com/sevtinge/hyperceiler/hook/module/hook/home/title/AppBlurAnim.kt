@@ -28,7 +28,7 @@ import com.sevtinge.hyperceiler.hook.utils.getStaticObjectFieldOrNull
 import com.sevtinge.hyperceiler.hook.utils.hookAfterMethod
 import com.sevtinge.hyperceiler.hook.utils.hookBeforeMethod
 import com.sevtinge.hyperceiler.hook.utils.replaceMethod
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import java.util.concurrent.Executor
@@ -112,9 +112,9 @@ object AppBlurAnim : BaseHook() {
                     it.setPassWindowBlur(true)
                 }
 
-                val viewGroup = XposedHelpers.getObjectField(launcher, "mLauncherView") as ViewGroup
+                val viewGroup = ReflectionHelper.getObjectField(launcher, "mLauncherView") as ViewGroup
                 viewGroup.addView(transitionBlurView, viewGroup.indexOfChild(
-                    XposedHelpers.getObjectField(launcher, "mOverviewPanel") as View
+                    ReflectionHelper.getObjectField(launcher, "mOverviewPanel") as View
                 ).coerceAtLeast(0))
                 viewGroup.addView(wallpaperBlurView, 0)
                 if (minusOverlapMode) {
@@ -130,7 +130,7 @@ object AppBlurAnim : BaseHook() {
             .filterByName("onLauncherDestroy").first()
             .hookAfterMethod {
                 val viewGroup =
-                    XposedHelpers.getObjectField(it.args[0], "mLauncherView") as ViewGroup
+                    ReflectionHelper.getObjectField(it.args[0], "mLauncherView") as ViewGroup
                 if (transitionBlurView?.isAttachedToWindow == true) {
                     viewGroup.removeView(transitionBlurView)
                 }
@@ -225,7 +225,7 @@ object AppBlurAnim : BaseHook() {
         // Skip when triggered by a gesture in the app
         blur.methodFinder().filterByName("fastBlurWhenEnterRecents")
             .first().replaceMethod {
-                if (XposedHelpers.getBooleanField(it.args[1], "mIsFromFsGesture")) {
+                if (ReflectionHelper.getBooleanField(it.args[1], "mIsFromFsGesture")) {
                     return@replaceMethod null
                 }
                 transitionBlurView?.show(it.args[2] as Boolean)
@@ -235,7 +235,7 @@ object AppBlurAnim : BaseHook() {
         // Skip when triggered by a gesture in the app
         blur.methodFinder().filterByName("fastBlurWhenExitRecents")
             .first().replaceMethod {
-                if (XposedHelpers.getBooleanField(it.args[1], "mIsFromFsGesture")) {
+                if (ReflectionHelper.getBooleanField(it.args[1], "mIsFromFsGesture")) {
                     return@replaceMethod null
                 }
                 val useAnim = it.args[2] as Boolean
@@ -282,8 +282,8 @@ object AppBlurAnim : BaseHook() {
                     return@replaceMethod null
                 }
                 if (
-                    XposedHelpers.getObjectField(
-                        XposedHelpers.getObjectField(
+                    ReflectionHelper.getObjectField(
+                        ReflectionHelper.getObjectField(
                             it.args[0],"mStateManager"
                         ),
                         "mState"
@@ -300,8 +300,8 @@ object AppBlurAnim : BaseHook() {
         blur.methodFinder().filterByName("fastBlurWhenEnterMultiWindowMode")
             .first().replaceMethod {
                 if (
-                    XposedHelpers.getObjectField(
-                        XposedHelpers.getObjectField(it.args[0] ?: return@replaceMethod null,"mStateManager"),
+                    ReflectionHelper.getObjectField(
+                        ReflectionHelper.getObjectField(it.args[0] ?: return@replaceMethod null,"mStateManager"),
                         "mState"
                     ) == overviewState
                 ) {
@@ -314,8 +314,8 @@ object AppBlurAnim : BaseHook() {
         blur.methodFinder().filterByName("fastBlurWhenGestureResetTaskView")
             .first().replaceMethod {
                 if (
-                    XposedHelpers.getObjectField(
-                        XposedHelpers.getObjectField(it.args[0] ?: return@replaceMethod null,"mStateManager"),
+                    ReflectionHelper.getObjectField(
+                        ReflectionHelper.getObjectField(it.args[0] ?: return@replaceMethod null,"mStateManager"),
                         "mState"
                     ) == overviewState
                 ) {
@@ -345,8 +345,8 @@ object AppBlurAnim : BaseHook() {
     }
 
     private fun shouldBlurWallpaper(launcher: Any): Boolean {
-//        val isInNormalEditing = XposedHelpers.callMethod(launcher, "isInNormalEditing") as Boolean
-//        val isFoldShowing = XposedHelpers.callMethod(launcher, "isFolderShowing") as Boolean
-        return (XposedHelpers.callMethod(launcher, "isShouldBlur") as Boolean)
+//        val isInNormalEditing = ReflectionHelper.callMethod(launcher, "isInNormalEditing") as Boolean
+//        val isFoldShowing = ReflectionHelper.callMethod(launcher, "isFolderShowing") as Boolean
+        return (ReflectionHelper.callMethod(launcher, "isShouldBlur") as Boolean)
     }
 }

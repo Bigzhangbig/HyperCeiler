@@ -21,42 +21,39 @@
 package com.sevtinge.hyperceiler.hook.utils
 
 import android.annotation.SuppressLint
-import android.content.res.XResources
 import dalvik.system.BaseDexClassLoader
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam
-import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XposedBridge.hookAllConstructors
-import de.robv.android.xposed.XposedBridge.hookAllMethods
-import de.robv.android.xposed.XposedBridge.hookMethod
-import de.robv.android.xposed.XposedBridge.invokeOriginalMethod
-import de.robv.android.xposed.XposedHelpers.ClassNotFoundError
-import de.robv.android.xposed.XposedHelpers.callMethod
-import de.robv.android.xposed.XposedHelpers.callStaticMethod
-import de.robv.android.xposed.XposedHelpers.findAndHookConstructor
-import de.robv.android.xposed.XposedHelpers.findAndHookMethod
-import de.robv.android.xposed.XposedHelpers.findClass
-import de.robv.android.xposed.XposedHelpers.findClassIfExists
-import de.robv.android.xposed.XposedHelpers.findField
-import de.robv.android.xposed.XposedHelpers.findFieldIfExists
-import de.robv.android.xposed.XposedHelpers.findFirstFieldByExactType
-import de.robv.android.xposed.XposedHelpers.getAdditionalInstanceField
-import de.robv.android.xposed.XposedHelpers.getBooleanField
-import de.robv.android.xposed.XposedHelpers.getFloatField
-import de.robv.android.xposed.XposedHelpers.getIntField
-import de.robv.android.xposed.XposedHelpers.getLongField
-import de.robv.android.xposed.XposedHelpers.getObjectField
-import de.robv.android.xposed.XposedHelpers.getStaticObjectField
-import de.robv.android.xposed.XposedHelpers.newInstance
-import de.robv.android.xposed.XposedHelpers.removeAdditionalInstanceField
-import de.robv.android.xposed.XposedHelpers.setAdditionalInstanceField
-import de.robv.android.xposed.XposedHelpers.setBooleanField
-import de.robv.android.xposed.XposedHelpers.setFloatField
-import de.robv.android.xposed.XposedHelpers.setIntField
-import de.robv.android.xposed.XposedHelpers.setLongField
-import de.robv.android.xposed.XposedHelpers.setObjectField
-import de.robv.android.xposed.XposedHelpers.setStaticObjectField
-import de.robv.android.xposed.callbacks.XC_LayoutInflated
+import com.sevtinge.hyperceiler.hook.api.HookCallback
+import com.sevtinge.hyperceiler.hook.api.HookReplacement
+import com.sevtinge.hyperceiler.hook.api.HookBridge.hookAllConstructors
+import com.sevtinge.hyperceiler.hook.api.HookBridge.hookAllMethods
+import com.sevtinge.hyperceiler.hook.api.HookBridge.hookMethod
+import com.sevtinge.hyperceiler.hook.api.HookBridge.invokeOriginalMethod
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.ClassNotFoundError
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callStaticMethod
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findAndHookConstructor
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findAndHookMethod
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findClass
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findClassIfExists
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findFieldIfExists
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.findFirstFieldByExactType
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getAdditionalInstanceField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getBooleanField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getFloatField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getIntField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getLongField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getObjectField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.getStaticObjectField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.newInstance
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.removeAdditionalInstanceField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setAdditionalInstanceField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setBooleanField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setFloatField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setIntField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setLongField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setObjectField
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setStaticObjectField
 import io.github.kyuubiran.ezxhelper.android.logging.Logger
 import io.github.kyuubiran.ezxhelper.core.ClassLoaderProvider.classLoader
 import java.lang.reflect.Field
@@ -64,7 +61,7 @@ import java.lang.reflect.Member
 import java.lang.reflect.Modifier
 import java.util.Enumeration
 
-typealias MethodHookParam = MethodHookParam
+typealias MethodHookParam = com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam
 typealias Replacer = (MethodHookParam) -> Any?
 typealias Hooker = (MethodHookParam) -> Unit
 
@@ -81,7 +78,7 @@ fun Class<*>.hookMethod(method: String?, vararg args: Any?) = try {
     null
 }
 
-fun Member.hookMethod(callback: XC_MethodHook) = try {
+fun Member.hookMethod(callback: HookCallback) = try {
     hookMethod(this, callback)
 } catch (e: Throwable) {
     Logger.e(e)
@@ -104,39 +101,39 @@ inline fun MethodHookParam.callReplacer(crossinline replacer: Replacer) = try {
 }
 
 inline fun Member.replaceMethod(crossinline replacer: Replacer) =
-    hookMethod(object : XC_MethodReplacement() {
+    hookMethod(object : HookReplacement() {
         override fun replaceHookedMethod(param: MethodHookParam) = param.callReplacer(replacer)
     })
 
 inline fun Member.hookAfterMethod(crossinline hooker: Hooker) =
-    hookMethod(object : XC_MethodHook() {
+    hookMethod(object : HookCallback() {
         override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Member.hookBeforeMethod(crossinline hooker: (MethodHookParam) -> Unit) =
-    hookMethod(object : XC_MethodHook() {
+    hookMethod(object : HookCallback() {
         override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.hookBeforeMethod(
     method: String?, vararg args: Any?, crossinline hooker: Hooker
-) = hookMethod(method, *args, object : XC_MethodHook() {
+) = hookMethod(method, *args, object : HookCallback() {
     override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
 })
 
 inline fun Class<*>.hookAfterMethod(
     method: String?, vararg args: Any?, crossinline hooker: Hooker
-) = hookMethod(method, *args, object : XC_MethodHook() {
+) = hookMethod(method, *args, object : HookCallback() {
     override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
 })
 
 inline fun Class<*>.replaceMethod(
     method: String?, vararg args: Any?, crossinline replacer: Replacer
-) = hookMethod(method, *args, object : XC_MethodReplacement() {
+) = hookMethod(method, *args, object : HookReplacement() {
     override fun replaceHookedMethod(param: MethodHookParam) = param.callReplacer(replacer)
 })
 
-fun Class<*>.hookAllMethods(methodName: String?, hooker: XC_MethodHook): Set<XC_MethodHook.Unhook> =
+fun Class<*>.hookAllMethods(methodName: String?, hooker: HookCallback): Set<HookCallback.Unhook> =
     try {
         hookAllMethods(this, methodName, hooker)
     } catch (e: NoSuchMethodError) {
@@ -151,18 +148,18 @@ fun Class<*>.hookAllMethods(methodName: String?, hooker: XC_MethodHook): Set<XC_
     }
 
 inline fun Class<*>.hookBeforeAllMethods(methodName: String?, crossinline hooker: Hooker) =
-    hookAllMethods(methodName, object : XC_MethodHook() {
+    hookAllMethods(methodName, object : HookCallback() {
         override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.hookAfterAllMethods(methodName: String?, crossinline hooker: Hooker) =
-    hookAllMethods(methodName, object : XC_MethodHook() {
+    hookAllMethods(methodName, object : HookCallback() {
         override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
 
     })
 
 inline fun Class<*>.replaceAllMethods(methodName: String?, crossinline replacer: Replacer) =
-    hookAllMethods(methodName, object : XC_MethodReplacement() {
+    hookAllMethods(methodName, object : HookReplacement() {
         override fun replaceHookedMethod(param: MethodHookParam) = param.callReplacer(replacer)
     })
 
@@ -180,21 +177,21 @@ fun Class<*>.hookConstructor(vararg args: Any?) = try {
 }
 
 inline fun Class<*>.hookBeforeConstructor(vararg args: Any?, crossinline hooker: Hooker) =
-    hookConstructor(*args, object : XC_MethodHook() {
+    hookConstructor(*args, object : HookCallback() {
         override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.hookAfterConstructor(vararg args: Any?, crossinline hooker: Hooker) =
-    hookConstructor(*args, object : XC_MethodHook() {
+    hookConstructor(*args, object : HookCallback() {
         override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.replaceConstructor(vararg args: Any?, crossinline hooker: Hooker) =
-    hookConstructor(*args, object : XC_MethodReplacement() {
+    hookConstructor(*args, object : HookReplacement() {
         override fun replaceHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
-fun Class<*>.hookAllConstructors(hooker: XC_MethodHook): Set<XC_MethodHook.Unhook> = try {
+fun Class<*>.hookAllConstructors(hooker: HookCallback): Set<HookCallback.Unhook> = try {
     hookAllConstructors(this, hooker)
 } catch (e: NoSuchMethodError) {
     Logger.e(e)
@@ -208,17 +205,17 @@ fun Class<*>.hookAllConstructors(hooker: XC_MethodHook): Set<XC_MethodHook.Unhoo
 }
 
 inline fun Class<*>.hookAfterAllConstructors(crossinline hooker: Hooker) =
-    hookAllConstructors(object : XC_MethodHook() {
+    hookAllConstructors(object : HookCallback() {
         override fun afterHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.hookBeforeAllConstructors(crossinline hooker: Hooker) =
-    hookAllConstructors(object : XC_MethodHook() {
+    hookAllConstructors(object : HookCallback() {
         override fun beforeHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
 inline fun Class<*>.replaceAllConstructors(crossinline hooker: Hooker) =
-    hookAllConstructors(object : XC_MethodReplacement() {
+    hookAllConstructors(object : HookReplacement() {
         override fun replaceHookedMethod(param: MethodHookParam) = param.callHooker(hooker)
     })
 
@@ -459,39 +456,6 @@ fun <T> T.setBooleanField(field: String?, value: Boolean) = apply {
 
 fun <T> T.setObjectField(field: String?, value: Any?) = apply {
     setObjectField(this, field, value)
-}
-
-inline fun XResources.hookLayout(
-    id: Int, crossinline hooker: (XC_LayoutInflated.LayoutInflatedParam) -> Unit
-) {
-    try {
-        hookLayout(id, object : XC_LayoutInflated() {
-            override fun handleLayoutInflated(liparam: LayoutInflatedParam) {
-                try {
-                    hooker(liparam)
-                } catch (e: Throwable) {
-                    Logger.e(e)
-                }
-            }
-        })
-    } catch (e: Throwable) {
-        Logger.e(e)
-    }
-}
-
-@SuppressLint("DiscouragedApi")
-inline fun XResources.hookLayout(
-    pkg: String,
-    type: String,
-    name: String,
-    crossinline hooker: (XC_LayoutInflated.LayoutInflatedParam) -> Unit
-) {
-    try {
-        val id = getIdentifier(name, type, pkg)
-        hookLayout(id, hooker)
-    } catch (e: Throwable) {
-        Logger.e(e)
-    }
 }
 
 fun Class<*>.findFirstFieldByExactType(type: Class<*>): Field =

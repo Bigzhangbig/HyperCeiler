@@ -23,8 +23,8 @@ import android.view.SurfaceControl;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnForegroundPin extends BaseHook {
     @Override
@@ -39,7 +39,7 @@ public class UnForegroundPin extends BaseHook {
                 "com.android.server.wm.MiuiFreeFormActivityStack",
                 new MethodHook() {
                     @Override
-                    protected void before(XC_MethodHook.MethodHookParam param) {
+                    protected void before(HookCallback.MethodHookParam param) {
                         param.setResult(true);
                     }
                 }
@@ -52,19 +52,19 @@ public class UnForegroundPin extends BaseHook {
                 "com.android.server.wm.MiuiFreeFormActivityStack",
                 new MethodHook() {
                     @Override
-                    protected void before(XC_MethodHook.MethodHookParam param) {
+                    protected void before(HookCallback.MethodHookParam param) {
                         Object stack = param.args[0];
                         if (stack != null) {
-                            Object mTask = XposedHelpers.getObjectField(stack, "mTask");
+                            Object mTask = ReflectionHelper.getObjectField(stack, "mTask");
                             if (mTask != null) {
                                 SurfaceControl surfaceControl;
                                 if (mTask != null && (surfaceControl =
-                                    (SurfaceControl) XposedHelpers.getObjectField(mTask,
+                                    (SurfaceControl) ReflectionHelper.getObjectField(mTask,
                                         "mSurfaceControl")) != null
                                     && surfaceControl.isValid()) {
                                     SurfaceControl.Transaction transaction = new SurfaceControl.Transaction();
-                                    XposedHelpers.callMethod(transaction, "hide", surfaceControl);
-                                    XposedHelpers.callMethod(transaction, "apply");
+                                    ReflectionHelper.callMethod(transaction, "hide", surfaceControl);
+                                    ReflectionHelper.callMethod(transaction, "apply");
                                     // logE(tag, "moveTaskToBack: s: " + surfaceControl);
                                     param.setResult(null);
                                 }
@@ -77,8 +77,8 @@ public class UnForegroundPin extends BaseHook {
             hookAllConstructors("com.android.server.wm.Task",
                 new MethodHook() {
                     @Override
-                    protected void after(XC_MethodHook.MethodHookParam param) {
-                        XposedHelpers.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", true);
+                    protected void after(HookCallback.MethodHookParam param) {
+                        ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", true);
                         // logE(tag, "Task add mLastSurfaceVisibility");
                     }
                 }
@@ -87,42 +87,42 @@ public class UnForegroundPin extends BaseHook {
             findAndHookMethod("com.android.server.wm.Task",
                 "prepareSurfaces", new MethodHook() {
                     @Override
-                    protected void after(XC_MethodHook.MethodHookParam param) {
-                        SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) XposedHelpers.callMethod(param.thisObject, "getSyncTransaction");
-                        SurfaceControl mSurfaceControl = (SurfaceControl) XposedHelpers.getObjectField(param.thisObject, "mSurfaceControl");
-                        // String pkg = (String) XposedHelpers.callMethod(param.thisObject, "getPackageName");
-                        // String mCallingPackage = (String) XposedHelpers.getObjectField(param.thisObject, "mCallingPackage");
-                        // Object getTopNonFinishingActivity = XposedHelpers.callMethod(param.thisObject, "getTopNonFinishingActivity");
+                    protected void after(HookCallback.MethodHookParam param) {
+                        SurfaceControl.Transaction transaction = (SurfaceControl.Transaction) ReflectionHelper.callMethod(param.thisObject, "getSyncTransaction");
+                        SurfaceControl mSurfaceControl = (SurfaceControl) ReflectionHelper.getObjectField(param.thisObject, "mSurfaceControl");
+                        // String pkg = (String) ReflectionHelper.callMethod(param.thisObject, "getPackageName");
+                        // String mCallingPackage = (String) ReflectionHelper.getObjectField(param.thisObject, "mCallingPackage");
+                        // Object getTopNonFinishingActivity = ReflectionHelper.callMethod(param.thisObject, "getTopNonFinishingActivity");
                         // String pkg = null;
                             /*if (getTopNonFinishingActivity != null) {
-                                ActivityInfo activityInfo = (ActivityInfo) XposedHelpers.getObjectField(getTopNonFinishingActivity, "info");
+                                ActivityInfo activityInfo = (ActivityInfo) ReflectionHelper.getObjectField(getTopNonFinishingActivity, "info");
                                 if (activityInfo != null) {
                                     pkg = activityInfo.applicationInfo.packageName;
                                 }
                             }*/
-                        int taskId = (int) XposedHelpers.callMethod(param.thisObject, "getRootTaskId");
-                        Object mWmService = XposedHelpers.getObjectField(param.thisObject, "mWmService");
-                        Object mAtmService = XposedHelpers.getObjectField(mWmService, "mAtmService");
-                        Object mMiuiFreeFormManagerService = XposedHelpers.getObjectField(mAtmService, "mMiuiFreeFormManagerService");
-                        Object mffs = XposedHelpers.callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
-                        boolean isVisible = (boolean) XposedHelpers.callMethod(param.thisObject, "isVisible");
-                        boolean isAnimating = (boolean) XposedHelpers.callMethod(param.thisObject, "isAnimating", 7);
+                        int taskId = (int) ReflectionHelper.callMethod(param.thisObject, "getRootTaskId");
+                        Object mWmService = ReflectionHelper.getObjectField(param.thisObject, "mWmService");
+                        Object mAtmService = ReflectionHelper.getObjectField(mWmService, "mAtmService");
+                        Object mMiuiFreeFormManagerService = ReflectionHelper.getObjectField(mAtmService, "mMiuiFreeFormManagerService");
+                        Object mffs = ReflectionHelper.callMethod(mMiuiFreeFormManagerService, "getMiuiFreeFormActivityStack", taskId);
+                        boolean isVisible = (boolean) ReflectionHelper.callMethod(param.thisObject, "isVisible");
+                        boolean isAnimating = (boolean) ReflectionHelper.callMethod(param.thisObject, "isAnimating", 7);
                         boolean inPinMode = false;
                         if (mffs != null) {
-                            inPinMode = (boolean) XposedHelpers.callMethod(mffs, "inPinMode");
+                            inPinMode = (boolean) ReflectionHelper.callMethod(mffs, "inPinMode");
                         }
-                        boolean mLastSurfaceVisibility = (boolean) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility");
+                        boolean mLastSurfaceVisibility = (boolean) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility");
                         if (mSurfaceControl != null && mffs != null && inPinMode) {
                             if (!isAnimating) {
-                                XposedHelpers.callMethod(transaction, "setVisibility", mSurfaceControl, false);
-                                XposedHelpers.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", false);
+                                ReflectionHelper.callMethod(transaction, "setVisibility", mSurfaceControl, false);
+                                ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", false);
                             }
                             // logE(tag, "setVisibility false pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible
                             // + " an: " + isAnimating + " la: " + mLastSurfaceVisibility);
                         } else if (mSurfaceControl != null && mffs != null && !inPinMode) {
                             if (!mLastSurfaceVisibility) {
-                                XposedHelpers.callMethod(transaction, "setVisibility", mSurfaceControl, true);
-                                XposedHelpers.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", true);
+                                ReflectionHelper.callMethod(transaction, "setVisibility", mSurfaceControl, true);
+                                ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mLastSurfaceVisibility", true);
                             }
                             // logE(tag, "setVisibility true pkg2: " + pkg + " taskid: " + taskId + " isVisble: " + isVisible + " an: " + isAnimating);
                         }
@@ -136,7 +136,7 @@ public class UnForegroundPin extends BaseHook {
                 "com.android.server.wm.MiuiFreeFormActivityStack",
                 new MethodHook() {
                     @Override
-                    protected void before(XC_MethodHook.MethodHookParam param) {
+                    protected void before(HookCallback.MethodHookParam param) {
                         param.setResult(null);
                     }
                 }
@@ -149,9 +149,9 @@ public class UnForegroundPin extends BaseHook {
                 "com.android.server.wm.MiuiFreeFormFloatIconInfo",
                 new MethodHook() {
                     @Override
-                    protected void before(XC_MethodHook.MethodHookParam param) {
+                    protected void before(HookCallback.MethodHookParam param) {
                         Object mffas = param.args[0];
-                        Object activityRecord = XposedHelpers.callMethod(XposedHelpers.getObjectField(mffas, "mTask"),
+                        Object activityRecord = ReflectionHelper.callMethod(ReflectionHelper.getObjectField(mffas, "mTask"),
                             "getTopNonFinishingActivity");
                         /*遵循安卓日志*/
                         Log.i("MiuiFreeformPinManagerService",
@@ -160,13 +160,13 @@ public class UnForegroundPin extends BaseHook {
                             param.setResult(null);
                             return;
                         }
-                        XposedHelpers.setObjectField(mffas, "mEnterVelocityX", param.args[1]);
-                        XposedHelpers.setObjectField(mffas, "mEnterVelocityY", param.args[2]);
-                        XposedHelpers.setObjectField(mffas, "mIsEnterClick", param.args[3]);
-                        XposedHelpers.setObjectField(mffas, "mIsPinFloatingWindowPosInit", false);
-                        XposedHelpers.callMethod(param.thisObject, "setUpMiuiFreeWindowFloatIconAnimation",
+                        ReflectionHelper.setObjectField(mffas, "mEnterVelocityX", param.args[1]);
+                        ReflectionHelper.setObjectField(mffas, "mEnterVelocityY", param.args[2]);
+                        ReflectionHelper.setObjectField(mffas, "mIsEnterClick", param.args[3]);
+                        ReflectionHelper.setObjectField(mffas, "mIsPinFloatingWindowPosInit", false);
+                        ReflectionHelper.callMethod(param.thisObject, "setUpMiuiFreeWindowFloatIconAnimation",
                             mffas, activityRecord, param.args[4], param.args[5]);
-                        XposedHelpers.callMethod(param.thisObject, "startUnPinAnimation", mffas);
+                        ReflectionHelper.callMethod(param.thisObject, "startUnPinAnimation", mffas);
                         param.setResult(null);
                     }
                 }
@@ -177,38 +177,38 @@ public class UnForegroundPin extends BaseHook {
                 "com.android.server.wm.MiuiFreeFormActivityStack",
                 new MethodHook() {
                     @Override
-                    protected void before(XC_MethodHook.MethodHookParam param) {
+                    protected void before(HookCallback.MethodHookParam param) {
                         Object mffas = param.args[0];
-                        Object mGestureListener = XposedHelpers.getObjectField(param.thisObject, "mGestureListener");
-                        if ((boolean) XposedHelpers.callMethod(mffas, "isInFreeFormMode")) {
-                            XposedHelpers.callMethod(mGestureListener, "startFullScreenFromFreeFormAnimation", mffas);
-                            Object mTrackManager = XposedHelpers.getObjectField(param.thisObject, "mTrackManager");
+                        Object mGestureListener = ReflectionHelper.getObjectField(param.thisObject, "mGestureListener");
+                        if ((boolean) ReflectionHelper.callMethod(mffas, "isInFreeFormMode")) {
+                            ReflectionHelper.callMethod(mGestureListener, "startFullScreenFromFreeFormAnimation", mffas);
+                            Object mTrackManager = ReflectionHelper.getObjectField(param.thisObject, "mTrackManager");
                             if (mTrackManager != null) {
-                                XposedHelpers.callMethod(mTrackManager, "trackSmallWindowPinedQuitEvent",
-                                    XposedHelpers.callMethod(mffas, "getStackPackageName"),
-                                    XposedHelpers.callMethod(mffas, "getApplicationName"),
-                                    (long) XposedHelpers.getObjectField(mffas, "mPinedStartTime") != 0 ?
+                                ReflectionHelper.callMethod(mTrackManager, "trackSmallWindowPinedQuitEvent",
+                                    ReflectionHelper.callMethod(mffas, "getStackPackageName"),
+                                    ReflectionHelper.callMethod(mffas, "getApplicationName"),
+                                    (long) ReflectionHelper.getObjectField(mffas, "mPinedStartTime") != 0 ?
                                         ((float) (System.currentTimeMillis() -
-                                            (long) XposedHelpers.getObjectField(mffas,
+                                            (long) ReflectionHelper.getObjectField(mffas,
                                                 "mPinedStartTime"))) / 1000.0f : 0.0f
                                 );
                             }
-                        } else if ((boolean) XposedHelpers.callMethod(mffas, "isInMiniFreeFormMode")) {
-                            XposedHelpers.callMethod(mGestureListener, "startFullScreenFromSmallAnimation", mffas);
-                            Object mTrackManager = XposedHelpers.getObjectField(param.thisObject, "mTrackManager");
+                        } else if ((boolean) ReflectionHelper.callMethod(mffas, "isInMiniFreeFormMode")) {
+                            ReflectionHelper.callMethod(mGestureListener, "startFullScreenFromSmallAnimation", mffas);
+                            Object mTrackManager = ReflectionHelper.getObjectField(param.thisObject, "mTrackManager");
                             if (mTrackManager != null) {
-                                XposedHelpers.callMethod(mTrackManager, "trackMiniWindowPinedQuitEvent",
-                                    XposedHelpers.callMethod(mffas, "getStackPackageName"),
-                                    XposedHelpers.callMethod(mffas, "getApplicationName"),
-                                    (long) XposedHelpers.getObjectField(mffas, "mPinedStartTime") != 0 ?
+                                ReflectionHelper.callMethod(mTrackManager, "trackMiniWindowPinedQuitEvent",
+                                    ReflectionHelper.callMethod(mffas, "getStackPackageName"),
+                                    ReflectionHelper.callMethod(mffas, "getApplicationName"),
+                                    (long) ReflectionHelper.getObjectField(mffas, "mPinedStartTime") != 0 ?
                                         ((float) (System.currentTimeMillis() -
-                                            (long) XposedHelpers.getObjectField(mffas,
+                                            (long) ReflectionHelper.getObjectField(mffas,
                                                 "mPinedStartTime"))) / 1000.0f : 0.0f
                                 );
                             }
                         }
-                        XposedHelpers.setObjectField(mffas, "mPinedStartTime", 0L);
-                        XposedHelpers.callMethod(mffas, "setInPinMode", false);
+                        ReflectionHelper.setObjectField(mffas, "mPinedStartTime", 0L);
+                        ReflectionHelper.callMethod(mffas, "setInPinMode", false);
                         param.setResult(null);
                     }
                 }

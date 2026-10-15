@@ -24,7 +24,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.util.ArrayList;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnimportantNotification extends BaseHook {
     Class clazz;
@@ -36,8 +36,8 @@ public class UnimportantNotification extends BaseHook {
                 new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) {
-                        Object FoldCoordinator = XposedHelpers.getObjectField(param.thisObject, "this$0");
-                        XposedHelpers.setObjectField(FoldCoordinator, "mPendingNotifications", new ArrayList<>());
+                        Object FoldCoordinator = ReflectionHelper.getObjectField(param.thisObject, "this$0");
+                        ReflectionHelper.setObjectField(FoldCoordinator, "mPendingNotifications", new ArrayList<>());
                     }
                 }
         );
@@ -50,8 +50,8 @@ public class UnimportantNotification extends BaseHook {
                     new MethodHook() {
                         @Override
                         protected void after(MethodHookParam param) {
-                            // Object mSbn = XposedHelpers.getObjectField(param.args[1], "mSbn");
-                            // String getPackageName = (String) XposedHelpers.callMethod(mSbn, "getPackageName");
+                            // Object mSbn = ReflectionHelper.getObjectField(param.args[1], "mSbn");
+                            // String getPackageName = (String) ReflectionHelper.callMethod(mSbn, "getPackageName");
                             // logE(TAG, "after: " + param.getResult() + " pkg: " + getPackageName);
                             param.setResult(true);
                         }
@@ -66,8 +66,8 @@ public class UnimportantNotification extends BaseHook {
             hookAllMethods(clazz, "shouldIgnoreEntry", new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    // Object mSbn = XposedHelpers.getObjectField(param.args[1], "mSbn");
-                    // String getPackageName = (String) XposedHelpers.callMethod(mSbn, "getPackageName");
+                    // Object mSbn = ReflectionHelper.getObjectField(param.args[1], "mSbn");
+                    // String getPackageName = (String) ReflectionHelper.callMethod(mSbn, "getPackageName");
                     // logE(TAG, "after: " + param.getResult() + " pkg: " + getPackageName);
                     param.setResult(true);
                 }

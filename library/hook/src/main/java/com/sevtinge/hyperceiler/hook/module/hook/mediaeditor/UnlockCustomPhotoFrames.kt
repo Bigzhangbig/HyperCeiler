@@ -21,7 +21,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.mediaeditor
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit
 import com.sevtinge.hyperceiler.hook.utils.api.LazyClass.AndroidBuildCls
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.extension.MemberExtension.paramCount
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
@@ -171,7 +171,7 @@ object UnlockCustomPhotoFrames : BaseHook() {
         if (isLeica && methodB != null) {
             // 1.10.0.0.6 新增 Xiaomi 15 Ultra 独占定制画框
             methodB?.createBeforeHook {
-                XposedHelpers.setStaticObjectField(
+                ReflectionHelper.setStaticObjectField(
                     AndroidBuildCls,
                     "DEVICE",
                     "xuanyuan"

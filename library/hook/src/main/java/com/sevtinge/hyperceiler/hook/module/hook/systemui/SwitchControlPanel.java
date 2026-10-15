@@ -23,7 +23,7 @@ import android.view.MotionEvent;
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SwitchControlPanel extends BaseHook {
 
@@ -38,8 +38,8 @@ public class SwitchControlPanel extends BaseHook {
             @Override
             protected void before(MethodHookParam param) {
                 float f = (float) param.args[1];
-                XposedHelpers.setFloatField(param.thisObject, "mDownX", f);
-                float mDownX = XposedHelpers.getFloatField(param.thisObject, "mDownX");
+                ReflectionHelper.setFloatField(param.thisObject, "mDownX", f);
+                float mDownX = ReflectionHelper.getFloatField(param.thisObject, "mDownX");
                 int i = (Float.compare(mDownX, f / 2.0f));
                 AndroidLogUtils.logI(TAG, "mDownX：" + mDownX + "in before");
                 AndroidLogUtils.logI(TAG, "f：" + f + "in before");
@@ -51,7 +51,7 @@ public class SwitchControlPanel extends BaseHook {
 
             @Override
             protected void after(MethodHookParam param) {
-                float mDownX = XposedHelpers.getFloatField(param.thisObject, "mDownX");
+                float mDownX = ReflectionHelper.getFloatField(param.thisObject, "mDownX");
                 float f = (float) param.args[1];
                 int i = (Float.compare(mDownX, f / 2.0f));
                 AndroidLogUtils.logI(TAG, "mDownX：" + mDownX + "in after");

@@ -46,8 +46,8 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.TelephonyManager;
 
 import java.lang.reflect.Array;
 
-import de.robv.android.xposed.XC_MethodHook.MethodHookParam;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback.MethodHookParam;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class FiveGTile extends TileUtils {
     String mNfcTileClsName = "com.android.systemui.qs.tiles.MiuiNfcTile";
@@ -110,8 +110,8 @@ public class FiveGTile extends TileUtils {
 
                                     String idName = view.getResources().getResourceName(id);
                                     if (idName.endsWith("detail_container")) {
-                                        int maxHeight = (int) XposedHelpers.callMethod(view, "getMaxHeight");
-                                        XposedHelpers.callMethod(view, "setMaxHeight", maxHeight +
+                                        int maxHeight = (int) ReflectionHelper.callMethod(view, "getMaxHeight");
+                                        ReflectionHelper.callMethod(view, "setMaxHeight", maxHeight +
                                                 DisplayUtils.dp2px(45f)
                                         );
                                         break;
@@ -136,11 +136,11 @@ public class FiveGTile extends TileUtils {
                     @Override
                     protected void before(MethodHookParam param) {
                         Object item = param.args[0];
-                        int type = (int) XposedHelpers.callMethod(item, "getType");
+                        int type = (int) ReflectionHelper.callMethod(item, "getType");
 
                         if (type == 2333) {
-                            Object title = XposedHelpers.getObjectField(item, "title");
-                            // boolean isChecked = XposedHelpers.getBooleanField(item, "isChecked");
+                            Object title = ReflectionHelper.getObjectField(item, "title");
+                            // boolean isChecked = ReflectionHelper.getBooleanField(item, "isChecked");
                             if (fiveG.equals(title)) {
                                 TelephonyManager manager = TelephonyManager.getDefault();
                                 boolean userFiveGEnabled = manager.isUserFiveGEnabled();
@@ -165,7 +165,7 @@ public class FiveGTile extends TileUtils {
                     protected void before(MethodHookParam param) throws Throwable {
                         ViewGroup content = (ViewGroup) param.thisObject;
 
-                        Object suffix = XposedHelpers.getObjectField(content, "suffix");
+                        Object suffix = ReflectionHelper.getObjectField(content, "suffix");
                         if (!"Cellular".equals(suffix)) {
                             return;
                         }
@@ -263,25 +263,25 @@ public class FiveGTile extends TileUtils {
 
         logD(TAG, lpparam.packageName, "5G" + manager.isUserFiveGEnabled());
         // 更新磁贴状态
-        XposedHelpers.callMethod(param.thisObject, "refreshState");
+        ReflectionHelper.callMethod(param.thisObject, "refreshState");
     }
 
     @Override
     public void tileListening(MethodHookParam param, String tileName) {
-        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
         boolean mListening = (boolean) param.args[0];
         if (mListening) {
             ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
                 @Override
                 public void onChange(boolean z) {
-                    XposedHelpers.callMethod(param.thisObject, "refreshState");
+                    ReflectionHelper.callMethod(param.thisObject, "refreshState");
                 }
             };
             mContext.getContentResolver().registerContentObserver(Settings.Global.getUriFor("fiveg_user_enable"), false, contentObserver);
             mContext.getContentResolver().registerContentObserver(Settings.Global.getUriFor("dual_nr_enabled"), false, contentObserver);
-            XposedHelpers.setAdditionalInstanceField(param.thisObject, "tileListener", contentObserver);
+            ReflectionHelper.setAdditionalInstanceField(param.thisObject, "tileListener", contentObserver);
         } else {
-            ContentObserver contentObserver = (ContentObserver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "tileListener");
+            ContentObserver contentObserver = (ContentObserver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "tileListener");
             mContext.getContentResolver().unregisterContentObserver(contentObserver);
         }
     }

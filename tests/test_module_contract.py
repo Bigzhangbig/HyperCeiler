@@ -15,13 +15,13 @@ class ModernModuleContract(unittest.TestCase):
         keys = {item.get(ANDROID + "name") for item in app.findall("meta-data")}
         self.assertFalse(keys & {"xposedmodule", "xposedminversion", "xposedsharedprefs", "xposedscope"})
 
-    def test_api101_entry_is_kept_and_packaged(self):
+    def test_api102_entry_is_kept_and_packaged(self):
         props = dict(line.split("=", 1) for line in
                      (DESCRIPTORS / "module.prop").read_text().splitlines()
                      if line.strip() and not line.startswith("#"))
-        self.assertEqual("101", props["minApiVersion"])
-        # API101's documented legacy-hook compatibility is required by this A14 backend.
-        self.assertEqual("101", props["targetApiVersion"])
+        self.assertEqual("102", props["minApiVersion"])
+        self.assertEqual("102", props["targetApiVersion"])
+        self.assertEqual("false", props["autoHotReload"])
         entry = (DESCRIPTORS / "java_init.list").read_text().strip()
         self.assertEqual("com.sevtinge.hyperceiler.hook.ModernXposedInit", entry)
         self.assertIn(entry, (HOOK / "proguard-rules.pro").read_text())
@@ -46,13 +46,24 @@ class ModernModuleContract(unittest.TestCase):
                 self.assertFalse("makeWorldReadable()" in text, "World-readable preference helper remains")
         self.assertFalse("fixPermissionsAsync" in (HOOK / "src/main/java/com/sevtinge/hyperceiler/hook/module/base/tool/AppsTool.java").read_text())
 
+    def test_no_framework_legacy_api_in_production_sources(self):
+        forbidden = ("de.robv.android.xposed", "android.app.AndroidAppHelper",
+                     "android.content.res.XResources", "android.content.res.XModuleResources",
+                     "android.content.res.XResForwarder")
+        for path in (ROOT / "library").rglob("*"):
+            if path.suffix not in {".java", ".kt"} or "build" in path.relative_to(ROOT).parts:
+                continue
+            with self.subTest(path=path.relative_to(ROOT)):
+                for old_api in forbidden:
+                    self.assertNotIn(old_api, path.read_text())
+
     def test_deoptimization_uses_supplied_modern_api(self):
         sources = HOOK / "src/main/java"
         for path in sources.rglob("*"):
             if path.suffix not in {".java", ".kt"}:
                 continue
             with self.subTest(path=path.relative_to(ROOT)):
-                # API101 migration supplies deoptimization through its modern entry.
+                # API102 entry supplies deoptimization through its modern entry.
                 # Do not depend on a nonstandard legacy bridge reflection extension.
                 self.assertFalse('"deoptimizeMethod"' in path.read_text(),
                                  "Nonstandard reflective legacy deoptimization dependency remains")

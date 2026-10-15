@@ -27,7 +27,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AllowManageAllNotifications extends BaseHook {
     @Override
@@ -35,7 +35,7 @@ public class AllowManageAllNotifications extends BaseHook {
         Class<?> mNotifyManagerCls = isMoreAndroidVersion(35) ?
                 findClassIfExists("com.miui.systemui.notification.NotificationSettingsManager", lpparam.classLoader) :
                 findClassIfExists("com.android.systemui.statusbar.notification.NotificationSettingsManager", lpparam.classLoader);
-        XposedHelpers.setStaticBooleanField(mNotifyManagerCls, "USE_WHITE_LISTS", false);
+        ReflectionHelper.setStaticBooleanField(mNotifyManagerCls, "USE_WHITE_LISTS", false);
 
         try {
             // Android 14 中期开始变化为 getCloudDataString 方法

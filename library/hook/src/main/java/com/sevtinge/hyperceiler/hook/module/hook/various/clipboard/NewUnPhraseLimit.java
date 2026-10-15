@@ -26,8 +26,8 @@ import android.text.InputFilter;
 import android.view.View;
 import android.widget.EditText;
 
-import com.hchen.hooktool.HCBase;
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureModule;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.IDexKit;
 
@@ -49,14 +49,14 @@ import java.lang.reflect.Method;
  *
  * @author 焕晨HChen
  */
-public class NewUnPhraseLimit extends HCBase {
+public class NewUnPhraseLimit extends NativeFeatureModule {
 
     @Override
     public void init() {
         // 解除 20 条限制
         Class<?> InputMethodUtil = findClass("com.miui.inputmethod.InputMethodUtil");
         setStaticField(InputMethodUtil, "sPhraseListSize", 0);
-        hookMethod(InputMethodUtil, "queryPhrase", Context.class, new IHook() {
+        hookMethod(InputMethodUtil, "queryPhrase", Context.class, new NativeFeatureHook() {
             @Override
             public void after() {
                 setStaticField(InputMethodUtil, "sPhraseListSize", 0);
@@ -64,7 +64,7 @@ public class NewUnPhraseLimit extends HCBase {
         });
 
         Class<?> AddPhraseActivity = findClass("com.miui.phrase.AddPhraseActivity");
-        hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new IHook() {
+        hookMethod("com.miui.phrase.PhraseEditActivity", "onClick", View.class, new NativeFeatureHook() {
             @Override
             public void before() {
                 Activity activity = (Activity) thisObject();
@@ -103,7 +103,7 @@ public class NewUnPhraseLimit extends HCBase {
                 ).single();
             }
         });
-        hook(method, new IHook() {
+        hook(method, new NativeFeatureHook() {
                 @Override
                 public void after() {
                     EditText editText = (EditText) getField(thisObject(), field);

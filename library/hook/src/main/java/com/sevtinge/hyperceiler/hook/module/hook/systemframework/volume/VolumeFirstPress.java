@@ -22,7 +22,7 @@ import android.media.AudioManager;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class VolumeFirstPress extends BaseHook {
 
@@ -39,7 +39,7 @@ public class VolumeFirstPress extends BaseHook {
                 if (streamType != AudioManager.STREAM_MUSIC) return;
                 boolean isMuteAdjust = (boolean) param.args[2];
                 if (isMuteAdjust) return;
-                Object mController = XposedHelpers.getObjectField(param.thisObject, "mController");
+                Object mController = ReflectionHelper.getObjectField(param.thisObject, "mController");
                 if (mController == null) return;
                 param.setResult(false);
             }

@@ -37,7 +37,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class RotationButton extends BaseHook {
     boolean isListen = false;
@@ -50,7 +50,7 @@ public class RotationButton extends BaseHook {
                     @Override
                     protected void after(MethodHookParam param) {
                         if (!enable) return;
-                        Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                        Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                         if (!isListen) {
                             if (mContext == null) {
                                 logE(TAG, "context can't is null!");
@@ -61,7 +61,7 @@ public class RotationButton extends BaseHook {
                                 public void onChange(boolean selfChange, @Nullable Uri uri) {
                                     boolean isShow = getBoolean(mContext);
                                     int rotation = getInt(mContext);
-                                    XposedHelpers.callMethod(param.thisObject, "onRotationProposal", rotation, isShow);
+                                    ReflectionHelper.callMethod(param.thisObject, "onRotationProposal", rotation, isShow);
                                 }
                             };
                             mContext.getContentResolver().registerContentObserver(Settings.System.getUriFor("rotation_button_data"),
@@ -82,7 +82,7 @@ public class RotationButton extends BaseHook {
                             if (!enable) {
                                 return;
                             }
-                            Context mLightContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mLightContext");
+                            Context mLightContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mLightContext");
                             Integer intValue = switch (getScreenOrientation(mLightContext)) {
                                 case 0 -> 1;
                                 case 1 -> 0;
@@ -104,8 +104,8 @@ public class RotationButton extends BaseHook {
                             if (!enable) {
                                 return;
                             }
-                            Object NavigationBarView = XposedHelpers.getObjectField(param.thisObject, "f$0");
-                            Context mLightContext = (Context) XposedHelpers.getObjectField(NavigationBarView, "mLightContext");
+                            Object NavigationBarView = ReflectionHelper.getObjectField(param.thisObject, "f$0");
+                            Context mLightContext = (Context) ReflectionHelper.getObjectField(NavigationBarView, "mLightContext");
                             Integer intValue = switch (getScreenOrientation(mLightContext)) {
                                 case 0 -> 1;
                                 case 1 -> 0;
@@ -128,8 +128,8 @@ public class RotationButton extends BaseHook {
                         @Override
                         protected void before(MethodHookParam param) {
                             if (!enable) return;
-                            Object mDumpHandler = XposedHelpers.getObjectField(param.thisObject, "mDumpHandler");
-                            Context context = (Context) XposedHelpers.getObjectField(mDumpHandler, "context");
+                            Object mDumpHandler = ReflectionHelper.getObjectField(param.thisObject, "mDumpHandler");
+                            Context context = (Context) ReflectionHelper.getObjectField(mDumpHandler, "context");
                             setData(context, param.args[0] + "," + param.args[1]);
                             if (enable) param.setResult(null);
                         }
@@ -189,7 +189,7 @@ public class RotationButton extends BaseHook {
                         @Override
                         protected void after(MethodHookParam param) {
                             if (enable)
-                                XposedHelpers.callMethod(param.thisObject, "setRotateSuggestionButtonState", false);
+                                ReflectionHelper.callMethod(param.thisObject, "setRotateSuggestionButtonState", false);
                         }
                     }
             );
@@ -200,8 +200,8 @@ public class RotationButton extends BaseHook {
                         @Override
                         protected void before(MethodHookParam param) {
                             if (enable) {
-                                Object rotationButtonController = XposedHelpers.getObjectField(param.thisObject, "f$0");
-                                XposedHelpers.callMethod(rotationButtonController, "setRotateSuggestionButtonState", false, true);
+                                Object rotationButtonController = ReflectionHelper.getObjectField(param.thisObject, "f$0");
+                                ReflectionHelper.callMethod(rotationButtonController, "setRotateSuggestionButtonState", false, true);
                             }
                         }
                     }

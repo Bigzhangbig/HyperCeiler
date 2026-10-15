@@ -36,7 +36,7 @@ import com.sevtinge.hyperceiler.hook.utils.callMethod
 import com.sevtinge.hyperceiler.hook.utils.callMethodOrNull
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.hook.utils.hookAfterMethod
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import java.io.File
 import java.lang.reflect.Method
 import java.text.DecimalFormat
@@ -58,7 +58,7 @@ object DisplayMoreApkInfoNew : BaseHook() {
             mAppInfoViewObjectViewHolder =
                 findClassIfExists("com.miui.packageInstaller.ui.listcomponets.AppInfoViewObject\$ViewHolder")//"com.miui.packageInstaller.ui.listcomponets.AppInfoViewObject\$ViewHolder".findClassOrNull()
             val methods: Array<Method> =
-                XposedHelpers.findMethodsByExactParameters(mAppInfoViewObject, Void.TYPE, mAppInfoViewObjectViewHolder)
+                ReflectionHelper.findMethodsByExactParameters(mAppInfoViewObject, Void.TYPE, mAppInfoViewObjectViewHolder)
             if (methods.isNotEmpty()) {
                 val fields = mAppInfoViewObject!!.declaredFields
                 var apkInfoFieldName: String? = null
@@ -73,11 +73,11 @@ object DisplayMoreApkInfoNew : BaseHook() {
                 methods[0].hookAfterMethod { hookParam ->
                     val viewHolder: Any = hookParam.args[0] ?: return@hookAfterMethod
                     val mAppSizeTv =
-                        XposedHelpers.callMethod(viewHolder, "getAppSize") as TextView? ?: return@hookAfterMethod
+                        ReflectionHelper.callMethod(viewHolder, "getAppSize") as TextView? ?: return@hookAfterMethod
                     val mContext = mAppSizeTv.context
                     val isDarkMode =
                         mAppSizeTv.context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
-                    val apkInfo: Any = XposedHelpers.getObjectField(hookParam.thisObject, finalApkInfoFieldName)
+                    val apkInfo: Any = ReflectionHelper.getObjectField(hookParam.thisObject, finalApkInfoFieldName)
                     val mAppInfo = apkInfo.callMethodOrNull("getInstalledPackageInfo") as ApplicationInfo?
                     val mPkgInfo = apkInfo.callMethod("getPackageInfo") as PackageInfo
                     val modRes = getModuleRes(mAppSizeTv.context) as Resources

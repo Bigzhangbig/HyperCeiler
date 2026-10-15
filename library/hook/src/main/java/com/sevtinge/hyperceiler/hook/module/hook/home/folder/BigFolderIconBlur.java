@@ -32,7 +32,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BigFolderIconBlur extends BaseHook {
 
@@ -67,11 +67,11 @@ public class BigFolderIconBlur extends BaseHook {
         hookAllConstructors(mFolderIcon, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                Object mDockBlur = XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDockBlur");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                Object mDockBlur = ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDockBlur");
                 if (mDockBlur != null) return;
                 mDockBlur = new FrameLayout(mContext);
-                XposedHelpers.setAdditionalInstanceField(param.thisObject, "mDockBlur", mDockBlur);
+                ReflectionHelper.setAdditionalInstanceField(param.thisObject, "mDockBlur", mDockBlur);
             }
         });
 
@@ -80,9 +80,9 @@ public class BigFolderIconBlur extends BaseHook {
             protected void after(MethodHookParam param) {
                 int mFolderWidth = DisplayUtils.dp2px(mPrefsMap.getInt("home_big_folder_icon_bg_width", 145));
                 int mFolderHeight = DisplayUtils.dp2px(mPrefsMap.getInt("home_big_folder_icon_bg_height", 145));
-                ImageView mIconImageView = (ImageView) XposedHelpers.getObjectField(param.thisObject, "mIconImageView");
+                ImageView mIconImageView = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "mIconImageView");
                 FrameLayout mIconContainer = (FrameLayout) mIconImageView.getParent();
-                FrameLayout mDockBlur = (FrameLayout) XposedHelpers.getAdditionalInstanceField(param.thisObject, "mDockBlur");
+                FrameLayout mDockBlur = (FrameLayout) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "mDockBlur");
                 FrameLayout view = new FrameLayout(mIconImageView.getContext());
 
                 mIconImageView.setVisibility(View.GONE);
@@ -147,8 +147,8 @@ public class BigFolderIconBlur extends BaseHook {
         };
 
 
-        Method FolderIcon2x2_4_OnFinishInflate = XposedHelpers.findMethodExactIfExists(mFolderIcon2x2_4, "onFinishInflate", Void.TYPE);
-        Method FolderIcon2x2_9_OnFinishInflate = XposedHelpers.findMethodExactIfExists(mFolderIcon2x2_9, "onFinishInflate", Void.TYPE);
+        Method FolderIcon2x2_4_OnFinishInflate = ReflectionHelper.findMethodExactIfExists(mFolderIcon2x2_4, "onFinishInflate", Void.TYPE);
+        Method FolderIcon2x2_9_OnFinishInflate = ReflectionHelper.findMethodExactIfExists(mFolderIcon2x2_9, "onFinishInflate", Void.TYPE);
 
         if (FolderIcon2x2_4_OnFinishInflate != null && FolderIcon2x2_9_OnFinishInflate != null) {
             findAndHookMethod(mFolderIcon2x2_4, "onFinishInflate", mBigFolderIconBlur);
@@ -163,10 +163,10 @@ public class BigFolderIconBlur extends BaseHook {
                 View mDragView = (View) param.thisObject;
                 mDragView.setLayerType(View.LAYER_TYPE_HARDWARE, null);
 
-                Object mDragInfo = XposedHelpers.getObjectField(param.thisObject, "mDragInfo");
-                int itemType = (int) XposedHelpers.getObjectField(mDragInfo, "itemType");
-                Object mLauncher = XposedHelpers.getObjectField(param.thisObject, "mLauncher");
-                boolean isFolderShowing = (boolean) XposedHelpers.callMethod(mLauncher, "isFolderShowing");
+                Object mDragInfo = ReflectionHelper.getObjectField(param.thisObject, "mDragInfo");
+                int itemType = (int) ReflectionHelper.getObjectField(mDragInfo, "itemType");
+                Object mLauncher = ReflectionHelper.getObjectField(param.thisObject, "mLauncher");
+                boolean isFolderShowing = (boolean) ReflectionHelper.callMethod(mLauncher, "isFolderShowing");
 
                 if (!isFolderShowing && itemType == 21) {
                     new BlurUtils(mDragView, "home_big_folder_icon_bg_custom");

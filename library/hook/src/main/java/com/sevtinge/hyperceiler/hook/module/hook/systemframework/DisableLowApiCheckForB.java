@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DisableLowApiCheckForB extends BaseHook {
     @Override
@@ -28,9 +28,9 @@ public class DisableLowApiCheckForB extends BaseHook {
         findAndHookMethod("com.android.server.pm.InstallPackageHelper", "preparePackage", "com.android.server.pm.InstallRequest", new MethodHook(){
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                Object mInstallArgs = XposedHelpers.getObjectField(param.args[0], "mInstallArgs");
+                Object mInstallArgs = ReflectionHelper.getObjectField(param.args[0], "mInstallArgs");
                 if (mInstallArgs == null) return;
-                XposedHelpers.setIntField(mInstallArgs, "mInstallFlags", XposedHelpers.getIntField(mInstallArgs, "mInstallFlags") | 0x01000000);
+                ReflectionHelper.setIntField(mInstallArgs, "mInstallFlags", ReflectionHelper.getIntField(mInstallArgs, "mInstallFlags") | 0x01000000);
             }
         });
     }

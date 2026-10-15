@@ -23,7 +23,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class QSLabelsHook extends BaseHook {
 
@@ -46,13 +46,13 @@ public class QSLabelsHook extends BaseHook {
                         pluginLoader = (ClassLoader) param.getResult();
                     }
 
-                    mQSController = XposedHelpers.findClassIfExists("miui.systemui.controlcenter.qs.tileview.StandardTileView", pluginLoader);
+                    mQSController = ReflectionHelper.findClassIfExists("miui.systemui.controlcenter.qs.tileview.StandardTileView", pluginLoader);
 
                     hookAllMethods(mQSController, "init", new MethodHook() {
                         @Override
                         protected void before(MethodHookParam param) throws Throwable {
                             if (param.args.length != 1) return;
-                            View mLabelContainer = (View) XposedHelpers.getObjectField(param.thisObject, "labelContainer");
+                            View mLabelContainer = (View) ReflectionHelper.getObjectField(param.thisObject, "labelContainer");
                             if (mLabelContainer != null) {
                                 mLabelContainer.setVisibility(
                                     mPrefsMap.getBoolean("system_ui_qs_label") ? View.GONE : View.VISIBLE

@@ -1,4 +1,6 @@
-# Android 14 分支的 LSPosed 配置兼容改动
+# Android 14 分支的 LSPosed API101 配置兼容改动
+
+> 本文记录已发布的 `fix/lsposed-preferences-compat` 分支。当前 API102 原生实现见 [API102 说明](lsposed-api102-compatibility.md)。
 
 此分支以 `a14_eol` 的 `5f1f8ab4483278055718160efcdd209d326d03b8` 为基线，解决 New XSharedPreferences（NSP）弃用后的配置传递问题。Android 最低版本仍为 14，原有功能与推荐作用域保留。
 

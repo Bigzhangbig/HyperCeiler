@@ -1,8 +1,8 @@
-name: LSPosed preference compatibility
+name: LSPosed API102 native compatibility
 
 on:
   push:
-    branches: [fix/lsposed-preferences-compat]
+    branches: [fix/lsposed-api102-native]
   pull_request:
     branches: [a14_eol]
   workflow_dispatch:
@@ -45,6 +45,7 @@ jobs:
           log-accepted-android-sdk-licenses: false
       - run: sdkmanager 'platforms;android-36'
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
+      - run: ./gradlew -p tests/native-hooks test --console=plain
       - run: ./gradlew -p tests/preferences test --console=plain
 
   apk:
@@ -88,6 +89,6 @@ jobs:
         run: python3 tests/check_apk_contract.py
       - uses: actions/upload-artifact@v4
         with:
-          name: HyperCeiler-A14-API101
+          name: HyperCeiler-A14-API102
           path: app/build/outputs/apk/**/*.apk
           if-no-files-found: error

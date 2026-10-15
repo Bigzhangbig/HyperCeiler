@@ -24,18 +24,18 @@ import android.os.Bundle;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 object RemoveSIMLockSuccessDialog : BaseHook() {
     @Throws(NoSuchMethodException::class)
     override fun init() {
-        XposedHelpers.findAndHookMethod(
+        ReflectionHelper.findAndHookMethod(
             "com.miui.simlock.activity.SuccessDialogActivity",
             lpparam.classLoader,
             "onCreate",
             Bundle::class.java,
-            object : XC_MethodHook() {
+            object : HookCallback() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
                     (param.thisObject as Activity).finish()
                 }

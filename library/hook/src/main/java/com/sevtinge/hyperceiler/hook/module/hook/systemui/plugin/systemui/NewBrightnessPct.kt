@@ -25,7 +25,7 @@ import com.sevtinge.hyperceiler.hook.utils.callMethod
 import com.sevtinge.hyperceiler.hook.utils.callStaticMethod
 import com.sevtinge.hyperceiler.hook.utils.getObjectField
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils
-import de.robv.android.xposed.XC_MethodHook
+import io.github.kyuubiran.ezxhelper.xposed.common.HookParam
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClass
 import io.github.kyuubiran.ezxhelper.xposed.dsl.HookFactory.`-Static`.createBeforeHook
@@ -45,7 +45,7 @@ object NewBrightnessPct {
             }
     }
 
-    private fun startPct(it: XC_MethodHook.MethodHookParam) {
+    private fun startPct(it: HookParam) {
         val windowView = getView("miui.systemui.dagger.PluginComponentFactory", it.thisObject.javaClass.classLoader)
         if (windowView == null) {
             XposedLogUtils.logE("NewBrightnessPct", "ControlCenterWindowViewImpl is null")

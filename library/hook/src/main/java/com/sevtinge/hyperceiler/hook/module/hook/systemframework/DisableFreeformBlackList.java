@@ -24,7 +24,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class DisableFreeformBlackList extends BaseHook {
 
@@ -58,11 +58,11 @@ public class DisableFreeformBlackList extends BaseHook {
             }
         });
 
-        findAndHookMethod(mMiuiMultiWindowUtils, "isForceResizeable", XC_MethodReplacement.returnConstant(true));
-        findAndHookMethod(mMiuiMultiWindowUtils, "supportFreeform", XC_MethodReplacement.returnConstant(true));
+        findAndHookMethod(mMiuiMultiWindowUtils, "isForceResizeable", HookReplacement.returnConstant(true));
+        findAndHookMethod(mMiuiMultiWindowUtils, "supportFreeform", HookReplacement.returnConstant(true));
 
         // 强制所有活动设为可以调整大小
-        /*findAndHookMethod(mTaskCls, "isResizeable", XC_MethodReplacement.returnConstant(true));*/
+        /*findAndHookMethod(mTaskCls, "isResizeable", HookReplacement.returnConstant(true));*/
 
         setResReplacement("android", "array", "freeform_black_list", R.array.miui_freeform_black_list);
         setResReplacement("android.miui", "array", "freeform_black_list", R.array.miui_freeform_black_list);

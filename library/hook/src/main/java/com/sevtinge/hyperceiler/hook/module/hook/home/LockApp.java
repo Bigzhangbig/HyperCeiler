@@ -30,7 +30,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 /**
  * @author 焕晨HChen
@@ -86,23 +86,23 @@ public class LockApp extends BaseHook {
                 new MethodHook() {
                     @Override
                     protected void after(MethodHookParam param) {
-                        Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                        Context context = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                         if (!isListen2) {
                             ContentObserver contentObserver = new ContentObserver(new Handler(context.getMainLooper())) {
                                 @Override
                                 public void onChange(boolean selfChange) {
-                                    Object getMDockStateMachine = XposedHelpers.callMethod(param.thisObject, "getMDockStateMachine");
-                                    Object getMDockWindowManager = XposedHelpers.callMethod(param.thisObject, "getMDockWindowManager");
-                                    View mDockRootView = (View) XposedHelpers.getObjectField(getMDockWindowManager, "mDockRootView");
+                                    Object getMDockStateMachine = ReflectionHelper.callMethod(param.thisObject, "getMDockStateMachine");
+                                    Object getMDockWindowManager = ReflectionHelper.callMethod(param.thisObject, "getMDockWindowManager");
+                                    View mDockRootView = (View) ReflectionHelper.getObjectField(getMDockWindowManager, "mDockRootView");
                                     if (context == null) {
                                         logE(TAG, "DockControllerImpl context must not null");
                                         return;
                                     }
                                     if (getLockApp(context) != -1) {
-                                        XposedHelpers.callMethod(getMDockStateMachine, "notifyPinnedStateChanged", false);
+                                        ReflectionHelper.callMethod(getMDockStateMachine, "notifyPinnedStateChanged", false);
                                         mDockRootView.setVisibility(View.GONE);
                                     } else {
-                                        XposedHelpers.callMethod(getMDockStateMachine, "notifyPinnedStateChanged", true);
+                                        ReflectionHelper.callMethod(getMDockStateMachine, "notifyPinnedStateChanged", true);
                                         mDockRootView.setVisibility(View.VISIBLE);
                                     }
                                 }

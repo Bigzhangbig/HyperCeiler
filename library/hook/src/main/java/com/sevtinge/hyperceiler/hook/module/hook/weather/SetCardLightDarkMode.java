@@ -35,7 +35,7 @@ import org.luckypray.dexkit.result.base.BaseData;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class SetCardLightDarkMode extends BaseHook {
     private static final String METHOD_NAME = "judgeCurrentColor() mLightDarkMode : ";
@@ -68,7 +68,7 @@ public class SetCardLightDarkMode extends BaseHook {
         hookMethod(method, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) {
-                XposedHelpers.setIntField(param.thisObject, field.getName(), mPrefsMap.getStringAsInt("weather_card_display_type", 0));
+                ReflectionHelper.setIntField(param.thisObject, field.getName(), mPrefsMap.getStringAsInt("weather_card_display_type", 0));
             }
         });
     }

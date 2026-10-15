@@ -20,15 +20,15 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemui.plugin.systemui;
 
 import static com.sevtinge.hyperceiler.hook.module.base.BaseHook.mPrefsMap;
 
-import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class HideDeviceControlEntry {
     public static void initHideDeviceControlEntry(ClassLoader classLoader) {
         if (mPrefsMap.getStringAsInt("system_ui_control_center_device_ctrl_entry", 0) == 1) {
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.panel.main.external.DeviceControlEntryController", classLoader, "available", boolean.class, XC_MethodReplacement.returnConstant(true));
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.panel.main.external.DeviceControlEntryController", classLoader, "available", boolean.class, HookReplacement.returnConstant(true));
         } else if (mPrefsMap.getStringAsInt("system_ui_control_center_device_ctrl_entry", 0) == 2) {
-            XposedHelpers.findAndHookMethod("miui.systemui.controlcenter.panel.main.external.DeviceControlEntryController", classLoader, "available", boolean.class, XC_MethodReplacement.returnConstant(false));
+            ReflectionHelper.findAndHookMethod("miui.systemui.controlcenter.panel.main.external.DeviceControlEntryController", classLoader, "available", boolean.class, HookReplacement.returnConstant(false));
         }
     }
 }

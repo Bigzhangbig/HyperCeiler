@@ -19,7 +19,7 @@
 package com.sevtinge.hyperceiler.hook.module.hook.systemui.controlcenter.media.u
 
 import android.annotation.SuppressLint
-import android.app.AndroidAppHelper
+import com.sevtinge.hyperceiler.hook.api.AppContext
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -44,7 +44,7 @@ import com.sevtinge.hyperceiler.hook.utils.devicesdk.colorFilter
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isDarkMode
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.isMoreHyperOSVersion
 import com.sevtinge.hyperceiler.hook.utils.getObjectFieldOrNullAs
-import de.robv.android.xposed.XposedHelpers
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper
 import io.github.kyuubiran.ezxhelper.core.finder.MethodFinder.`-Static`.methodFinder
 import io.github.kyuubiran.ezxhelper.core.helper.ObjectHelper.`-Static`.objectHelper
 import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.loadClassOrNull
@@ -68,9 +68,9 @@ class MediaControlPanelBackgroundMix : BaseHook() {
             if (isMoreHyperOSVersion(2f)) {
                 seekBarObserver?.methodFinder()?.filterByName("onChanged")?.first()
                     ?.createBeforeHook {
-                        val context = AndroidAppHelper.currentApplication().applicationContext
+                        val context = AppContext.currentApplication().applicationContext
                         val isBackgroundBlurOpened =
-                            XposedHelpers.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
+                            ReflectionHelper.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
                         val mMediaViewHolder =
                             it.thisObject.objectHelper().getObjectOrNullUntilSuperclass("holder")
                                 ?: return@createBeforeHook
@@ -96,7 +96,7 @@ class MediaControlPanelBackgroundMix : BaseHook() {
                             ?: return@createAfterHook
 
                     val isBackgroundBlurOpened =
-                        XposedHelpers.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context)
+                        ReflectionHelper.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context)
                             as Boolean
 
                     val mMediaViewHolder =
@@ -155,10 +155,10 @@ class MediaControlPanelBackgroundMix : BaseHook() {
 
             playerTwoCircleView?.methodFinder()?.filterByName("onDraw")?.first()
                 ?.createBeforeHook {
-                    val context = AndroidAppHelper.currentApplication().applicationContext
+                    val context = AppContext.currentApplication().applicationContext
 
                     val isBackgroundBlurOpened =
-                        XposedHelpers.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
+                        ReflectionHelper.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
                     if (!isBackgroundBlurOpened) return@createBeforeHook
 
                     val mPaint1 = it.thisObject.getObjectFieldOrNullAs<Paint>("mPaint1")
@@ -175,11 +175,11 @@ class MediaControlPanelBackgroundMix : BaseHook() {
                     )
 
                     val miuiStubClass = loadClassOrNull("miui.stub.MiuiStub")
-                    val miuiStubInstance = XposedHelpers.getStaticObjectField(miuiStubClass, "INSTANCE")
-                    val mSysUIProvider = XposedHelpers.getObjectField(miuiStubInstance, "mSysUIProvider")
-                    val mStatusBarStateController = XposedHelpers.getObjectField(mSysUIProvider, "mStatusBarStateController")
-                    val getLazyClass = XposedHelpers.callMethod(mStatusBarStateController, "get")
-                    val getState = XposedHelpers.callMethod(getLazyClass, "getState")
+                    val miuiStubInstance = ReflectionHelper.getStaticObjectField(miuiStubClass, "INSTANCE")
+                    val mSysUIProvider = ReflectionHelper.getObjectField(miuiStubInstance, "mSysUIProvider")
+                    val mStatusBarStateController = ReflectionHelper.getObjectField(mSysUIProvider, "mStatusBarStateController")
+                    val getLazyClass = ReflectionHelper.callMethod(mStatusBarStateController, "get")
+                    val getState = ReflectionHelper.callMethod(getLazyClass, "getState")
 
                     (it.thisObject as ImageView).apply {
                         getNotificationElementBlendColors(context, getState == 1,
@@ -205,7 +205,7 @@ class MediaControlPanelBackgroundMix : BaseHook() {
                                 }
 
                                 if (mediaControlPanelInstance != null) {
-                                    val isBackgroundBlurOpened = XposedHelpers.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
+                                    val isBackgroundBlurOpened = ReflectionHelper.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
                                     if (isBackgroundBlurOpened) {
                                         val mMediaViewHolder = mediaControlPanelInstance.objectHelper().getObjectOrNullUntilSuperclass("mMediaViewHolder")
                                         if (mMediaViewHolder != null) {
@@ -245,9 +245,9 @@ class MediaControlPanelBackgroundMix : BaseHook() {
 
             playerTwoCircleView?.methodFinder()?.filterByName("setBackground")?.first()
                 ?.createBeforeHook {
-                    val context = AndroidAppHelper.currentApplication().applicationContext
+                    val context = AppContext.currentApplication().applicationContext
                     val isBackgroundBlurOpened =
-                        XposedHelpers.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
+                        ReflectionHelper.callStaticMethod(notificationUtil, "isBackgroundBlurOpened", context) as Boolean
                     if (!isBackgroundBlurOpened) return@createBeforeHook
                     (it.thisObject as ImageView).background = null
                     it.result = null

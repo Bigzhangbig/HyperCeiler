@@ -22,7 +22,7 @@ import android.view.View;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class RecommendAppsSwitch extends BaseHook {
     @Override
@@ -32,7 +32,7 @@ public class RecommendAppsSwitch extends BaseHook {
             new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    View mRecommendAppsSwitch = (View) XposedHelpers.getObjectField(param.thisObject,
+                    View mRecommendAppsSwitch = (View) ReflectionHelper.getObjectField(param.thisObject,
                         "mRecommendAppsSwitch");
                     mRecommendAppsSwitch.setVisibility(View.GONE);
                 }

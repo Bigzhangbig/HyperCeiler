@@ -26,7 +26,7 @@ import android.content.IntentFilter;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class StickyFloatingWindowsForHome extends BaseHook {
 
@@ -36,14 +36,14 @@ public class StickyFloatingWindowsForHome extends BaseHook {
             @SuppressLint("UnspecifiedRegisterReceiverFlag")
             @Override
             protected void after(MethodHookParam param) {
-                Context mContext = (Context) XposedHelpers.callMethod(param.thisObject, "getContext");
+                Context mContext = (Context) ReflectionHelper.callMethod(param.thisObject, "getContext");
                 mContext.registerReceiver(new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
                         try {
                             String pkgName = intent.getStringExtra("package");
                             if (pkgName != null) {
-                                XposedHelpers.callMethod(param.thisObject, "dismissRecentsToLaunchTargetTaskOrHome", pkgName, true);
+                                ReflectionHelper.callMethod(param.thisObject, "dismissRecentsToLaunchTargetTaskOrHome", pkgName, true);
                             }
                         } catch (Throwable t) {
                             logW(TAG, StickyFloatingWindowsForHome.this.lpparam.packageName, t);

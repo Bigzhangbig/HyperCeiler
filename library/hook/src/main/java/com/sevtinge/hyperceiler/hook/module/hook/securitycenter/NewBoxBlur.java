@@ -29,7 +29,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.blur.BlurUtils;
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class NewBoxBlur extends BaseHook {
 
@@ -70,7 +70,7 @@ public class NewBoxBlur extends BaseHook {
         hookAllConstructors(mTurboLayout, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                ViewGroup view = (ViewGroup) XposedHelpers.callMethod(param.thisObject, "getDockLayout");
+                ViewGroup view = (ViewGroup) ReflectionHelper.callMethod(param.thisObject, "getDockLayout");
                 new BlurUtils(view, "security_center_newbox_bg_custom");
             }
         });
@@ -88,7 +88,7 @@ public class NewBoxBlur extends BaseHook {
         findAndHookMethod(mTurboaLayout, "a", boolean.class, boolean.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                ImageView view = (ImageView) XposedHelpers.getObjectField(param.thisObject, "j");
+                ImageView view = (ImageView) ReflectionHelper.getObjectField(param.thisObject, "j");
                 GradientDrawable shapeDrawable = new GradientDrawable();
                 shapeDrawable.setColor(Color.TRANSPARENT);
                 view.setImageDrawable(shapeDrawable);
@@ -106,7 +106,7 @@ public class NewBoxBlur extends BaseHook {
         findAndHookMethod(mVideoBoxCls, "a", Context.class, boolean.class, new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                ViewGroup viewGroup = (ViewGroup) XposedHelpers.getObjectField(param.thisObject, "b");
+                ViewGroup viewGroup = (ViewGroup) ReflectionHelper.getObjectField(param.thisObject, "b");
                 new BlurUtils(viewGroup, "security_center_newbox_bg_custom");
             }
         });

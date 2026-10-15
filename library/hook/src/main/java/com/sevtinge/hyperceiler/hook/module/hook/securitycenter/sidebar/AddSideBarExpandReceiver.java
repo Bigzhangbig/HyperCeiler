@@ -41,7 +41,7 @@ import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
 import java.lang.reflect.Method;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AddSideBarExpandReceiver extends BaseHook {
 
@@ -89,7 +89,7 @@ public class AddSideBarExpandReceiver extends BaseHook {
                         }
                     };
                     ContextCompat.registerReceiver(view.getContext(), showReceiver, new IntentFilter(ACTION_PREFIX + "ShowSideBar"), ContextCompat.RECEIVER_NOT_EXPORTED);
-                    XposedHelpers.setAdditionalInstanceField(param.thisObject, "showReceiver", showReceiver);
+                    ReflectionHelper.setAdditionalInstanceField(param.thisObject, "showReceiver", showReceiver);
 
                     if (!isHooked[1]) {
                         isHooked[1] = true;
@@ -99,10 +99,10 @@ public class AddSideBarExpandReceiver extends BaseHook {
                             public void run() {
                                 myhandler.removeCallbacks(this);
                                 if (!enableSideBar) {
-                                    Object li = XposedHelpers.getObjectField(view, "mListenerInfo");
+                                    Object li = ReflectionHelper.getObjectField(view, "mListenerInfo");
                                     if (li != null) {
                                         try {
-                                            Object mOnTouchListener = XposedHelpers.getObjectField(li, "mOnTouchListener");
+                                            Object mOnTouchListener = ReflectionHelper.getObjectField(li, "mOnTouchListener");
                                             findAndHookMethod(mOnTouchListener.getClass(), "onTouch", View.class, MotionEvent.class, new MethodHook() {
                                                 @Override
                                                 protected void before(MethodHookParam param) throws Throwable {
@@ -120,14 +120,14 @@ public class AddSideBarExpandReceiver extends BaseHook {
                                 if (isNewVersion) {
                                     try {
                                         // 10.0.0 及以上版本的手机/平板管家获取 drawable 的方式
-                                        Class<?> bgDrawable = XposedHelpers.callMethod(view, "getDrawable").getClass();
+                                        Class<?> bgDrawable = ReflectionHelper.callMethod(view, "getDrawable").getClass();
                                         findAndHookMethod(bgDrawable, "draw", Canvas.class, new MethodHook() {
                                             @Override
                                             protected void before(MethodHookParam param) {
                                                 param.setResult(null);
                                             }
                                         });
-                                        XposedHelpers.callMethod(view, "setImageDrawable", (Drawable) null);
+                                        ReflectionHelper.callMethod(view, "setImageDrawable", (Drawable) null);
                                     } catch (Throwable e) {
                                         logE(TAG, lpparam.packageName, "Drawable is failed, " + e);
                                     }
@@ -156,15 +156,15 @@ public class AddSideBarExpandReceiver extends BaseHook {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
                 isHooked[0] = false;
-                BroadcastReceiver showReceiver = (BroadcastReceiver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "showReceiver");
+                BroadcastReceiver showReceiver = (BroadcastReceiver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "showReceiver");
                 if (showReceiver != null) {
                     View view = (View) param.args[0];
                     view.getContext().unregisterReceiver(showReceiver);
-                    XposedHelpers.removeAdditionalInstanceField(param.thisObject, "showReceiver");
+                    ReflectionHelper.removeAdditionalInstanceField(param.thisObject, "showReceiver");
                 }
             }
         });
-        Method[] methods = XposedHelpers.findMethodsByExactParameters(RegionSamplingHelper, void.class, Rect.class);
+        Method[] methods = ReflectionHelper.findMethodsByExactParameters(RegionSamplingHelper, void.class, Rect.class);
         if (methods.length == 0) {
             logE(TAG, this.lpparam.packageName, "Cannot find appropriate start method");
             return;

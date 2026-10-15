@@ -34,7 +34,7 @@ import static com.sevtinge.hyperceiler.hook.utils.api.effect.EffectItem.mEffectA
 import android.content.Context;
 import android.provider.Settings;
 
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.utils.api.effect.callback.IControlForSystem;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class FWAudioEffectControlForSystem extends BaseEffectControl implements 
     public void init() {
         hookMethod("android.media.audiofx.AudioEffectCenter",
                 "getInstance",
-                Context.class, new IHook() {
+                Context.class, new NativeFeatureHook() {
                     @Override
                     public void after() {
                         mCenter = getResult();
@@ -68,7 +68,7 @@ public class FWAudioEffectControlForSystem extends BaseEffectControl implements 
         hookMethod("android.media.audiofx.AudioEffectCenter",
                 "setEffectActive",
                 String.class, boolean.class,
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void before() {
                         if (getEarPhoneStateFinal()) {
@@ -81,7 +81,7 @@ public class FWAudioEffectControlForSystem extends BaseEffectControl implements 
 
         hookMethod("android.media.audiofx.AudioEffectCenter",
                 "release",
-                new IHook() {
+                new NativeFeatureHook() {
                     @Override
                     public void after() {
                         mPresenter = null;

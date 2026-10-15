@@ -33,7 +33,7 @@ import androidx.annotation.NonNull;
 import com.sevtinge.hyperceiler.hook.utils.color.ColorUtilsStatic;
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class BlurUtils {
     private final Context mContext;
@@ -73,12 +73,12 @@ public class BlurUtils {
 
     public static Drawable createBlurDrawable(View view, int blurRadius, int cornerRadius, int color) {
         try {
-            Object mViewRootImpl = XposedHelpers.callMethod(view, "getViewRootImpl");
+            Object mViewRootImpl = ReflectionHelper.callMethod(view, "getViewRootImpl");
             if (mViewRootImpl == null) return null;
-            Drawable blurDrawable = (Drawable) XposedHelpers.callMethod(mViewRootImpl, "createBackgroundBlurDrawable");
-            XposedHelpers.callMethod(blurDrawable, "setBlurRadius", blurRadius);
-            XposedHelpers.callMethod(blurDrawable, "setCornerRadius", cornerRadius);
-            if (color != -1) XposedHelpers.callMethod(blurDrawable, "setColor", color);
+            Drawable blurDrawable = (Drawable) ReflectionHelper.callMethod(mViewRootImpl, "createBackgroundBlurDrawable");
+            ReflectionHelper.callMethod(blurDrawable, "setBlurRadius", blurRadius);
+            ReflectionHelper.callMethod(blurDrawable, "setCornerRadius", cornerRadius);
+            if (color != -1) ReflectionHelper.callMethod(blurDrawable, "setColor", color);
             return blurDrawable;
         } catch (Throwable e) {
             logW("createBlurDrawable", "Create BlurDrawable Error", e);
@@ -133,7 +133,7 @@ public class BlurUtils {
         view.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(@NonNull View v) {
-                mViewRootImpl = XposedHelpers.callMethod(v, "getViewRootImpl");
+                mViewRootImpl = ReflectionHelper.callMethod(v, "getViewRootImpl");
                 mBlurDrawable = createBackgroundDrawable(mViewRootImpl, isBlurEnable, ColorUtilsStatic.colorToHexARGB(mColor), mCornerRadius, mBlurRadius);
                 v.setBackground(mBlurDrawable);
             }
@@ -148,7 +148,7 @@ public class BlurUtils {
     private Drawable createBackgroundDrawable(Object viewRootImpl, boolean isBlurEnable, int color, int cornerRadius, int blurRadius) {
         Drawable mBackgroundDrawable;
         if (isBlurEnable) {
-            mBackgroundDrawable = (Drawable) XposedHelpers.callMethod(viewRootImpl, "createBackgroundBlurDrawable", new Object[0]);
+            mBackgroundDrawable = (Drawable) ReflectionHelper.callMethod(viewRootImpl, "createBackgroundBlurDrawable", new Object[0]);
             setColor(mBackgroundDrawable, color);
             setCornerRadius(mBackgroundDrawable, cornerRadius);
             setBlurRadius(mBackgroundDrawable, blurRadius);
@@ -161,7 +161,7 @@ public class BlurUtils {
     private Drawable createBackgroundDrawable(Object viewRootImpl, boolean isBlurEnable, String color, int cornerRadius, int blurRadius) {
         Drawable mBackgroundDrawable;
         if (isBlurEnable) {
-            mBackgroundDrawable = (Drawable) XposedHelpers.callMethod(viewRootImpl, "createBackgroundBlurDrawable", new Object[0]);
+            mBackgroundDrawable = (Drawable) ReflectionHelper.callMethod(viewRootImpl, "createBackgroundBlurDrawable", new Object[0]);
             setColor(mBackgroundDrawable, color);
             setCornerRadius(mBackgroundDrawable, cornerRadius);
             setBlurRadius(mBackgroundDrawable, blurRadius);
@@ -198,19 +198,19 @@ public class BlurUtils {
         int mColorRed = (color & 0x00ff0000) >> 16;
         int mColorGreen = (color & 0x0000ff00) >> 8;
         int mColorBlue = (color & 0x000000ff);
-        XposedHelpers.callMethod(drawable, "setColor", Color.argb(mColorAlpha, mColorRed, mColorGreen, mColorBlue));
+        ReflectionHelper.callMethod(drawable, "setColor", Color.argb(mColorAlpha, mColorRed, mColorGreen, mColorBlue));
     }
 
     public void setColor(Drawable drawable, String color) {
-        XposedHelpers.callMethod(drawable, "setColor", Color.parseColor(color));
+        ReflectionHelper.callMethod(drawable, "setColor", Color.parseColor(color));
     }
 
     public void setCornerRadius(Drawable drawable, int cornerRadius) {
-        XposedHelpers.callMethod(drawable, "setCornerRadius", cornerRadius);
+        ReflectionHelper.callMethod(drawable, "setCornerRadius", cornerRadius);
     }
 
     public void setBlurRadius(Drawable drawable, int blurRadius) {
-        XposedHelpers.callMethod(drawable, "setBlurRadius", blurRadius);
+        ReflectionHelper.callMethod(drawable, "setBlurRadius", blurRadius);
     }
 
 
@@ -254,8 +254,8 @@ public class BlurUtils {
     }
 
     void onAttachedToWindow() {
-        mViewRootImpl = XposedHelpers.callMethod(mView,"getViewRootImpl",new Object[0]);
-        mBlurDrawable = (Drawable) XposedHelpers.callMethod(mViewRootImpl,"createBackgroundBlurDrawable",new Object[0]);
+        mViewRootImpl = ReflectionHelper.callMethod(mView,"getViewRootImpl",new Object[0]);
+        mBlurDrawable = (Drawable) ReflectionHelper.callMethod(mViewRootImpl,"createBackgroundBlurDrawable",new Object[0]);
         initBlur();
     }
 
@@ -275,17 +275,17 @@ public class BlurUtils {
     }
 
     void setBlurRadius() {
-        XposedHelpers.callMethod(mBlurDrawable,"setBlurRadius",new Object[]{mBlurRadius});
+        ReflectionHelper.callMethod(mBlurDrawable,"setBlurRadius",new Object[]{mBlurRadius});
     }
 
     void setCornerRadius() {
-        XposedHelpers.callMethod(mBlurDrawable,"setCornerRadius",new Object[]{mBgCornerRadius});
+        ReflectionHelper.callMethod(mBlurDrawable,"setCornerRadius",new Object[]{mBgCornerRadius});
     }
 
     private static void setColor() {
         int mColorRed = (mBgColor & 0x00ff0000) >> 16;
         int mColorGreen = (mBgColor & 0x0000ff00) >> 8;
         int mColorBlue = (mBgColor & 0x000000ff);
-        XposedHelpers.callMethod(mBlurDrawable,"setColor", Color.argb(mBgAlpha, mColorRed, mColorGreen, mColorBlue));
+        ReflectionHelper.callMethod(mBlurDrawable,"setColor", Color.argb(mBgAlpha, mColorRed, mColorGreen, mColorBlue));
     }*/
 }

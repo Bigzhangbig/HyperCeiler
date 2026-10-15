@@ -27,13 +27,13 @@ import com.sevtinge.hyperceiler.hook.utils.ResourcesHookData
 import com.sevtinge.hyperceiler.hook.utils.ResourcesHookMap
 import com.sevtinge.hyperceiler.hook.utils.devicesdk.DisplayUtils.dp2px
 import com.sevtinge.hyperceiler.hook.utils.hookBeforeMethod
-import de.robv.android.xposed.XC_MethodHook
+import com.sevtinge.hyperceiler.hook.api.HookCallback
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed.appContext
 
 object RecentResource : BaseHook() {
     private val hookMap = ResourcesHookMap<String, ResourcesHookData>()
-    private fun hook(param: XC_MethodHook.MethodHookParam) {
+    private fun hook(param: HookCallback.MethodHookParam) {
         try {
             val resName = appContext.resources.getResourceEntryName(param.args[0] as Int)
             val resType = appContext.resources.getResourceTypeName(param.args[0] as Int)
@@ -56,7 +56,7 @@ object RecentResource : BaseHook() {
             }
         })
         Application::class.java.hookBeforeMethod("attach", Context::class.java) { it ->
-            EzXposed.initHandleLoadPackage(lpparam)
+            io.github.kyuubiran.ezxhelper.core.EzXReflection.init(lpparam.classLoader)
             EzXposed.initAppContext(it.args[0] as Context)
 
             Resources::class.java.hookBeforeMethod("getBoolean", Int::class.javaPrimitiveType) { hook(it) }

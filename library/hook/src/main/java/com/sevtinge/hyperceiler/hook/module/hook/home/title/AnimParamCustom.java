@@ -18,15 +18,15 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.home.title;
 
-import static de.robv.android.xposed.XposedHelpers.callMethod;
-import static de.robv.android.xposed.XposedHelpers.setObjectField;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.setObjectField;
 import static io.github.kyuubiran.ezxhelper.core.util.ClassUtil.getStaticObjectOrNull;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 import com.sevtinge.hyperceiler.hook.utils.log.AndroidLogUtils;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XC_MethodReplacement;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.HookReplacement;
 
 public class AnimParamCustom extends BaseHook {
     @Override
@@ -37,9 +37,9 @@ public class AnimParamCustom extends BaseHook {
             return;
         }
 
-        findAndHookMethod("com.miui.home.recents.util.RectFSpringAnim", "setAnimParamByType", "com.miui.home.recents.util.RectFSpringAnim$AnimType", new XC_MethodReplacement() {
+        findAndHookMethod("com.miui.home.recents.util.RectFSpringAnim", "setAnimParamByType", "com.miui.home.recents.util.RectFSpringAnim$AnimType", new HookReplacement() {
             @Override
-            protected Object replaceHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+            protected Object replaceHookedMethod(HookCallback.MethodHookParam param) throws Throwable {
                 Object RECT_CENTERX = getStaticObjectOrNull(clazzRectFSpringAnimRectAnimType, "RECT_CENTER_X");
                 Object RECT_CENTERY = getStaticObjectOrNull(clazzRectFSpringAnimRectAnimType, "RECT_CENTER_Y");
                 Object RECT_WIDTH = getStaticObjectOrNull(clazzRectFSpringAnimRectAnimType, "RECT_WIDTH");

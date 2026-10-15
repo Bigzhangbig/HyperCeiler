@@ -41,7 +41,7 @@ object HideBatteryIcon : BaseHook() {
                 .filterByName("onBatteryStyleChanged")
                 .first().createHook {
                     after { param ->
-                        if (param.thisObject != null) {
+                        if (param.thisObjectOrNull != null) {
                             // 隐藏电池图标
                             if (mPrefsMap.getBoolean("system_ui_status_bar_battery_icon")) {
                                 (param.thisObject.getObjectFieldAs<ImageView>("mBatteryIconView")).visibility =
@@ -65,7 +65,7 @@ object HideBatteryIcon : BaseHook() {
                 .filterByName("updateAll")
         }.single().createHook {
             after { param ->
-                if (param.thisObject != null) {
+                if (param.thisObjectOrNull != null) {
                     // 隐藏电池图标
                     if (mPrefsMap.getBoolean("system_ui_status_bar_battery_icon")) {
                         (param.thisObject.getObjectFieldAs<ImageView>("mBatteryIconView")).visibility =
@@ -80,12 +80,12 @@ object HideBatteryIcon : BaseHook() {
                     if (mPrefsMap.getBoolean("system_ui_status_bar_battery_percent") ||
                         mPrefsMap.getBoolean("system_ui_status_bar_battery_percent_mark")
                     ) {
-                        (param.thisObject?.getObjectFieldAs<TextView>("mBatteryPercentMarkView"))?.textSize = 0F
+                        (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryPercentMarkView"))?.textSize = 0F
                     }
                     // 隐藏电池内的百分比
                     if (mPrefsMap.getBoolean("system_ui_status_bar_battery_percent")) {
-                        (param.thisObject?.getObjectFieldAs<TextView>("mBatteryPercentView"))?.textSize = 0F
-                        (param.thisObject?.getObjectFieldAs<TextView>("mBatteryTextDigitView"))?.textSize = 0F
+                        (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryPercentView"))?.textSize = 0F
+                        (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryTextDigitView"))?.textSize = 0F
                     }
                 }
             }
@@ -95,18 +95,18 @@ object HideBatteryIcon : BaseHook() {
             .filterByName("updateChargeAndText")
             .single().createHook {
                 after { param ->
-                    if (param.thisObject != null) {
+                    if (param.thisObjectOrNull != null) {
                         if (isMoreAndroidVersion(35)) {
                             // 隐藏电池百分号
                             if (mPrefsMap.getBoolean("system_ui_status_bar_battery_percent") ||
                                 mPrefsMap.getBoolean("system_ui_status_bar_battery_percent_mark")
                             ) {
-                                (param.thisObject?.getObjectFieldAs<TextView>("mBatteryPercentMarkView"))?.textSize = 0F
+                                (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryPercentMarkView"))?.textSize = 0F
                             }
                             // 隐藏电池内的百分比
                             if (mPrefsMap.getBoolean("system_ui_status_bar_battery_percent")) {
-                                (param.thisObject?.getObjectFieldAs<TextView>("mBatteryPercentView"))?.textSize = 0F
-                                (param.thisObject?.getObjectFieldAs<TextView>("mBatteryTextDigitView"))?.textSize = 0F
+                                (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryPercentView"))?.textSize = 0F
+                                (param.thisObjectOrNull?.getObjectFieldAs<TextView>("mBatteryTextDigitView"))?.textSize = 0F
                             }
                         }
 

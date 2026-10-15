@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class AllRotations extends BaseHook {
     @Override
@@ -28,7 +28,7 @@ public class AllRotations extends BaseHook {
         hookAllConstructors("com.android.server.wm.DisplayRotation", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                XposedHelpers.setIntField(param.thisObject, "mAllowAllRotations", mPrefsMap.getBoolean("system_framework_screen_all_rotations") ? 1 : 0);
+                ReflectionHelper.setIntField(param.thisObject, "mAllowAllRotations", mPrefsMap.getBoolean("system_framework_screen_all_rotations") ? 1 : 0);
             }
         });
     }

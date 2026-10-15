@@ -20,7 +20,7 @@ package com.sevtinge.hyperceiler.hook.module.hook.personalassistant;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class PadWidgetEnable extends BaseHook {
 
@@ -37,8 +37,8 @@ public class PadWidgetEnable extends BaseHook {
         hookAllMethods(m2, "c", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                XposedHelpers.callMethod(XposedHelpers.findClassIfExists("miui.os.Build", lpparam.classLoader), "isTablet", true);
-                XposedHelpers.setStaticBooleanField(XposedHelpers.findClassIfExists("miui.os.Build", lpparam.classLoader), "IS_TABLET", true);
+                ReflectionHelper.callMethod(ReflectionHelper.findClassIfExists("miui.os.Build", lpparam.classLoader), "isTablet", true);
+                ReflectionHelper.setStaticBooleanField(ReflectionHelper.findClassIfExists("miui.os.Build", lpparam.classLoader), "IS_TABLET", true);
             }
         });
 
@@ -48,7 +48,7 @@ public class PadWidgetEnable extends BaseHook {
                 findAndHookMethod(m2,"c", new MethodHook() {
                     @Override
                     protected void before(MethodHookParam param) throws Throwable {
-                        XposedHelpers.setStaticBooleanField(XposedHelpers.findClassIfExists("miui.os.Build",lpparam.classLoader),"IS_TABLET", true);
+                        ReflectionHelper.setStaticBooleanField(ReflectionHelper.findClassIfExists("miui.os.Build",lpparam.classLoader),"IS_TABLET", true);
                     }
                 });
             }

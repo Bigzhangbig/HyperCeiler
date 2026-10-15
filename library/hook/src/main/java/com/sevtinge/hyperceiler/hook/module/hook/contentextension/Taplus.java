@@ -30,7 +30,7 @@ import androidx.annotation.Nullable;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class Taplus extends BaseHook {
     public boolean mListening = false;
@@ -41,19 +41,19 @@ public class Taplus extends BaseHook {
             "onCreate", Bundle.class, new MethodHook() {
                 @Override
                 protected void after(MethodHookParam param) {
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     ContentObserver contentObserver = new ContentObserver(new Handler(mContext.getMainLooper())) {
                         @Override
                         public void onChange(boolean selfChange) {
                             boolean z;
                             z = getTaplus(mContext);
-                            XposedHelpers.callMethod(param.thisObject, "enablePrefConfig", z);
+                            ReflectionHelper.callMethod(param.thisObject, "enablePrefConfig", z);
                         }
                     };
                     mContext.getContentResolver().registerContentObserver(
                         Settings.System.getUriFor("key_enable_taplus"),
                         false, contentObserver);
-                    XposedHelpers.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
+                    ReflectionHelper.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
                 }
             }
         );
@@ -62,8 +62,8 @@ public class Taplus extends BaseHook {
             "onDestroy", new MethodHook() {
                 @Override
                 protected void before(MethodHookParam param) {
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                    ContentObserver contentObserver = (ContentObserver) XposedHelpers.getAdditionalInstanceField(param.thisObject, "taplusListener");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                    ContentObserver contentObserver = (ContentObserver) ReflectionHelper.getAdditionalInstanceField(param.thisObject, "taplusListener");
                     mContext.getContentResolver().unregisterContentObserver(contentObserver);
                 }
             }
@@ -136,10 +136,10 @@ public class Taplus extends BaseHook {
             public void onChange(boolean selfChange, @Nullable Uri uri) {
                 boolean z;
                 z = getTaplus(context);
-                XposedHelpers.callStaticMethod(
+                ReflectionHelper.callStaticMethod(
                     findClassIfExists("com.miui.contentextension.utils.TaplusSettingUtils"),
                     "setTaplusEnableStatus", context, z);
-                /*XposedHelpers.callStaticMethod(
+                /*ReflectionHelper.callStaticMethod(
                     findClassIfExists(
                         "com.miui.contentextension.utils.ContentCatcherUtil"),
                     "switchCatcherConfig", context, z);*/
@@ -148,7 +148,7 @@ public class Taplus extends BaseHook {
         context.getContentResolver().registerContentObserver(
             Settings.System.getUriFor("key_enable_taplus"),
             false, contentObserver);
-        // XposedHelpers.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
+        // ReflectionHelper.setAdditionalInstanceField(param.thisObject, "taplusListener", contentObserver);
     }
 
     public boolean getTaplus(Context context) {

@@ -41,7 +41,7 @@ import com.sevtinge.hyperceiler.hook.R;
 import com.sevtinge.hyperceiler.hook.utils.ContextUtils;
 import com.sevtinge.hyperceiler.hook.utils.blur.MiBlurUtils;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class OtherTool {
     // 尝试全部
@@ -78,21 +78,21 @@ public class OtherTool {
     }
 
     private static Context currentApplication() {
-        return (Application) XposedHelpers.callStaticMethod(XposedHelpers.findClass(
+        return (Application) ReflectionHelper.callStaticMethod(ReflectionHelper.findClass(
                         "android.app.ActivityThread", null),
                 "currentApplication");
     }
 
     private static Context getSystemContext() {
         Context context = null;
-        Object currentActivityThread = XposedHelpers.callStaticMethod(XposedHelpers.findClass("android.app.ActivityThread",
+        Object currentActivityThread = ReflectionHelper.callStaticMethod(ReflectionHelper.findClass("android.app.ActivityThread",
                         null),
                 "currentActivityThread");
         if (currentActivityThread != null)
-            context = (Context) XposedHelpers.callMethod(currentActivityThread,
+            context = (Context) ReflectionHelper.callMethod(currentActivityThread,
                     "getSystemContext");
         if (context == null)
-            context = (Context) XposedHelpers.callMethod(currentActivityThread,
+            context = (Context) ReflectionHelper.callMethod(currentActivityThread,
                     "getSystemUiContext");
         return context;
     }

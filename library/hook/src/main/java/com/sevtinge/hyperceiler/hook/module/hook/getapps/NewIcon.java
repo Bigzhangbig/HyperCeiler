@@ -35,7 +35,7 @@ public class NewIcon extends BaseHook {
                 isDesktopSupportOperationIcon = descriptor.getMethodInstance(lpparam.classLoader);
                 logI("isDesktopSupportOperationIcon method is " + isDesktopSupportOperationIcon);
                 if (isDesktopSupportOperationIcon.getReturnType() == boolean.class) {
-                    XposedBridge.hookMethod(isDesktopSupportOperationIcon, XC_MethodReplacement.returnConstant(false));
+                    HookBridge.hookMethod(isDesktopSupportOperationIcon, HookReplacement.returnConstant(false));
                 }
             }
         } catch (Throwable e) {

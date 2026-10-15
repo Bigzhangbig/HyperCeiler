@@ -18,11 +18,11 @@
  */
 package com.sevtinge.hyperceiler.hook.module.hook.misound;
 
-import static com.hchen.hooktool.core.CoreTool.callMethod;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.callMethod;
 import static com.hchen.hooktool.core.CoreTool.findClass;
 import static com.hchen.hooktool.core.CoreTool.getField;
 import static com.hchen.hooktool.core.CoreTool.hook;
-import static com.hchen.hooktool.core.CoreTool.newInstance;
+import static com.sevtinge.hyperceiler.hook.api.ReflectionHelper.newInstance;
 import static com.hchen.hooktool.log.XposedLog.logE;
 import static com.hchen.hooktool.log.XposedLog.logI;
 import static com.sevtinge.hyperceiler.hook.module.hook.misound.NewAutoSEffSwitch.getEarPhoneStateFinal;
@@ -32,7 +32,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.os.RemoteException;
 
-import com.hchen.hooktool.hook.IHook;
+import com.sevtinge.hyperceiler.hook.module.hook.NativeFeatureHook;
 import com.sevtinge.hyperceiler.hook.IEffectInfo;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.DexKit;
 import com.sevtinge.hyperceiler.hook.module.base.dexkit.IDexKit;
@@ -74,7 +74,7 @@ public class NewAudioEffectControl {
                         return methodData;
                     }
             });
-            hook(dolbySwitch, new IHook() {
+            hook(dolbySwitch, new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getEarPhoneStateFinal()) {
@@ -96,7 +96,7 @@ public class NewAudioEffectControl {
                     return methodData;
                 }
             });
-            hook(miSoundSwitch, new IHook() {
+            hook(miSoundSwitch, new NativeFeatureHook() {
                 @Override
                 public void before() {
                     if (getEarPhoneStateFinal()) {
@@ -138,7 +138,7 @@ public class NewAudioEffectControl {
 
             Class<?> preferenceCategoryClass = findClass("miuix.preference.PreferenceCategory");
             Class<?> preferenceClass = findClass("androidx.preference.Preference");
-            hook(create, new IHook() {
+            hook(create, new NativeFeatureHook() {
                 @Override
                 public void after() {
                     Context context = (Context) callThisMethod("requireContext");
@@ -157,14 +157,14 @@ public class NewAudioEffectControl {
 
                     logI(TAG, "create pref category: " + preferenceCategory);
 
-                    mEffectSelectionPrefs = getField(thisObject(), effectSelectionField);
+                    mEffectSelectionPrefs = getField(effectSelectionField, thisObject());
                     updateEffectSelectionState();
                 }
             });
-            hook(onResume, new IHook() {
+            hook(onResume, new NativeFeatureHook() {
                 @Override
                 public void after() {
-                    mEffectSelectionPrefs = getField(thisObject(), effectSelectionField);
+                    mEffectSelectionPrefs = getField(effectSelectionField, thisObject());
                     updateEffectSelectionState();
                     updateAutoSEffSwitchInfo();
                 }
@@ -182,7 +182,7 @@ public class NewAudioEffectControl {
                     return methodData;
                 }
             });
-            hook(broadcastReceiver, new IHook() {
+            hook(broadcastReceiver, new NativeFeatureHook() {
                 @Override
                 public void before() {
                     updateEffectSelectionState();

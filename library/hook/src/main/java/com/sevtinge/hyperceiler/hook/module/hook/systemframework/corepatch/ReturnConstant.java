@@ -20,9 +20,9 @@ package com.sevtinge.hyperceiler.hook.module.hook.systemframework.corepatch;
 
 import android.content.SharedPreferences;
 
-import de.robv.android.xposed.XC_MethodHook;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
 
-public class ReturnConstant extends XC_MethodHook {
+public class ReturnConstant extends HookCallback {
     private final SharedPreferences prefs;
     private final String prefsKey;
     private final Object value;

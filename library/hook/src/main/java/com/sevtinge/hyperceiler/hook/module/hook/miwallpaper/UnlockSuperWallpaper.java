@@ -22,7 +22,7 @@ import android.content.Context;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockSuperWallpaper extends BaseHook {
     @Override
@@ -33,6 +33,6 @@ public class UnlockSuperWallpaper extends BaseHook {
                 param.setResult(true);
             }
         });
-        XposedHelpers.setStaticBooleanField(findClassIfExists("com.miui.superwallpaper.SuperWallpaperUtils"), "sEnableSuperWallpaper", true);
+        ReflectionHelper.setStaticBooleanField(findClassIfExists("com.miui.superwallpaper.SuperWallpaperUtils"), "sEnableSuperWallpaper", true);
     }
 }

@@ -45,9 +45,9 @@ import com.sevtinge.hyperceiler.hook.utils.shell.ShellInit;
 import java.io.File;
 import java.util.ArrayList;
 
-import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XposedHelpers;
-import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import com.sevtinge.hyperceiler.hook.api.HookCallback;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
+import com.sevtinge.hyperceiler.hook.api.PackageContext;
 
 public class AppsTool {
 
@@ -130,7 +130,7 @@ public class AppsTool {
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
                 intent.setData(Uri.parse("package:" + pkg));
                 if (user != 0)
-                    XposedHelpers.callMethod(context, "startActivityAsUser", intent, XposedHelpers.newInstance(UserHandle.class, user));
+                    ReflectionHelper.callMethod(context, "startActivityAsUser", intent, ReflectionHelper.newInstance(UserHandle.class, user));
                 else
                     context.startActivity(intent);
             } catch (Throwable t2) {
@@ -139,13 +139,13 @@ public class AppsTool {
         }
     }
 
-    public static String getPackageVersionName(XC_LoadPackage.LoadPackageParam lpparam) {
+    public static String getPackageVersionName(PackageContext.LoadPackageParam lpparam) {
         try {
-            Class<?> parserCls = XposedHelpers.findClass("android.content.pm.PackageParser", lpparam.classLoader);
+            Class<?> parserCls = ReflectionHelper.findClass("android.content.pm.PackageParser", lpparam.classLoader);
             Object parser = parserCls.getDeclaredConstructor().newInstance();
             File apkPath = new File(lpparam.appInfo.sourceDir);
             if (apkPath.toString().contains("com.miui.securecenter")) {
-                findAndHookMethod(parserCls, "setMaxAspectRatio", float.class, new XC_MethodHook() {
+                findAndHookMethod(parserCls, "setMaxAspectRatio", float.class, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         Object arg0 = param.args[0];
@@ -153,21 +153,21 @@ public class AppsTool {
                     }
                 });
             }
-            Object pkg = XposedHelpers.callMethod(parser, "parsePackage", apkPath, 0);
-            return (String) XposedHelpers.getObjectField(pkg, "mVersionName");
+            Object pkg = ReflectionHelper.callMethod(parser, "parsePackage", apkPath, 0);
+            return (String) ReflectionHelper.getObjectField(pkg, "mVersionName");
         } catch (Throwable e) {
             logE("getPackageVersionName", e);
             return "null";
         }
     }
 
-    public static int getPackageVersionCode(XC_LoadPackage.LoadPackageParam lpparam) {
+    public static int getPackageVersionCode(PackageContext.LoadPackageParam lpparam) {
         try {
-            Class<?> parserCls = XposedHelpers.findClass("android.content.pm.PackageParser", lpparam.classLoader);
+            Class<?> parserCls = ReflectionHelper.findClass("android.content.pm.PackageParser", lpparam.classLoader);
             Object parser = parserCls.getDeclaredConstructor().newInstance();
             File apkPath = new File(lpparam.appInfo.sourceDir);
             if (apkPath.toString().contains("com.miui.securecenter")) {
-                XposedHelpers.findAndHookMethod(parserCls, "setMaxAspectRatio", float.class, new XC_MethodHook() {
+                ReflectionHelper.findAndHookMethod(parserCls, "setMaxAspectRatio", float.class, new HookCallback() {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         Object arg0 = param.args[0];
@@ -175,8 +175,8 @@ public class AppsTool {
                     }
                 });
             }
-            Object pkg = XposedHelpers.callMethod(parser, "parsePackage", apkPath, 0);
-            return XposedHelpers.getIntField(pkg, "mVersionCode");
+            Object pkg = ReflectionHelper.callMethod(parser, "parsePackage", apkPath, 0);
+            return ReflectionHelper.getIntField(pkg, "mVersionCode");
         } catch (Throwable e) {
             logE("getPackageVersionCode", e);
             return -1;

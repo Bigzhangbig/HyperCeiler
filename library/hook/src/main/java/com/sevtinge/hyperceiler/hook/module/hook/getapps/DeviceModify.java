@@ -22,7 +22,7 @@ import android.os.Build;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DeviceModify extends BaseHook {
 
@@ -148,9 +148,9 @@ public class DeviceModify extends BaseHook {
         findAndHookConstructor("com.xiaomi.market.MarketApp", new MethodHook() {
             @Override
             protected void before(MethodHookParam param) {
-                XposedHelpers.setStaticObjectField(Build.class, "DEVICE", mDevice);
-                XposedHelpers.setStaticObjectField(Build.class, "MODEL", mModel);
-                XposedHelpers.setStaticObjectField(Build.class, "MANUFACTURER", mManufacturer);
+                ReflectionHelper.setStaticObjectField(Build.class, "DEVICE", mDevice);
+                ReflectionHelper.setStaticObjectField(Build.class, "MODEL", mModel);
+                ReflectionHelper.setStaticObjectField(Build.class, "MANUFACTURER", mManufacturer);
             }
         });
     }

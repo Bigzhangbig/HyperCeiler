@@ -43,7 +43,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class DisableRootedCheck extends BaseHook {
     @Override
@@ -129,12 +129,12 @@ public class DisableRootedCheck extends BaseHook {
             protected void before(MethodHookParam param) throws Throwable {
                 Object obj = param.args[0];
                 if (clientApiRequest.isInstance(obj)) {
-                    XposedHelpers.callMethod(obj, environmentPut.getName());
+                    ReflectionHelper.callMethod(obj, environmentPut.getName());
                     Object thisObj = param.thisObject;
-                    Object cField = XposedHelpers.getObjectField(thisObj, riskApp.getName());
+                    Object cField = ReflectionHelper.getObjectField(thisObj, riskApp.getName());
                     for (Method method : setEnvironment) {
                         if (method != unsetEnvironment) {
-                            XposedHelpers.callMethod(cField, method.getName(), obj);
+                            ReflectionHelper.callMethod(cField, method.getName(), obj);
                         }
                     }
                 }

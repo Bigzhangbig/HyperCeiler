@@ -22,7 +22,7 @@ import android.os.Bundle;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
 
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class UnlockBrokenScreenBackup extends BaseHook {
     @Override
@@ -30,7 +30,7 @@ public class UnlockBrokenScreenBackup extends BaseHook {
         findAndHookMethod("com.miui.backup.settings.MoreSettingsFragment", "onCreatePreferences", Bundle.class, String.class, new MethodHook(){
             @Override
             protected void before(MethodHookParam param) throws Throwable {
-                XposedHelpers.setStaticBooleanField(findClassIfExists("com.miui.backup.settings.MoreSettingsFragment"), "IS_INTERNATIONAL", false);
+                ReflectionHelper.setStaticBooleanField(findClassIfExists("com.miui.backup.settings.MoreSettingsFragment"), "IS_INTERNATIONAL", false);
             }
         });
     }

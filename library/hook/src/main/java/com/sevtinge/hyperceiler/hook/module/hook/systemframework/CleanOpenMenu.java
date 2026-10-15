@@ -40,8 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
+import com.sevtinge.hyperceiler.hook.api.HookBridge;
+import com.sevtinge.hyperceiler.hook.api.ReflectionHelper;
 
 public class CleanOpenMenu extends BaseHook {
 
@@ -55,8 +55,8 @@ public class CleanOpenMenu extends BaseHook {
         findAndHookMethod(mPackageManagerService, "systemReady", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                Handler mHandler = (Handler) XposedHelpers.getObjectField(param.thisObject, "mHandler");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                Handler mHandler = (Handler) ReflectionHelper.getObjectField(param.thisObject, "mHandler");
                 new PrefsChangeObserver(mContext, mHandler, PrefType.Any, null, null) {
                     @Override
                     public void onChange(PrefType type, Uri uri, String name, Object def) {
@@ -88,7 +88,7 @@ public class CleanOpenMenu extends BaseHook {
                     Intent origIntent = (Intent) param.args[0];
                     Intent intent = (Intent) origIntent.clone();
                     String action = intent.getAction();
-                    // XposedBridge.log(action + ": " + intent.getType() + " | " + intent.getDataString());
+                    // HookBridge.log(action + ": " + intent.getType() + " | " + intent.getDataString());
                     if (!Intent.ACTION_VIEW.equals(action)) return;
                     if (intent.hasExtra("HyperCeiler") && intent.getBooleanExtra("HyperCeiler", false))
                         return;
@@ -96,9 +96,9 @@ public class CleanOpenMenu extends BaseHook {
                     boolean validSchemes = "http".equals(scheme) || "https".equals(scheme) || "vnd.youtube".equals(scheme);
                     if (intent.getType() == null && !validSchemes) return;
 
-                    Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
+                    Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
                     String mimeType = getContentType(mContext, intent);
-                    // XposedBridge.log("mimeType: " + mimeType);
+                    // HookBridge.log("mimeType: " + mimeType);
 
                     String key = "system_framework_clean_open_apps";
                     Set<String> selectedApps = mPrefsMap.getStringSet(key);
@@ -111,7 +111,7 @@ public class CleanOpenMenu extends BaseHook {
                         Pair<Boolean, Boolean> isRemove = isRemoveApp(false, mContext, resolveInfo.activityInfo.packageName, selectedApps, mimeType);
                         boolean hasDual = false;
                         try {
-                            hasDual = XposedHelpers.callMethod(pm, "getPackageInfoAsUser", resolveInfo.activityInfo.packageName, 0, 999) != null;
+                            hasDual = ReflectionHelper.callMethod(pm, "getPackageInfoAsUser", resolveInfo.activityInfo.packageName, 0, 999) != null;
                         } catch (Throwable ignore) {
                         }
                         if ((isRemove.first && !hasDual) || isRemove.first && hasDual && isRemove.second)
@@ -120,7 +120,7 @@ public class CleanOpenMenu extends BaseHook {
 
                     param.setResult(resolved);
                 } catch (Throwable t) {
-                    if (!(t instanceof BadParcelableException)) XposedBridge.log(t);
+                    if (!(t instanceof BadParcelableException)) HookBridge.log(t);
                 }
             }
         };
@@ -130,20 +130,20 @@ public class CleanOpenMenu extends BaseHook {
         hookAllMethods("miui.securityspace.XSpaceResolverActivityHelper.ResolverActivityRunner", null, "run", new MethodHook() {
             @Override
             protected void after(MethodHookParam param) throws Throwable {
-                Intent mOriginalIntent = (Intent) XposedHelpers.getObjectField(param.thisObject, "mOriginalIntent");
+                Intent mOriginalIntent = (Intent) ReflectionHelper.getObjectField(param.thisObject, "mOriginalIntent");
                 if (mOriginalIntent == null) return;
                 String action = mOriginalIntent.getAction();
                 if (!Intent.ACTION_VIEW.equals(action)) return;
                 // if (mOriginalIntent.getDataString() != null && mOriginalIntent.getDataString().contains(":")) return;
 
-                Context mContext = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
-                String mAimPackageName = (String) XposedHelpers.getObjectField(param.thisObject, "mAimPackageName");
+                Context mContext = (Context) ReflectionHelper.getObjectField(param.thisObject, "mContext");
+                String mAimPackageName = (String) ReflectionHelper.getObjectField(param.thisObject, "mAimPackageName");
                 if (mContext == null || mAimPackageName == null) return;
                 Set<String> selectedApps = PrefsUtils.getSharedStringSetPrefs(mContext, "system_framework_clean_open_apps");
                 String mimeType = getContentType(mContext, mOriginalIntent);
                 Pair<Boolean, Boolean> isRemove = isRemoveApp(true, mContext, mAimPackageName, selectedApps, mimeType);
 
-                View mRootView = (View) XposedHelpers.getObjectField(param.thisObject, "mRootView");
+                View mRootView = (View) ReflectionHelper.getObjectField(param.thisObject, "mRootView");
                 int appResId1 = mContext.getResources().getIdentifier("app1", "id", "android.miui");
                 int appResId2 = mContext.getResources().getIdentifier("app2", "id", "android.miui");
                 View originalApp = mRootView.findViewById(appResId1);

@@ -87,6 +87,7 @@ object AutoDismissExpandedPopupsHook : BaseHook() {
             .filterByName("onExpandClicked")
             .toList().createHooks {
                 after {
+                    val notificationEntry = it.args[0] ?: return@after
                     val expanded = it.args[1] as Boolean
                     val mKeyguardStateController = it.thisObject.getObjectField("mKeyguardStateController") ?: return@after
                     val mShowing =
@@ -97,11 +98,11 @@ object AutoDismissExpandedPopupsHook : BaseHook() {
                             it.thisObject.getObjectField("mHeadsUpManager") ?: return@after
                         val headsUpEntry = headsUpManagerPhone.callMethod(
                             "getHeadsUpEntry",
-                            it.args[0].getObjectField("mKey")
+                            notificationEntry.getObjectField("mKey")
                         )
 
                         if (headsUpEntry != null) {
-                            val isRowPinned = it.args[0].callMethod("isRowPinned") as Boolean
+                            val isRowPinned = notificationEntry.callMethod("isRowPinned") as Boolean
                             if (isRowPinned) {
                                 val mRemoveAlertRunnable = (
                                     headsUpEntry.getObjectFieldOrNull("mRemoveRunnable") ?:

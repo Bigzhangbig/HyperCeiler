@@ -172,19 +172,20 @@ object MobileTypeSingle2Hook : BaseHook() {
         }
 
         miuiCellularIconVM.constructorFinder().first().createAfterHook { param ->
+            val wifiViewModel = param.args[2] ?: return@createAfterHook
             val viewModel = param.thisObject
             viewModel.setAdditionalInstanceField("interactor", param.args[1])
-            viewModel.setObjectField("wifiAvailable", param.args[2].getObjectField("wifiAvailable"))
+            viewModel.setObjectField("wifiAvailable", wifiViewModel.getObjectField("wifiAvailable"))
         }
 
         modernStatusBarMobileView.methodFinder()
             .filterByName("constructAndBind")
             .filterByParamCount(5)
             .single().createAfterHook { param ->
-                var viewModel = param.args.last()
-                if (viewModel.javaClass.simpleName == "MiuiMobileIconVMImpl") {
-                    viewModel = viewModel.callMethodAs("getCellProvider")
-                }
+                val originalViewModel = param.args.last() ?: return@createAfterHook
+                val viewModel = if (originalViewModel.javaClass.simpleName == "MiuiMobileIconVMImpl") {
+                    originalViewModel.callMethodAs<Any?>("getCellProvider") ?: return@createAfterHook
+                } else originalViewModel
                 val interactor = viewModel.getAdditionalInstanceFieldAs<Any>("interactor")
 
                 val rootView = param.result as ViewGroup

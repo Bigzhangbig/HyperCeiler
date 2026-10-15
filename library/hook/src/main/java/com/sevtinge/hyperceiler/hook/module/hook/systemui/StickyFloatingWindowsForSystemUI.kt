@@ -100,7 +100,7 @@ class StickyFloatingWindowsForSystemUI : BaseHook() {
         loadClass("com.android.wm.shell.miuifreeform.MiuiInfinityModeTaskOperations")
             .methodFinder().filterByName("resizedTask").single().createHook {
                 after {
-                    val taskWrapperInfo = it.args[0]
+                    val taskWrapperInfo = it.args[0] ?: return@after
                     val scale = taskWrapperInfo.callMethod("getDestinationNormalScale") as Float
                     val rect = taskWrapperInfo.callMethod("getDestinationBounds") as Rect
                     val taskInfo = taskWrapperInfo.callMethod("getTaskInfo") as TaskInfo
@@ -115,7 +115,8 @@ class StickyFloatingWindowsForSystemUI : BaseHook() {
         loadClass("com.android.wm.shell.miuifreeform.MiuiInfinityModeTaskOperations")
             .methodFinder().filterByName("setFreeformDestBoundsAndScale").single().createHook {
                 after {
-                    val pkgName = it.args[0].getObjectField("mPackageName").toString()
+                    val taskInfo = it.args[0] ?: return@after
+                    val pkgName = taskInfo.getObjectField("mPackageName").toString()
                     val rect = it.args[1] as Rect
                     val scale = it.args[2] as Float
                     val context = it.thisObject.getObjectField("mContext") as Context

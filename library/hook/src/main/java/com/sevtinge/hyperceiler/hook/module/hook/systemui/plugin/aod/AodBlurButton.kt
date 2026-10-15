@@ -49,8 +49,9 @@ object AodBlurButton {
 
         aodPlugin.methodFinder().filterByName("updateShortcutView").first()
             .createAfterHook {
+                val shortcutEntity = it.args[0] ?: return@createAfterHook
                 val controller = it.thisObject
-                val getShortcutEntity = ShortcutEntity(it.args[0])
+                val getShortcutEntity = ShortcutEntity(shortcutEntity)
                 val shortcutViewLeft = controller.getObjectFieldAs<ImageView>("shortcutViewLeft")
                 val shortcutViewRight = controller.getObjectFieldAs<ImageView>("shortcutViewRight")
 

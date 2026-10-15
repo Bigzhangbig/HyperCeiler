@@ -81,7 +81,7 @@ object WifiStandard : BaseHook() {
 
             makeWifiStandardZero?.createBeforeHook {
                 val wifiStandard = it.args[0]
-                val continuation = it.args[1]
+                val continuation = it.args[1] ?: return@createBeforeHook
                 if (wifiStandard != 0 && continuation.getObjectField("label") != 0) {
                     val flow = it.thisObject.getObjectFieldAs<Any>("\$this_unsafeFlow")
                     val obj = flow.callMethod("emit", wifiStandard, continuation)

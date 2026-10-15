@@ -330,7 +330,7 @@ class DualRowSignalHookV : BaseHook() {
             before { param ->
                 val icon = param.args[0] as ImageView
                 if (icon.id == getResourceIdByName("mobile_signal", "id", EzXposed.appContext)) {
-                    val pair = param.args[2]
+                    val pair = param.args[2] ?: return@before
 
                     setIconImageWithTintLightColor(
                         icon, Triple(
@@ -370,7 +370,7 @@ class DualRowSignalHookV : BaseHook() {
                 .single()
                 .createHook {
                     after { param ->
-                        val viewBinding = param.result
+                        val viewBinding = param.result ?: return@after
 
                         val tintLightColorFlow = try {
                             viewBinding.getObjectField("\$tintLightColorFlow")

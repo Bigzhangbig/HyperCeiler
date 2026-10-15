@@ -70,9 +70,11 @@ object FocusNotifLyric : MusicBaseHook() {
         if (!isShowNotific) {
             loadClass("com.android.systemui.statusbar.notification.row.NotifBindPipeline").methodFinder()
                 .filterByName("requestPipelineRun").first().createBeforeHook {
+                    val bindEntry = it.args[0] ?: return@createBeforeHook
                     val statusBarNotification =
-                        it.args[0].getObjectFieldOrNullAs<StatusBarNotification>("mSbn")
-                    if (statusBarNotification!!.notification.channelId == CHANNEL_ID) {
+                        bindEntry.getObjectFieldOrNullAs<StatusBarNotification>("mSbn")
+                            ?: return@createBeforeHook
+                    if (statusBarNotification.notification.channelId == CHANNEL_ID) {
                         it.result = null
                     }
                 }

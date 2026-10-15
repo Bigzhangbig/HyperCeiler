@@ -77,8 +77,9 @@ object MediaPicture : BaseHook() {
         param: HookParam,
         context: Context
     ) {
+        val mediaData = param.args[0] ?: return
         val albumView = mMediaViewHolder.getObjectFieldOrNullAs<ImageView>("albumView")
-        val artwork = param.args[0].getObjectFieldOrNullAs<Icon>("artwork") ?: return
+        val artwork = mediaData.getObjectFieldOrNullAs<Icon>("artwork") ?: return
         val artworkLayer = artwork.loadDrawable(context) ?: return
 
         val artworkBitmap = createBitmap(artworkLayer.intrinsicWidth, artworkLayer.intrinsicHeight)

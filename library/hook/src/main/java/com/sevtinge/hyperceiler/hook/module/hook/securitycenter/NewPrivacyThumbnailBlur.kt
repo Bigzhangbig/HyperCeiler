@@ -29,7 +29,7 @@ object NewPrivacyThumbnailBlur : BaseHook() {
                 if (Thread.currentThread().stackTrace.none {
                     it.className == "PrivacyThumbnailBlurSettings"
                 }) {
-                    param.setResult(null)
+                    param.result = null
                 }
             }
         }

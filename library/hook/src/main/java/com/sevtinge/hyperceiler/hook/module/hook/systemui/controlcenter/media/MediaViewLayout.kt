@@ -287,7 +287,7 @@ object MediaViewLayout : BaseHook() {
                 mediaControlPanel!!
             }.methodFinder().filterByName("bindButtonCommon")
                 .first().createBeforeHook {
-                    val mediaAction = it.args[1]
+                    val mediaAction = it.args[1] ?: return@createBeforeHook
                     val button = it.args[0] as ImageButton
                     val desc = mediaAction.getObjectFieldOrNullAs<String>("contentDescription")
                         ?: return@createBeforeHook

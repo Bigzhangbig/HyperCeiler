@@ -34,12 +34,14 @@ object AllowMoveAllWidgetToMinus : BaseHook() {
                 .filterByParamCount(2)
                 .single().createHook {
                     before {
-                        val dragInfo = it.args[1].callMethod("getDragInfo")
+                        val launcher = it.args[0] ?: return@before
+                        val dragObject = it.args[1] ?: return@before
+                        val dragInfo = dragObject.callMethod("getDragInfo")
                         val i = dragInfo?.getObjectField("spanX")
-                        val launcherCallbacks = it.args[0].callMethod("getLauncherCallbacks")
-                        val dragController = it.args[0].callMethod("getDragController")
+                        val launcherCallbacks = launcher.callMethod("getLauncherCallbacks")
+                        val dragController = launcher.callMethod("getDragController") ?: return@before
                         val isDraggingFromAssistant =
-                            dragController?.callMethod("isDraggingFromAssistant") as Boolean
+                            dragController.callMethod("isDraggingFromAssistant") as Boolean
                         val isDraggingToAssistant =
                             dragController.callMethod("isDraggingToAssistant") as Boolean
                         it.result =

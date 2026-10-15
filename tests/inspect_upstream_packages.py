@@ -4,6 +4,7 @@ from io import BytesIO
 import os
 from pathlib import Path
 import subprocess
+import tomllib
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
@@ -51,3 +52,7 @@ result = subprocess.run(["javap", "-classpath", str(out / "expansion.jar"), "-p"
                         text=True, capture_output=True, check=True)
 print("Published expansion shell validator bytecode:")
 print(result.stdout)
+with open("gradle/libs.versions.toml", "rb") as catalog:
+    paranoid_version = tomllib.load(catalog)["versions"]["lsparanoid"]
+with urlopen(f"https://repo.maven.apache.org/maven2/org/lsposed/lsparanoid/core/{paranoid_version}/core-{paranoid_version}.jar", timeout=30) as response:
+    (out / "lsparanoid-core.jar").write_bytes(response.read())

@@ -46,7 +46,7 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 完整应用仍依赖 GitHub Packages 上的 `fan.miuix:*:1.0.10.1` 和 `hyperceiler-expansion:1.0.0`。按项目现有方式提供 `GIT_ACTOR`、`GIT_TOKEN` 环境变量；凭据需要有读取对应包的权限。不要提交令牌或签名文件。
 
-原分支同时声明了并未发布的 `fan.miuix:haptic:1.0.10.1`。已核对发布仓库：独立 haptic 从 1.0.10.5.2 才提供，而当前固定的 core 1.0.10.1 已包含 HapticCompat 等相关类，因此移除重复的独立包声明，保留原有触感支持和其余 MIUIX 版本。CI 会检查 core 中这些类仍然存在。
+原分支同时声明了当前仓库未提供的 `fan.miuix:haptic:1.0.10.1`。已核对发布仓库：现存独立 haptic 版本从 1.0.10.5.2 开始，而当前固定的 core 1.0.10.1 已包含 HapticCompat 等相关类，因此移除重复的独立包声明，保留原有触感支持和其余 MIUIX 版本。CI 会检查 core 中这些类仍然存在。
 
 ```sh
 ./gradlew :app:assembleDebug :app:assembleRelease

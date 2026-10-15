@@ -76,7 +76,7 @@ jobs:
         run: |
           python3 tests/inspect_upstream_packages.py
           compat_classes=$(mktemp -d)
-          compat_classpath="$ANDROID_HOME/platforms/android-36/android.jar:tests/preferences/build/upstream/expansion.jar"
+          compat_classpath="$ANDROID_HOME/platforms/android-36/android.jar:tests/preferences/build/upstream/expansion.jar:tests/preferences/build/upstream/lsparanoid-core.jar"
           javac -cp "$compat_classpath" -d "$compat_classes" \
             library/hook/src/main/java/com/sevtinge/hyperceiler/hook/utils/prefs/LegacyPrefsMigration.java \
             library/hook/src/main/java/com/sevtinge/hyperceiler/hook/utils/prefs/SharedPrefsXml.java \

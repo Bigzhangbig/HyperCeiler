@@ -22,6 +22,9 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - run: sdkmanager 'platforms;android-36'
       - run: python3 -m unittest discover -s tests -p 'test_*.py'
       - run: ./gradlew -p tests/preferences test --console=plain
@@ -42,7 +45,12 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
       - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Check upstream package access
+        run: python3 tests/check_packages_access.py
       - name: Build debug and optimized APKs
         run: ./gradlew :app:assembleDebug :app:assembleRelease --console=plain --max-workers=2
       - name: Check packaged module descriptors and manifest

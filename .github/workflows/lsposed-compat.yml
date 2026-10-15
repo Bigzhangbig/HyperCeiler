@@ -72,6 +72,16 @@ jobs:
       - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Check upstream package access
         run: python3 tests/check_packages_access.py
+      - name: Check migration commands with the real upstream validator
+        run: |
+          python3 tests/inspect_upstream_packages.py
+          compat_classes=$(mktemp -d)
+          compat_classpath="$ANDROID_HOME/platforms/android-36/android.jar:tests/preferences/build/upstream/expansion.jar"
+          javac -cp "$compat_classpath" -d "$compat_classes" \
+            library/hook/src/main/java/com/sevtinge/hyperceiler/hook/utils/prefs/LegacyPrefsMigration.java \
+            library/hook/src/main/java/com/sevtinge/hyperceiler/hook/utils/prefs/SharedPrefsXml.java \
+            tests/MigrationShellContract.java
+          java -cp "$compat_classes:$compat_classpath" MigrationShellContract
       - name: Build debug and optimized APKs
         run: ./gradlew :app:assembleDebug :app:assembleRelease --console=plain --max-workers=2
       - name: Check packaged module descriptors and manifest

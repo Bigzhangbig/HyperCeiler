@@ -42,6 +42,10 @@ for name, path in {
     jar.write_bytes(classes)
     with ZipFile(BytesIO(classes)) as archive:
         print(f"Haptic classes provided by {name}:", [n for n in archive.namelist() if "haptic" in n.lower()])
+        if name == "core":
+            required = {"fan/view/HapticCompat.class", "fan/view/HapticFeedbackConstants.class",
+                        "fan/utils/HapticFeedbackCompat.class"}
+            assert required <= set(archive.namelist()), "Pinned MIUIX core must provide existing haptic support"
 result = subprocess.run(["javap", "-classpath", str(out / "expansion.jar"), "-p", "-c",
                          "com.sevtinge.hyperceiler.expansion.utils.ShellSafeUtils"],
                         text=True, capture_output=True, check=True)

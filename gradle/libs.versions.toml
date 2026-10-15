@@ -46,7 +46,6 @@ miuix-core = { module = "fan.miuix:core", version.ref = "miuix" }
 miuix-flexible = { module = "fan.miuix:flexible", version.ref = "miuix" }
 miuix-folme = { module = "fan.miuix:folme", version.ref = "miuix" }
 miuix-graphics = { module = "fan.miuix:graphics", version.ref = "miuix" }
-miuix-haptic = { module = "fan.miuix:haptic", version.ref = "miuix" }
 miuix-mgl = { module = "fan.miuix:mgl", version.ref = "miuix" }
 miuix-navigator = { module = "fan.miuix:navigator", version.ref = "miuix" }
 miuix-nestedheader = { module = "fan.miuix:nestedheader", version.ref = "miuix" }

@@ -66,7 +66,7 @@ dependencies {
     api(libs.miuix.flexible)
     api(libs.miuix.folme)
     api(libs.miuix.graphics)
-    api(libs.miuix.haptic)
+    // MIUIX 1.0.10.1 ships fan.view.HapticCompat in core; standalone haptic starts at 1.0.10.5.2.
     api(libs.miuix.mgl)
     api(libs.miuix.navigator)
     api(libs.miuix.nestedheader)

@@ -71,6 +71,192 @@ public class LegacyPrefsMigrationTest {
         }
     }
 
+    @Test public void explicitUserResetCompletesDespiteCorruptLegacySource() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.edit().clear().commit();
+        LegacyPrefsMigration.Prepared corrupt = prepared(Map.of(NEW, 2L), Map.of(NEW, "<map>broken"));
+        assertNotNull(corrupt.failure());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(target, state, startup, corrupt, changes);
+        assertTrue(result.toString(), result.isComplete());
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals("LOCAL_RESET", state.getString("status", ""));
+        assertEquals(Map.of(), target.getAll());
+        assertTrue(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+    }
+
+    @Test public void ordinaryEditCannotBypassFailedLegacyScan() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.edit().putString("setting", "new-ui").commit();
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(target, state, startup, failed, changes);
+        assertEquals(LegacyPrefsMigration.Status.FAILED, result.status());
+        assertEquals(Map.of("setting", "new-ui"), target.getAll());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+    }
+
+    @Test public void resetIntentSurvivesFailedCompletionMarkerAndProcessRestart() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.edit().clear().putBoolean("prefs_key_allow_hook", true).commit();
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        state.failCompletedCommit = true;
+        state.mutateOnFailedCommit = true;
+        assertFalse(LegacyPrefsMigration.apply(target, state, startup, failed, changes).isComplete());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+        target.unregisterOnSharedPreferenceChangeListener(changes);
+        MemoryPreferences restartedTarget = new MemoryPreferences(target.diskValues);
+        MemoryPreferences restartedState = new MemoryPreferences(state.diskValues);
+        LegacyPrefsMigration.Changes restartedChanges = new LegacyPrefsMigration.Changes(restartedState);
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(restartedTarget, restartedState,
+            restartedTarget.getAll(), failed, restartedChanges);
+        assertTrue(result.toString(), result.isComplete());
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals(Map.of("prefs_key_allow_hook", true), restartedTarget.getAll());
+    }
+
+    @Test public void resetCannotCompleteWhileItsIntentJournalCannotBePersisted() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        state.failAllCommits = true;
+        target.edit().clear().commit();
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        assertFalse(LegacyPrefsMigration.apply(target, state, startup, failed, changes).isComplete());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+        state.failAllCommits = false;
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(target, state, startup, failed, changes);
+        assertTrue(result.toString(), result.isComplete());
+        assertEquals("LOCAL_RESET", result.status().name());
+    }
+
+    @Test public void migrationsOwnSuppressedClearCannotBypassLaterScanFailure() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        LegacyPrefsMigration.Prepared valid = prepared(Map.of(NEW, 2L), Map.of(NEW, "<map><string name='setting'>legacy</string></map>"));
+        state.failCompletedCommit = true;
+        assertFalse(LegacyPrefsMigration.apply(target, state, startup, valid, changes).isComplete());
+        state.failCompletedCommit = false;
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        assertFalse(LegacyPrefsMigration.apply(target, state, startup, failed, changes).isComplete());
+        assertEquals(Map.of("setting", "legacy"), target.getAll());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+    }
+
+    @Test public void resetRequiresSuccessfulCanonicalDiskCommitBeforeCompletion() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("setting", "private-old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        Map<String, ?> startup = target.getAll();
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.mutateOnFailedCommit = true;
+        target.failNextCommit = true;
+        target.edit().clear().commit();
+        assertEquals(Map.of(), target.getAll());
+        assertEquals(Map.of("setting", "private-old"), target.diskValues);
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        target.failNextCommit = true;
+        assertFalse(LegacyPrefsMigration.apply(target, state, startup, failed, changes).isComplete());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+        assertTrue(LegacyPrefsMigration.apply(target, state, startup, failed, changes).isComplete());
+        assertEquals(Map.of(), target.diskValues);
+    }
+
+    @Test public void failedCanonicalResetIsReplayedFromItsJournalAfterProcessRestart() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("staleA", "old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.mutateOnFailedCommit = true;
+        target.failNextCommit = true;
+        assertFalse(target.edit().clear().commit());
+        assertEquals(Map.of(), target.getAll());
+        assertEquals(Map.of("staleA", "old"), target.diskValues);
+        MemoryPreferences restartedTarget = new MemoryPreferences(target.diskValues);
+        MemoryPreferences restartedState = new MemoryPreferences(state.diskValues);
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(restartedTarget, restartedState,
+            restartedTarget.getAll(), failed, new LegacyPrefsMigration.Changes(restartedState));
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals(Map.of(), restartedTarget.getAll());
+        assertEquals(Map.of(), restartedTarget.diskValues);
+    }
+
+    @Test public void editsAfterRestartUpdateOnlyTheirKeysInThePendingResetSnapshot() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("staleA", "old", "keep", "old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.mutateOnFailedCommit = true;
+        target.failNextCommit = true;
+        assertFalse(target.edit().clear().putString("keep", "reset-value").commit());
+        MemoryPreferences restartedTarget = new MemoryPreferences(target.diskValues);
+        MemoryPreferences restartedState = new MemoryPreferences(state.diskValues);
+        LegacyPrefsMigration.Changes restartedChanges = new LegacyPrefsMigration.Changes(restartedState);
+        restartedTarget.registerOnSharedPreferenceChangeListener(restartedChanges);
+        Map<String, ?> startup = restartedTarget.getAll();
+        restartedTarget.edit().putString("new", "after-restart").remove("keep").commit();
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(restartedTarget, restartedState, startup, failed, restartedChanges);
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals(Map.of("new", "after-restart"), restartedTarget.getAll());
+    }
+
+    @Test public void resetSnapshotIncludesValuesWrittenInTheSameClearEditorAcrossRestart() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("staleA", "old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of());
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        target.mutateOnFailedCommit = true;
+        target.failNextCommit = true;
+        assertFalse(target.edit().clear().putBoolean("prefs_key_allow_hook", true).putStringSet("apps", Set.of()).commit());
+        MemoryPreferences restartedTarget = new MemoryPreferences(target.diskValues);
+        MemoryPreferences restartedState = new MemoryPreferences(state.diskValues);
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(restartedTarget, restartedState,
+            restartedTarget.getAll(), failed, new LegacyPrefsMigration.Changes(restartedState));
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals(Map.of("prefs_key_allow_hook", true, "apps", Set.of()), restartedTarget.getAll());
+    }
+
+    @Test public void olderResetIntentWithoutSnapshotCannotResurrectCanonicalDiskValues() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("staleA", "old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of("user_cleared", true));
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        LegacyPrefsMigration.Result result = LegacyPrefsMigration.apply(target, state, target.getAll(), failed,
+            new LegacyPrefsMigration.Changes(state));
+        assertEquals("LOCAL_RESET", result.status().name());
+        assertEquals(Map.of(), target.getAll());
+    }
+
+    @Test public void corruptResetSnapshotFailsClosedUntilUserExplicitlyResetsAgain() throws Exception {
+        MemoryPreferences target = new MemoryPreferences(Map.of("staleA", "old"));
+        MemoryPreferences state = new MemoryPreferences(Map.of("user_cleared", true, "reset_snapshot_xml", "<map>broken"));
+        LegacyPrefsMigration.Changes changes = new LegacyPrefsMigration.Changes(state);
+        target.registerOnSharedPreferenceChangeListener(changes);
+        LegacyPrefsMigration.Prepared failed = LegacyPrefsMigration.prepare(command -> "su: denied", backupDirectory());
+        assertFalse(LegacyPrefsMigration.apply(target, state, target.getAll(), failed, changes).isComplete());
+        assertFalse(state.getBoolean(LegacyPrefsMigration.COMPLETED_KEY, false));
+        target.edit().clear().commit();
+        assertTrue(LegacyPrefsMigration.apply(target, state, target.getAll(), failed, changes).isComplete());
+        assertEquals(Map.of(), target.getAll());
+    }
+
     @Test public void onlyAnExplicitSuccessfulRootScanCanCompleteWithNoSource() throws Exception {
         MemoryPreferences target = new MemoryPreferences(Map.of("existing", true));
         MemoryPreferences state = new MemoryPreferences(Map.of());
@@ -211,7 +397,7 @@ public class LegacyPrefsMigrationTest {
         private final Map<String, Object> values = new LinkedHashMap<>();
         private final List<OnSharedPreferenceChangeListener> listeners = new ArrayList<>();
         final Map<String, Object> diskValues = new LinkedHashMap<>();
-        boolean failNextCommit, failCompletedCommit, mutateOnFailedCommit;
+        boolean failNextCommit, failCompletedCommit, mutateOnFailedCommit, failAllCommits;
         MemoryPreferences(Map<String, ?> initial) { values.putAll(initial); diskValues.putAll(initial); }
         public Map<String, Object> getAll() { return new LinkedHashMap<>(values); }
         public String getString(String key, String fallback) { return (String)values.getOrDefault(key, fallback); }
@@ -234,7 +420,7 @@ public class LegacyPrefsMigrationTest {
             public Editor remove(String k) { removed.add(k); return this; }
             public Editor clear() { clear = true; return this; }
             public boolean commit() {
-                boolean failed = failNextCommit || (failCompletedCommit && Boolean.TRUE.equals(pending.get(LegacyPrefsMigration.COMPLETED_KEY)));
+                boolean failed = failAllCommits || failNextCommit || (failCompletedCommit && Boolean.TRUE.equals(pending.get(LegacyPrefsMigration.COMPLETED_KEY)));
                 failNextCommit = false;
                 if (failed && !mutateOnFailedCommit) return false;
                 if (clear) values.clear(); for (String key : removed) values.remove(key); values.putAll(pending);

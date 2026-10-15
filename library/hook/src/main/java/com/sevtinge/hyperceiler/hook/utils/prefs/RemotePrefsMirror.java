@@ -40,6 +40,7 @@ public final class RemotePrefsMirror implements AutoCloseable {
     // Android keeps preference listeners weakly: this reference must live as long as the mirror.
     private final SharedPreferences.OnSharedPreferenceChangeListener localListener;
     private SharedPreferences remote;
+    private Map<String, Object> lastSuccessfulSnapshot;
     private boolean closed;
 
     public RemotePrefsMirror(SharedPreferences local) {
@@ -63,12 +64,16 @@ public final class RemotePrefsMirror implements AutoCloseable {
         if (remote == local) throw new IllegalArgumentException("Remote preferences must differ from canonical preferences");
         if (closed) return false;
         this.remote = remote;
+        lastSuccessfulSnapshot = null; // Each explicit bind/reconnect must publish at least once.
         return publish();
     }
 
     /** An old service's delayed disconnect must not discard a newer connection. */
     public synchronized void disconnect(SharedPreferences remote) {
-        if (this.remote == remote) this.remote = null;
+        if (this.remote == remote) {
+            this.remote = null;
+            lastSuccessfulSnapshot = null;
+        }
     }
 
     /** Retries once with current local values; does not schedule automatic retries. */
@@ -81,6 +86,7 @@ public final class RemotePrefsMirror implements AutoCloseable {
         if (closed) return;
         closed = true;
         remote = null;
+        lastSuccessfulSnapshot = null;
         local.unregisterOnSharedPreferenceChangeListener(localListener);
     }
 
@@ -88,6 +94,8 @@ public final class RemotePrefsMirror implements AutoCloseable {
     private boolean publish() {
         try {
             Map<String, Object> snapshot = snapshot();
+            // Android notifies once per key even when one editor committed a whole import.
+            if (snapshot.equals(lastSuccessfulSnapshot)) return true;
             SharedPreferences.Editor editor = remote.edit().clear();
             for (Map.Entry<String, Object> entry : snapshot.entrySet()) {
                 String key = entry.getKey();
@@ -100,11 +108,14 @@ public final class RemotePrefsMirror implements AutoCloseable {
                 else {
                     @SuppressWarnings("unchecked")
                     Set<String> strings = (Set<String>) value;
-                    editor.putStringSet(key, strings);
+                    // Keep the comparison cache private even if an editor retains its input set.
+                    editor.putStringSet(key, new LinkedHashSet<>(strings));
                 }
             }
             if (!editor.commit()) throw new IllegalStateException("Remote preferences commit returned false");
+            lastSuccessfulSnapshot = snapshot;
         } catch (RuntimeException error) {
+            lastSuccessfulSnapshot = null;
             reportFailure(error);
             return false;
         }

@@ -51,6 +51,114 @@ public class RemotePrefsMirrorTest {
     }
 
     @Test
+    public void multiKeyImportPublishesOnlyOneAdditionalCompleteSnapshot() {
+        MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
+        MirrorFakeSharedPreferences remote = new MirrorFakeSharedPreferences();
+        try (RemotePrefsMirror mirror = new RemotePrefsMirror(local)) {
+            assertTrue(mirror.connect(remote));
+            assertEquals(1, remote.commitCount);
+
+            local.edit().putBoolean("allow_hook", true).putInt("size", 20)
+                .putString("title", "restored").putStringSet("packages", Set.of("a", "b")).commit();
+
+            assertEquals(local.getAll(), remote.getAll());
+            assertEquals("One import is one extra full publication, despite four key callbacks",
+                2, remote.commitCount);
+        }
+    }
+
+    @Test
+    public void unchangedSnapshotSkipsCommitButChangedValuePublishes() {
+        MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
+        local.edit().putInt("size", 1).commit();
+        MirrorFakeSharedPreferences remote = new MirrorFakeSharedPreferences();
+        try (RemotePrefsMirror mirror = new RemotePrefsMirror(local)) {
+            assertTrue(mirror.connect(remote));
+            assertTrue(mirror.refresh());
+            local.edit().putInt("size", 1).commit();
+            assertTrue(mirror.refresh());
+            assertEquals(1, remote.commitCount);
+
+            local.edit().putInt("size", 2).commit();
+            assertEquals(2, remote.commitCount);
+            assertEquals(2, remote.getInt("size", -1));
+            assertTrue(mirror.refresh());
+            assertEquals(2, remote.commitCount);
+        }
+    }
+
+    @Test
+    public void cachedSnapshotComparesSetContentsAndKeepsItsOwnDeepCopy() {
+        MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
+        Set<String> source = new LinkedHashSet<>(List.of("a", "b"));
+        local.edit().putStringSet("set", source).commit();
+        MirrorFakeSharedPreferences remote = new MirrorFakeSharedPreferences();
+        try (RemotePrefsMirror mirror = new RemotePrefsMirror(local)) {
+            mirror.connect(remote);
+            local.edit().putStringSet("set", new LinkedHashSet<>(List.of("b", "a"))).commit();
+            assertTrue(mirror.refresh());
+            assertEquals(1, remote.commitCount);
+
+            // The shared fake deliberately exposes set references: changes must not mutate the cache.
+            local.getStringSet("set", null).add("c");
+            assertTrue(mirror.refresh());
+            assertEquals(2, remote.commitCount);
+            assertEquals(Set.of("a", "b", "c"), remote.getStringSet("set", null));
+        }
+    }
+
+    @Test
+    public void failedCommitAndExceptionInvalidateSuccessCacheAndMustRetry() {
+        MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
+        local.edit().putInt("value", 1).commit();
+        MirrorFakeSharedPreferences remote = new MirrorFakeSharedPreferences();
+        try (RemotePrefsMirror mirror = new RemotePrefsMirror(local)) {
+            mirror.connect(remote);
+            remote.failCommit = true;
+            local.edit().putInt("value", 2).commit();
+            assertEquals(2, remote.commitCount);
+
+            remote.failCommit = false;
+            // Reverting to a previously successful value still needs a commit after failure.
+            local.edit().putInt("value", 1).commit();
+            assertEquals(3, remote.commitCount);
+            remote.commitException = new IllegalStateException("transport failed");
+            local.edit().putInt("value", 3).commit();
+            assertEquals(4, remote.commitCount);
+            remote.commitException = null;
+            assertTrue(mirror.refresh());
+            assertEquals(5, remote.commitCount);
+            assertEquals(3, remote.getInt("value", -1));
+            assertTrue(mirror.refresh());
+            assertEquals(5, remote.commitCount);
+        }
+    }
+
+    @Test
+    public void newRemoteAndExplicitReconnectForceFullPublicationOfSameValues() {
+        MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
+        local.edit().putBoolean("allow_hook", true).commit();
+        MirrorFakeSharedPreferences first = new MirrorFakeSharedPreferences();
+        MirrorFakeSharedPreferences next = new MirrorFakeSharedPreferences();
+        try (RemotePrefsMirror mirror = new RemotePrefsMirror(local)) {
+            mirror.connect(first);
+            assertEquals(1, first.commitCount);
+            mirror.connect(next);
+            assertEquals(1, next.commitCount);
+            assertEquals(local.getAll(), next.getAll());
+            mirror.connect(next);
+            assertEquals(2, next.commitCount);
+            mirror.disconnect(next);
+            mirror.connect(next);
+            assertEquals(3, next.commitCount);
+
+            mirror.disconnect(first); // A delayed old disconnect must not invalidate this cache.
+            assertTrue(mirror.refresh());
+            assertEquals(3, next.commitCount);
+        }
+    }
+
+    @Test
     public void disconnectRetainsEditsAndStaleDisconnectCannotRemoveNewBinding() {
         MirrorFakeSharedPreferences local = new MirrorFakeSharedPreferences();
         MirrorFakeSharedPreferences oldRemote = new MirrorFakeSharedPreferences();

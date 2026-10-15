@@ -31,6 +31,7 @@ public final class LegacyPrefsMigration {
     private static final String BASELINE_KEY = "attempt_baseline_xml";
     private static final String TOUCHED_KEY = "user_touched_keys";
     private static final String CLEARED_KEY = "user_cleared";
+    private static final String RESET_SNAPSHOT_KEY = "reset_snapshot_xml";
     private static final int MAX_XML_BYTES = 4 * 1024 * 1024;
     private static final String NAME = "com.sevtinge.hyperceiler/hyperceiler_prefs.xml";
     private static final Pattern OWN_PATH = Pattern.compile("/data/misc/[A-Za-z0-9_.-]+/prefs/(?:0/)?" + Pattern.quote(NAME) + "(?:\\.bak)?");
@@ -41,7 +42,7 @@ public final class LegacyPrefsMigration {
         String execute(String command) throws Exception;
     }
 
-    public enum Status { IMPORTED, NO_SOURCE, ALREADY_COMPLETE, FAILED }
+    public enum Status { IMPORTED, NO_SOURCE, LOCAL_RESET, ALREADY_COMPLETE, FAILED }
 
     public record Result(Status status, String detail) {
         public boolean isComplete() { return status != Status.FAILED; }
@@ -60,6 +61,7 @@ public final class LegacyPrefsMigration {
         private final SharedPreferences state;
         private final Set<String> touched;
         private boolean cleared;
+        private Map<String, Object> resetSnapshot;
         private boolean suppressed;
         private boolean trackingFailed;
 
@@ -67,18 +69,51 @@ public final class LegacyPrefsMigration {
             this.state = state;
             touched = new LinkedHashSet<>(state.getStringSet(TOUCHED_KEY, Set.of()));
             cleared = state.getBoolean(CLEARED_KEY, false);
+            if (cleared) {
+                // Older intent-only journals still mean reset, never "reuse stale canonical data".
+                resetSnapshot = new LinkedHashMap<>();
+                if (state.contains(RESET_SNAPSHOT_KEY)) {
+                    try {
+                        resetSnapshot = SharedPrefsXml.parse(state.getString(RESET_SNAPSHOT_KEY, ""));
+                    } catch (IOException | ClassCastException e) {
+                        resetSnapshot = null;
+                        trackingFailed = true;
+                    }
+                }
+            }
         }
 
         @Override public synchronized void onSharedPreferenceChanged(SharedPreferences preferences, String key) {
             if (suppressed || state.getBoolean(COMPLETED_KEY, false)) return;
-            if (key == null) cleared = true;
-            else touched.add(key);
+            if (key == null) {
+                cleared = true;
+                resetSnapshot = copy(preferences.getAll());
+            } else {
+                touched.add(key);
+                if (cleared && resetSnapshot != null) {
+                    // After a restart canonical storage may still contain values whose clear()
+                    // failed on disk. Only the newly edited key belongs in the reset result.
+                    Map<String, ?> current = preferences.getAll();
+                    if (current.containsKey(key)) resetSnapshot.put(key, copyValue(current.get(key)));
+                    else resetSnapshot.remove(key);
+                }
+            }
             trackingFailed = !persist();
         }
 
         private boolean persist() {
-            return state.edit().putStringSet(TOUCHED_KEY, new LinkedHashSet<>(touched))
-                .putBoolean(CLEARED_KEY, cleared).commit();
+            try {
+                SharedPreferences.Editor edit = state.edit().putStringSet(TOUCHED_KEY, new LinkedHashSet<>(touched))
+                    .putBoolean(CLEARED_KEY, cleared);
+                if (cleared) {
+                    if (resetSnapshot == null) return false;
+                    // The intent and its expected result must commit together before replay.
+                    edit.putString(RESET_SNAPSHOT_KEY, SharedPrefsXml.serialize(resetSnapshot));
+                }
+                return edit.commit();
+            } catch (IOException e) {
+                return false;
+            }
         }
     }
 
@@ -130,15 +165,27 @@ public final class LegacyPrefsMigration {
      */
     public static Result apply(SharedPreferences target, SharedPreferences state, Map<String, ?> startupSnapshot,
                                Prepared prepared, Changes changes) {
-        if (isComplete(state)) return new Result(Status.ALREADY_COMPLETE, "Legacy preferences were already migrated");
-        if (prepared == null || prepared.failure() != null) {
-            return failed(prepared == null ? "No discovery result" : prepared.failure());
-        }
+        if (isComplete(state)) return new Result(Status.ALREADY_COMPLETE, "Legacy preference transition was already completed");
         synchronized (changes) {
             if (changes.state != state) return failed("Migration listener uses a different state store");
-            if (changes.trackingFailed) {
+            if (changes.trackingFailed || changes.cleared) {
                 changes.trackingFailed = !changes.persist();
                 if (changes.trackingFailed) return failed("Cannot persist edits made during migration");
+            }
+            // A user's explicit reset supersedes importing legacy values, even when discovery
+            // failed. The listener suppresses our own clear(), so this is never an automatic fallback.
+            if (changes.cleared) {
+                try {
+                    if (!commitSnapshot(target, copy(changes.resetSnapshot), changes)) {
+                        return failed("Private reset commit failed; reset intent retained for retry");
+                    }
+                    return finish(state, Status.LOCAL_RESET, "User reset local preferences; legacy NSP source retained");
+                } catch (IllegalArgumentException | ClassCastException e) {
+                    return failed("Cannot commit local reset preference types: " + e.getClass().getSimpleName());
+                }
+            }
+            if (prepared == null || prepared.failure() != null) {
+                return failed(prepared == null ? "No discovery result" : prepared.failure());
             }
             if (prepared.values() == null) {
                 return finish(state, Status.NO_SOURCE, "No legacy NSP file exists");
@@ -157,12 +204,9 @@ public final class LegacyPrefsMigration {
                 Map<String, Object> merged = merge(prepared.values(), baseline, current, changes.touched, changes.cleared);
                 // Always retry the disk commit. Android commit(false) may already have changed
                 // getAll() in memory, so equality with current does not prove durable storage.
-                changes.suppressed = true;
-                try {
-                    SharedPreferences.Editor edit = target.edit().clear();
-                    for (Map.Entry<String, Object> entry : merged.entrySet()) put(edit, entry.getKey(), entry.getValue());
-                    if (!edit.commit()) return failed("Private preference commit failed; migration can retry");
-                } finally { changes.suppressed = false; }
+                if (!commitSnapshot(target, merged, changes)) {
+                    return failed("Private preference commit failed; migration can retry");
+                }
                 return finish(state, Status.IMPORTED, prepared.sourcePath());
             } catch (IOException | IllegalArgumentException | ClassCastException e) {
                 return failed("Cannot import legacy preference types or retry journal: " + e.getClass().getSimpleName());
@@ -186,9 +230,18 @@ public final class LegacyPrefsMigration {
         return result;
     }
 
+    private static boolean commitSnapshot(SharedPreferences target, Map<String, Object> snapshot, Changes changes) {
+        changes.suppressed = true;
+        try {
+            SharedPreferences.Editor edit = target.edit().clear();
+            for (Map.Entry<String, Object> entry : snapshot.entrySet()) put(edit, entry.getKey(), entry.getValue());
+            return edit.commit();
+        } finally { changes.suppressed = false; }
+    }
+
     private static Result finish(SharedPreferences state, Status status, String detail) {
         // Keep the retry journal until this separate success marker is durably committed.
-        if (!state.edit().putBoolean(COMPLETED_KEY, true).putString("source", detail).commit()) {
+        if (!state.edit().putBoolean(COMPLETED_KEY, true).putString("status", status.name()).putString("source", detail).commit()) {
             // Android commit(false) can still update the in-memory map. Do not report that as complete.
             state.edit().remove(COMPLETED_KEY).commit();
             return failed("Cannot persist migration completion marker; retry journal retained");

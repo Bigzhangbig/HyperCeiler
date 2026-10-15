@@ -2,6 +2,7 @@
 import base64
 from io import BytesIO
 import os
+import re
 from pathlib import Path
 import subprocess
 import tomllib
@@ -31,6 +32,7 @@ if metadata:
     print("Published haptic versions:", [v.text for v in ElementTree.fromstring(metadata).findall("./versioning/versions/version")])
 for name, path in {
     "core": "fan/miuix/core/1.0.10.1/core-1.0.10.1.aar",
+    "folme": "fan/miuix/folme/1.0.10.1/folme-1.0.10.1.aar",
     "appcompat": "fan/miuix/appcompat/1.0.10.1/appcompat-1.0.10.1.aar",
     "expansion": "com/sevtinge/hyperceiler/hyperceiler-expansion/1.0.0/hyperceiler-expansion-1.0.0.aar",
 }.items():
@@ -47,6 +49,14 @@ for name, path in {
             required = {"fan/view/HapticCompat.class", "fan/view/HapticFeedbackConstants.class",
                         "fan/utils/HapticFeedbackCompat.class"}
             assert required <= set(archive.namelist()), "Pinned MIUIX core must provide existing haptic support"
+with ZipFile(out / "core.jar") as core, ZipFile(out / "folme.jar") as folme:
+    provided = {name[:-6] for name in core.namelist() + folme.namelist() if name.endswith(".class")}
+    referenced = set()
+    for name in folme.namelist():
+        if name.endswith(".class"):
+            referenced.update(match.decode() for match in re.findall(rb"fan/[A-Za-z0-9_$/]*Haptic[A-Za-z0-9_$]*", folme.read(name)))
+    assert referenced <= provided, f"Unresolved Folme haptic classes: {sorted(referenced - provided)}"
+    print("Folme haptic class references are provided by pinned core/Folme:", sorted(referenced))
 result = subprocess.run(["javap", "-classpath", str(out / "expansion.jar"), "-p", "-c",
                          "com.sevtinge.hyperceiler.expansion.utils.ShellSafeUtils"],
                         text=True, capture_output=True, check=True)

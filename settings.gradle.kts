@@ -36,6 +36,22 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    components {
+        withModule("fan.miuix:folme") {
+            if (id.version == "1.0.10.1") allVariants {
+                withDependencies {
+                    // This release's haptic classes are in core; its haptic POM edge is unavailable.
+                    val corrected = removeAll {
+                        it.group == "fan.miuix" && it.name == "haptic" &&
+                            it.versionConstraint.requiredVersion == "1.0.10.1"
+                    }
+                    if (corrected && none { it.group == "fan.miuix" && it.name == "core" }) {
+                        add("fan.miuix:core:1.0.10.1")
+                    }
+                }
+            }
+        }
+    }
     repositories {
         google()
         mavenCentral()

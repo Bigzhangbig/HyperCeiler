@@ -48,6 +48,8 @@ python3 -m unittest discover -s tests -p 'test_*.py'
 
 原分支同时声明了当前仓库未提供的 `fan.miuix:haptic:1.0.10.1`。已核对发布仓库：现存独立 haptic 版本从 1.0.10.5.2 开始，而当前固定的 core 1.0.10.1 已包含 HapticCompat 等相关类，因此移除重复的独立包声明，保留原有触感支持和其余 MIUIX 版本。CI 会检查 core 中这些类仍然存在。
 
+Folme 1.0.10.1 的发布元数据也引用该不可用包，构建规则仅将这一固定版本的错误依赖改为同版本 core；CI 会核对 Folme 的 Haptic 类引用有实际提供者，不使用全局排除规则掩盖其他版本问题。
+
 ```sh
 ./gradlew :app:assembleDebug :app:assembleRelease
 python3 tests/check_apk_contract.py

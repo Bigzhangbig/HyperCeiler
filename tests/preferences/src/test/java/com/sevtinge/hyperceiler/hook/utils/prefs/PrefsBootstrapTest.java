@@ -23,6 +23,20 @@ public class PrefsBootstrapTest {
         }
     }
 
+    @Test public void coldBootstrapFailureDoesNotTouchPreferenceDependentLoggerBeforeRetry() {
+        PrefsUtils.mPrefsMap.replace(Map.of());
+        com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.errorCalls = 0;
+        try {
+            PrefsUtils.attachHookPreferences(source(true), method -> true);
+            fail("The unavailable remote store must fail bootstrap");
+        } catch (IllegalStateException expected) {
+            assertEquals("Cold failure must use the independent framework logger", 0,
+                com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.errorCalls);
+        }
+        PrefsUtils.attachHookPreferences(source(false), method -> true);
+        assertTrue(PrefsUtils.mPrefsMap.getBoolean("allow_hook"));
+    }
+
     private static SharedPreferences source(boolean failReads) {
         return (SharedPreferences) Proxy.newProxyInstance(SharedPreferences.class.getClassLoader(),
             new Class<?>[]{SharedPreferences.class}, (proxy, method, args) -> switch (method.getName()) {

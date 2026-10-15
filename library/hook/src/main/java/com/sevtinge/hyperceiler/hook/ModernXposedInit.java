@@ -19,7 +19,6 @@ public final class ModernXposedInit extends ModuleEntrance {
 
     @Override public void initModuleConfig() {
         ModuleConfig.setLogTag(TAG);
-        ModuleConfig.setLogLevel(LogManager.getLogLevel());
         ModuleConfig.setPrefsName(PrefsUtils.mPrefsName);
         ModuleConfig.setShowHookSuccessLog(false);
     }
@@ -38,6 +37,8 @@ public final class ModernXposedInit extends ModuleEntrance {
         if (initialized) return true;
         try {
             PrefsUtils.attachHookPreferences(getRemotePreferences(PrefsUtils.mPrefsName), this::deoptimize);
+            // Reading this class earlier would freeze its static log level before preferences exist.
+            ModuleConfig.setLogLevel(LogManager.getLogLevel());
             if (!PrefsUtils.mPrefsMap.getBoolean("allow_hook")) return false;
             backend = new XposedInit();
             backend.initializeBackend(getModuleApplicationInfo().sourceDir, process.isSystemServer());

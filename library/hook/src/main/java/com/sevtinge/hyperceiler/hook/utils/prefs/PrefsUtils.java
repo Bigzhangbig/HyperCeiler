@@ -48,7 +48,8 @@ public class PrefsUtils {
     private static volatile SharedPreferences hookPreferences;
     private static volatile Predicate<Executable> deoptimizer;
     private static final HookPrefsStore hookStore = new HookPrefsStore(mPrefsMap,
-        error -> XposedLogUtils.logE("PrefsUtils", error));
+        // Bootstrap errors must not initialize LogManager before the first valid snapshot.
+        HookBridge::log);
     private static SharedPreferences.OnSharedPreferenceChangeListener appListener;
     private static Map<String, ?> lastAppSnapshot = new HashMap<>();
 

@@ -57,6 +57,16 @@ class ModernModuleContract(unittest.TestCase):
                 for old_api in forbidden:
                     self.assertNotIn(old_api, path.read_text())
 
+    def test_log_configuration_waits_until_remote_preferences_are_attached(self):
+        entry = (HOOK / "src/main/java/com/sevtinge/hyperceiler/hook/ModernXposedInit.java").read_text()
+        configure = entry.split("void initModuleConfig()", 1)[1].split("\n    }", 1)[0]
+        # LogManager.logLevel is a static final snapshot: initializing the class before attach
+        # permanently freezes default verbosity even when the user disabled logging.
+        self.assertNotIn("LogManager", configure)
+        bootstrap = entry.split("boolean initializeBackend()", 1)[1]
+        self.assertLess(bootstrap.index("PrefsUtils.attachHookPreferences("),
+                        bootstrap.index("ModuleConfig.setLogLevel(LogManager.getLogLevel())"))
+
     def test_deoptimization_uses_supplied_modern_api(self):
         sources = HOOK / "src/main/java"
         for path in sources.rglob("*"):

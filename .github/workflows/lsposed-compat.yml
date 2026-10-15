@@ -51,6 +51,8 @@ jobs:
       - run: sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
       - name: Check upstream package access
         run: python3 tests/check_packages_access.py
+      - name: Inspect published A14 dependencies
+        run: python3 tests/inspect_upstream_packages.py
       - name: Build debug and optimized APKs
         run: ./gradlew :app:assembleDebug :app:assembleRelease --console=plain --max-workers=2
       - name: Check packaged module descriptors and manifest

@@ -27,6 +27,8 @@ import android.os.Handler;
 
 import com.sevtinge.hyperceiler.hook.provider.SharedPrefsProvider;
 
+import java.util.Objects;
+
 public class PrefsChangeObserver extends ContentObserver {
     private static final String TAG = "PrefsChangeObserver";
     private final boolean autoApplyChange;
@@ -34,6 +36,8 @@ public class PrefsChangeObserver extends ContentObserver {
     private final Context context;
     private final Object def;
     private final String name;
+    private final HookPrefsStore.Listener hookListener;
+    private boolean observingHookPreferences = true;
 
     public PrefsChangeObserver(Context context, Handler handler) {
         this(context, handler, false, PrefType.Any, null, null);
@@ -55,6 +59,16 @@ public class PrefsChangeObserver extends ContentObserver {
         prefType = type;
         this.context = context;
         this.autoApplyChange = autoApplyChange;
+        hookListener = (changedKey, valueForType) -> {
+            if (prefType != PrefType.Any && !Objects.equals(name, changedKey)) return;
+            Uri.Builder change = new Uri.Builder().scheme("content").authority(SharedPrefsProvider.AUTHORITY);
+            if (prefType == PrefType.Any) change.appendPath("pref");
+            change.appendPath(HookPrefsStore.typeOf(valueForType)).appendPath(changedKey);
+            // The framework snapshot is already in mPrefsMap; preserve ContentObserver's Handler.
+            dispatchChange(false, change.build());
+        };
+        if (PrefsUtils.observeHookPreferences(hookListener)) return;
+        observingHookPreferences = false;
         switch (type) {
             case PrefType.Any -> uri = PrefToUri.anyPrefToUri();
             case PrefType.String -> uri = PrefToUri.stringPrefToUri(name, (String) def);
@@ -72,7 +86,8 @@ public class PrefsChangeObserver extends ContentObserver {
         if (selfChange) return;
         if (autoApplyChange) {
             if (prefType == PrefType.Any) return;
-            applyChange();
+            // Re-reading defaults after a remote deletion would reinsert the deleted key.
+            if (!observingHookPreferences) applyChange();
         }
         if (prefType == PrefType.Any)
             onChange(switch (uri.getPathSegments().get(1)) {

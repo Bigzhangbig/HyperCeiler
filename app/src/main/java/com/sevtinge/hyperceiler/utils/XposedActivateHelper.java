@@ -19,19 +19,27 @@
 package com.sevtinge.hyperceiler.utils;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import com.sevtinge.hyperceiler.hook.utils.prefs.FrameworkServiceClient;
 
 import com.sevtinge.hyperceiler.common.utils.DialogHelper;
 
 public class XposedActivateHelper {
 
-    public static boolean isModuleActive = false;
-    public static int XposedVersion = 0;
+    public static volatile boolean isModuleActive = false;
+    public static volatile int XposedVersion = 0;
 
     public static void init(Context context) {
-        checkActivateState(context);
+        // Modern modules receive an asynchronous service instead of hooking their own app.
+        new Handler(Looper.getMainLooper()).postDelayed(() -> checkActivateState(context), 1000);
     }
 
     private static void checkActivateState(Context context) {
-        if (!isModuleActive) DialogHelper.showXposedActivateDialog(context);
+        isModuleActive = FrameworkServiceClient.isConnected();
+        if (!isModuleActive && !(context instanceof android.app.Activity activity && activity.isFinishing())) {
+            DialogHelper.showXposedActivateDialog(context);
+        }
     }
 }

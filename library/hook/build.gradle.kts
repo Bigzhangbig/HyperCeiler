@@ -62,6 +62,8 @@ dependencies {
     api(libs.expansion)
     compileOnlyApi(projects.library.hiddenApi)
     compileOnlyApi(libs.xposed.api)
+    compileOnlyApi(libs.libxposed.api)
+    api(libs.libxposed.service)
 
     api(libs.dexkit)
     api(libs.mmkv)

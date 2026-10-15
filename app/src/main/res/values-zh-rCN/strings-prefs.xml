@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefs_framework_sync_failed">设置已保存在本机，但尚未同步至 LSPosed。请重新打开 HyperCeiler 重试。</string>
+    <string name="prefs_legacy_migration_failed">旧配置尚未迁移成功。请授予 Root 权限，强行停止 HyperCeiler 后重新打开。原有配置已保留。</string>
+</resources>

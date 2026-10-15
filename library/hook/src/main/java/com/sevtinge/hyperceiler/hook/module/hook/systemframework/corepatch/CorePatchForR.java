@@ -23,6 +23,7 @@ import static de.robv.android.xposed.XposedHelpers.findClassIfExists;
 import static de.robv.android.xposed.XposedHelpers.findMethodExactIfExists;
 
 import android.app.AndroidAppHelper;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -48,37 +49,24 @@ import java.util.zip.ZipEntry;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.XC_MethodHook;
-import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class CorePatchForR extends XposedHelper implements IXposedHookLoadPackage {
-    private final static Method deoptimizeMethod;
     private static final boolean isNotReleaseVersion = !ProjectApi.isRelease();
     public static final String TAG = "[CorePatchForR]";
 
-    static {
-        Method m = null;
-        try {
-            m = XposedBridge.class.getDeclaredMethod("deoptimizeMethod", Member.class);
-        } catch (Throwable t) {
-            XposedBridge.log("[HyperCeiler][E][android]" + TAG + ": " + Log.getStackTraceString(t));
-        }
-        deoptimizeMethod = m;
-    }
-
     static void deoptimizeMethod(Class<?> c, String n) throws InvocationTargetException, IllegalAccessException {
         for (Method m : c.getDeclaredMethods()) {
-            if (deoptimizeMethod != null && m.getName().equals(n)) {
-                deoptimizeMethod.invoke(null, m);
+            if (m.getName().equals(n) && PrefsUtils.deoptimizeMethod(m)) {
                 if (isNotReleaseVersion)
                     XposedBridge.log("[HyperCeiler][D][android]" + TAG + ": Deoptimized " + m.getName());
             }
         }
     }
 
-    final XSharedPreferences prefs = new XSharedPreferences(ProjectApi.mAppModulePkg, PrefsUtils.mPrefsName);
+    final SharedPreferences prefs = PrefsUtils.getHookPreferences();
 
     @Override
     public void handleLoadPackage(XC_LoadPackage.LoadPackageParam loadPackageParam) throws IllegalAccessException, InvocationTargetException, InstantiationException {

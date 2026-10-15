@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefs_framework_sync_failed">Settings are saved on this device but have not synchronized with LSPosed. Reopen HyperCeiler to retry.</string>
+    <string name="prefs_legacy_migration_failed">Legacy settings could not be migrated. Grant root access, force stop HyperCeiler, then open it again. Existing settings have been kept.</string>
+</resources>

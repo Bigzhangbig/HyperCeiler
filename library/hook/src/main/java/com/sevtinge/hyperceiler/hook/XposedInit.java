@@ -30,8 +30,6 @@ import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logE;
 import static com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils.logI;
 import static com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils.mPrefsMap;
 
-import android.os.Process;
-
 import com.hchen.hooktool.HCInit;
 import com.hchen.hooktool.utils.ResInjectTool;
 import com.sevtinge.hyperceiler.hook.module.app.VariousThirdApps;
@@ -41,22 +39,17 @@ import com.sevtinge.hyperceiler.hook.module.skip.SystemFrameworkForCorePatch;
 import com.sevtinge.hyperceiler.hook.safe.CrashHook;
 import com.sevtinge.hyperceiler.hook.safe.RescuePartyPlus;
 import com.sevtinge.hyperceiler.hook.safe.SafeMode;
-import com.sevtinge.hyperceiler.hook.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.hook.utils.log.LogManager;
-import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 import com.sevtinge.hyperceiler.module.base.DataBase;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
-import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
-import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import io.github.kyuubiran.ezxhelper.android.logging.Logger;
 import io.github.kyuubiran.ezxhelper.xposed.EzXposed;
@@ -71,8 +64,7 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
 
     @Override
     public void initZygote(StartupParam startupParam) {
-        // load New XSPrefs
-        setXSharedPrefs();
+        // ModernXposedInit has already attached the framework's remote preferences.
         if (!mPrefsMap.getBoolean("allow_hook")) return;
 
         // load EzXHelper
@@ -118,12 +110,6 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
                 new SystemFrameworkForCorePatch().handleLoadPackage(lpparam);
             }
 
-            // load Module active hook
-            if (ProjectApi.mAppModulePkg.equals(packageName)) {
-                moduleActiveHook(lpparam);
-                return;
-            }
-
             // load Module hook apps
             if (Objects.equals(packageName, "android"))
                 logI(packageName, "androidVersion = " + getAndroidVersion() + ", hyperosVersion = " + getHyperOSVersion());
@@ -137,35 +123,6 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
 
             invokeInit(lpparam);
             androidCrashEventHook(lpparam);
-        }
-    }
-
-    private void setXSharedPrefs() {
-        synchronized (this) {
-            if (mPrefsMap.isEmpty()) {
-                try {
-                    XSharedPreferences mXSharedPreferences = new XSharedPreferences(ProjectApi.mAppModulePkg, PrefsUtils.mPrefsName);
-                    mXSharedPreferences.makeWorldReadable();
-
-                    // 检查文件是否可读
-                    if (!mXSharedPreferences.getFile().canRead()) {
-                        logE("setXSharedPrefs", "Cannot read SharedPreferences file! File: " + mXSharedPreferences.getFile().getAbsolutePath());
-                        logE("UID" + Process.myUid(), "Cannot read SharedPreferences, some mods might not work!");
-                        return;
-                    }
-
-                    Map<String, ?> allPrefs = mXSharedPreferences.getAll();
-
-                    if (allPrefs != null && !allPrefs.isEmpty()) {
-                        mPrefsMap.clear();
-                        mPrefsMap.putAll(allPrefs);
-                    } else {
-                        logE("UID" + Process.myUid(), "SharedPreferences is empty, some mods might not work!");
-                    }
-                } catch (Throwable t) {
-                    logE("setXSharedPrefs", t);
-                }
-            }
         }
     }
 
@@ -217,11 +174,4 @@ public class XposedInit implements IXposedHookZygoteInit, IXposedHookLoadPackage
         }
     }
 
-    public void moduleActiveHook(XC_LoadPackage.LoadPackageParam lpparam) {
-        Class<?> AppsTool = XposedHelpers.findClassIfExists(ProjectApi.mAppModulePkg + ".utils.XposedActivateHelper", lpparam.classLoader);
-
-        XposedHelpers.setStaticBooleanField(AppsTool, "isModuleActive", true);
-        XposedHelpers.setStaticIntField(AppsTool, "XposedVersion", XposedBridge.getXposedVersion());
-        XposedBridge.log("[HyperCeiler][I]: Log level is " + logLevelDesc());
-    }
 }

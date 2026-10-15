@@ -1,0 +1,5 @@
+minApiVersion=101
+# API 101 explicitly permits the legacy hook backend used by this Android 14 branch.
+# Do not raise targetApiVersion without migrating HookTool/EzXHelper and all legacy hooks.
+targetApiVersion=101
+staticScope=false

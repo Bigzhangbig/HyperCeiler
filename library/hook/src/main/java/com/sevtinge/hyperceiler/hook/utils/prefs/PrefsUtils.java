@@ -27,14 +27,16 @@ import android.util.Log;
 
 import com.sevtinge.hyperceiler.hook.provider.SharedPrefsProvider;
 import com.sevtinge.hyperceiler.hook.module.base.tool.AppsTool;
-import com.sevtinge.hyperceiler.hook.utils.api.ProjectApi;
 import com.sevtinge.hyperceiler.hook.utils.log.XposedLogUtils;
 import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsChangeObserver.PrefToUri;
 
-import java.io.File;
-import java.lang.reflect.Field;
+import java.lang.reflect.Executable;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import de.robv.android.xposed.XposedBridge;
 
@@ -42,52 +44,45 @@ public class PrefsUtils {
     public static SharedPreferences mSharedPreferences = null;
     public static PrefsMap<String, Object> mPrefsMap = new PrefsMap<>();
 
-    public static String mPrefsPathCurrent = null;
-    public static String mPrefsFileCurrent = null;
     public static String mPrefsName = "hyperceiler_prefs";
-    public static String mPrefsPath = "/data/user_de/0/" + ProjectApi.mAppModulePkg + "/shared_prefs";
-    public static String mPrefsFile = mPrefsPath + "/" + mPrefsName + ".xml";
-
-    public static SharedPreferences getSharedPrefs(Context context, boolean multiProcess) {
-        context = AppsTool.getProtectedContext(context);
-        try {
-            return context.getSharedPreferences(mPrefsName, multiProcess ? Context.MODE_MULTI_PROCESS | Context.MODE_WORLD_READABLE : Context.MODE_WORLD_READABLE);
-        } catch (Throwable t) {
-            return context.getSharedPreferences(mPrefsName, multiProcess ? Context.MODE_MULTI_PROCESS | Context.MODE_PRIVATE : Context.MODE_PRIVATE);
-        }
-    }
+    private static volatile SharedPreferences hookPreferences;
+    private static volatile Predicate<Executable> deoptimizer;
+    private static final HookPrefsStore hookStore = new HookPrefsStore(mPrefsMap,
+        error -> XposedLogUtils.logE("PrefsUtils", error));
+    private static SharedPreferences.OnSharedPreferenceChangeListener appListener;
+    private static Map<String, ?> lastAppSnapshot = new HashMap<>();
 
     public static SharedPreferences getSharedPrefs(Context context) {
-        return getSharedPrefs(context, false);
+        context = AppsTool.getProtectedContext(context);
+        return context.getSharedPreferences(mPrefsName, Context.MODE_PRIVATE);
     }
 
-    public static String getSharedPrefsPath() {
-        if (mPrefsPathCurrent == null) try {
-            Field mFile = mSharedPreferences.getClass().getDeclaredField("mFile");
-            mFile.setAccessible(true);
-            mPrefsPathCurrent = ((File) mFile.get(mSharedPreferences)).getParentFile().getAbsolutePath();
-            return mPrefsPathCurrent;
-        } catch (Throwable t) {
-            System.out.print("Test" + t);
-            return mPrefsPath;
+    public static void attachHookPreferences(SharedPreferences preferences,
+                                             Predicate<Executable> methodDeoptimizer) {
+        Objects.requireNonNull(preferences, "preferences");
+        synchronized (hookStore) {
+            if (!hookStore.attach(preferences)) {
+                throw new IllegalStateException("Cannot attach framework preferences for hook initialization");
+            }
+            hookPreferences = preferences;
+            deoptimizer = methodDeoptimizer;
         }
-        else return mPrefsPathCurrent;
     }
 
-    public static String getSharedPrefsFile() {
-        if (mPrefsFileCurrent == null) try {
-            Field fFile = mSharedPreferences.getClass().getDeclaredField("mFile");
-            fFile.setAccessible(true);
-            mPrefsFileCurrent = ((File) fFile.get(mSharedPreferences)).getAbsolutePath();
-            System.out.println("Test: mPrefsFileCurrent");
-            return mPrefsFileCurrent;
-        } catch (Throwable t) {
-            System.out.println("Test: mPrefsFile" + t);
-            return mPrefsFile;
-        }
-        else
-            System.out.println("Test: mPrefsFileCurrent2");
-        return mPrefsFileCurrent;
+    /** Hook observers share the source listener and run after its complete snapshot replacement. */
+    public static boolean observeHookPreferences(HookPrefsStore.Listener listener) {
+        return hookStore.observe(listener);
+    }
+
+    public static SharedPreferences getHookPreferences() {
+        SharedPreferences preferences = hookPreferences;
+        if (preferences == null) throw new IllegalStateException("Framework preferences have not been attached");
+        return preferences;
+    }
+
+    public static boolean deoptimizeMethod(Executable method) {
+        Predicate<Executable> current = deoptimizer;
+        return current != null && current.test(method);
     }
 
     public static boolean contains(String key) {
@@ -103,6 +98,7 @@ public class PrefsUtils {
     }
 
     public static String getSharedStringPrefs(Context context, String name, String defValue) {
+        if (hookPreferences != null) return hookPreferences.getString(name, defValue);
         Uri uri = PrefToUri.stringPrefToUri(name, defValue);
         try {
             Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -121,6 +117,7 @@ public class PrefsUtils {
     }
 
     public static Set<String> getSharedStringSetPrefs(Context context, String name) {
+        if (hookPreferences != null) return new LinkedHashSet<>(hookPreferences.getStringSet(name, new LinkedHashSet<>()));
         Uri uri = PrefToUri.stringSetPrefToUri(name);
         try {
             Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -147,6 +144,7 @@ public class PrefsUtils {
     }
 
     public static int getSharedIntPrefs(Context context, String name, int defValue) {
+        if (hookPreferences != null) return hookPreferences.getInt(name, defValue);
         Uri uri = PrefToUri.intPrefToUri(name, defValue);
         try {
             Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -165,6 +163,7 @@ public class PrefsUtils {
     }
 
     public static boolean getSharedBoolPrefs(Context context, String name, boolean defValue) {
+        if (hookPreferences != null) return hookPreferences.getBoolean(name, defValue);
         Uri uri = PrefToUri.boolPrefToUri(name, defValue);
         try {
             Cursor cursor = context.getContentResolver().query(uri, null, null, null, null);
@@ -183,24 +182,36 @@ public class PrefsUtils {
             return defValue;
     }
 
-    public static void registerOnSharedPreferenceChangeListener(Context context) {
-        mSharedPreferences.registerOnSharedPreferenceChangeListener((sharedPreferences, key) -> {
+    public static synchronized void registerOnSharedPreferenceChangeListener(Context context) {
+        if (appListener != null) return;
+        Context appContext = context.getApplicationContext();
+        lastAppSnapshot = mSharedPreferences.getAll();
+        appListener = (sharedPreferences, key) -> {
             Log.i("prefs", "Changed: " + key);
-            AppsTool.requestBackup(context);
-            Object val = sharedPreferences.getAll().get(key);
-            String path = "";
-            if (val instanceof String)
-                path = "string/";
-            else if (val instanceof Set<?>)
-                path = "stringset/";
-            else if (val instanceof Integer)
-                path = "integer/";
-            else if (val instanceof Boolean)
-                path = "boolean/";
+            AppsTool.requestBackup(appContext);
+            Map<String, ?> current = sharedPreferences.getAll();
+            if (key == null) {
+                Set<String> keys = new LinkedHashSet<>(lastAppSnapshot.keySet());
+                keys.addAll(current.keySet());
+                for (String changed : keys) notifyPreferenceChanged(appContext, changed,
+                    current.containsKey(changed) ? current.get(changed) : lastAppSnapshot.get(changed));
+            } else {
+                notifyPreferenceChanged(appContext, key,
+                    current.containsKey(key) ? current.get(key) : lastAppSnapshot.get(key));
+            }
+            lastAppSnapshot = current;
+        };
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(appListener);
+    }
 
-            ContentResolver resolver = context.getContentResolver();
-            resolver.notifyChange(Uri.parse("content://" + SharedPrefsProvider.AUTHORITY + "/" + path + key), null);
-            if (!path.isEmpty()) resolver.notifyChange(Uri.parse("content://" + SharedPrefsProvider.AUTHORITY + "/pref/" + path + key), null);
-        });
+    private static void notifyPreferenceChanged(Context context, String key, Object value) {
+        String type = value instanceof String ? "string" : value instanceof Set<?> ? "stringset"
+            : value instanceof Integer ? "integer" : value instanceof Boolean ? "boolean" : "";
+        ContentResolver resolver = context.getContentResolver();
+        Uri.Builder base = new Uri.Builder().scheme("content").authority(SharedPrefsProvider.AUTHORITY);
+        if (!type.isEmpty()) base.appendPath(type);
+        resolver.notifyChange(base.appendPath(key).build(), null);
+        if (!type.isEmpty()) resolver.notifyChange(new Uri.Builder().scheme("content")
+            .authority(SharedPrefsProvider.AUTHORITY).appendPath("pref").appendPath(type).appendPath(key).build(), null);
     }
 }

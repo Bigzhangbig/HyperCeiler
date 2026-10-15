@@ -20,8 +20,9 @@ package com.sevtinge.hyperceiler.hook.utils.api
 
 import android.content.res.Resources.getSystem
 import android.view.Window
+import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils
 import io.github.kyuubiran.ezxhelper.core.extension.MemberExtension.isStatic
-import io.github.kyuubiran.ezxhelper.core.util.ClassUtil.invokeStaticMethodBestMatch
+import java.lang.reflect.Executable
 import java.lang.reflect.Field
 import java.lang.reflect.Member
 import java.lang.reflect.Method
@@ -199,14 +200,11 @@ val Int.dp: Int get() = (this.toFloat().dp).toInt()
 val Float.dp: Float get() = this / getSystem().displayMetrics.density
 
 /**
- * 扩展函数 用于反射调用 XposedBridge 的 deoptimizeMethod 方法
- * @param member 需要去优化的成员方法
+ * 通过现代入口提供的 API 对方法或构造方法去优化。
+ * @throws IllegalArgumentException 成员不是方法或构造方法
  */
 fun Member.deoptimizeMethod() {
-    invokeStaticMethodBestMatch(
-        de.robv.android.xposed.XposedBridge::class.java,
-        "deoptimizeMethod",
-        null,
-        this
-    )
+    val executable = this as? Executable
+        ?: throw IllegalArgumentException("Only methods and constructors can be deoptimized")
+    PrefsUtils.deoptimizeMethod(executable)
 }

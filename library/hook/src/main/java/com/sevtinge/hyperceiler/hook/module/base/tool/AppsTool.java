@@ -32,7 +32,6 @@ import android.graphics.LinearGradient;
 import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.net.Uri;
-import android.os.FileObserver;
 import android.os.UserHandle;
 import android.util.Log;
 import android.util.LruCache;
@@ -45,8 +44,6 @@ import com.sevtinge.hyperceiler.hook.utils.shell.ShellInit;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedHelpers;
@@ -106,45 +103,6 @@ public class AppsTool {
         matrix.setTranslate(0, 0);
         shimmer.setLocalMatrix(matrix);
         title.getPaint().setShader(shimmer);
-    }
-
-    // Permissions 权限
-    @SuppressLint({"SetWorldReadable", "SetWorldWritable"})
-    public static void fixPermissionsAsync(Context context) {
-        Executor executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-
-            setFilePermissions(context.getDataDir());
-            setFilePermissions(new File(PrefsUtils.getSharedPrefsPath()));
-            setFilePermissions(new File(PrefsUtils.getSharedPrefsFile()));
-        });
-    }
-
-    private static void setFilePermissions(File file) {
-        if (file != null && file.exists()) {
-            file.setExecutable(true, false);
-            file.setReadable(true, false);
-            file.setWritable(true, false);
-        }
-    }
-
-    public static void registerFileObserver(Context context) {
-        try {
-            FileObserver mFileObserver = new FileObserver(new File(PrefsUtils.getSharedPrefsPath()), FileObserver.CLOSE_WRITE) {
-                @Override
-                public void onEvent(int event, String path) {
-                    AppsTool.fixPermissionsAsync(context);
-                }
-            };
-            mFileObserver.startWatching();
-        } catch (Throwable t) {
-            Log.e("prefs", "Failed to start FileObserver!");
-        }
     }
 
     public static void requestBackup(Context context) {

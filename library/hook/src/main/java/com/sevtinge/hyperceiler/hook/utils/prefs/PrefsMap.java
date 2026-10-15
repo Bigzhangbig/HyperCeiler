@@ -18,40 +18,98 @@
  */
 package com.sevtinge.hyperceiler.hook.utils.prefs;
 
+import java.util.AbstractMap;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Map;
 
-public class PrefsMap<K, V> extends HashMap<K, V> {
+public class PrefsMap<K, V> extends AbstractMap<K, V> {
+    private volatile Map<K, V> values = Collections.emptyMap();
+
+    /** Replace a complete framework snapshot without exposing an intermediate empty map. */
+    public synchronized void replace(Map<? extends K, ? extends V> snapshot) {
+        values = Collections.unmodifiableMap(new HashMap<>(snapshot));
+    }
+
+    @Override
+    public Set<Entry<K, V>> entrySet() {
+        return values.entrySet();
+    }
+
+    @Override
+    public V get(Object key) {
+        return values.get(key);
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return values.containsKey(key);
+    }
+
+    @Override
+    public synchronized V put(K key, V value) {
+        Map<K, V> next = new HashMap<>(values);
+        V previous = next.put(key, value);
+        values = Collections.unmodifiableMap(next);
+        return previous;
+    }
+
+    @Override
+    public synchronized void putAll(Map<? extends K, ? extends V> additions) {
+        Map<K, V> next = new HashMap<>(values);
+        next.putAll(additions);
+        values = Collections.unmodifiableMap(next);
+    }
+
+    @Override
+    public synchronized V remove(Object key) {
+        Map<K, V> next = new HashMap<>(values);
+        V previous = next.remove(key);
+        values = Collections.unmodifiableMap(next);
+        return previous;
+    }
+
+    @Override
+    public synchronized void clear() {
+        values = Collections.emptyMap();
+    }
 
     public Object getObject(String key, Object defValue) {
-        return get(key) == null ? defValue : get(key);
+        Object value = get(key);
+        return value == null ? defValue : value;
     }
 
     public int getInt(String key, int defValue) {
         key = "prefs_key_" + key;
-        return get(key) == null ? defValue : (Integer) get(key);
+        Object value = get(key);
+        return value == null ? defValue : (Integer) value;
     }
 
     public String getString(String key, String defValue) {
         key = "prefs_key_" + key;
-        return get(key) == null ? defValue : (String) get(key);
+        Object value = get(key);
+        return value == null ? defValue : (String) value;
     }
 
     public int getStringAsInt(String key, int defValue) {
         key = "prefs_key_" + key;
-        return get(key) == null ? defValue : Integer.parseInt((String) get(key));
+        Object value = get(key);
+        return value == null ? defValue : Integer.parseInt((String) value);
     }
 
     @SuppressWarnings("unchecked")
     public Set<String> getStringSet(String key) {
         key = "prefs_key_" + key;
-        return get(key) == null ? new LinkedHashSet<>() : (Set<String>) get(key);
+        Object value = get(key);
+        return value == null ? new LinkedHashSet<>() : (Set<String>) value;
     }
 
     public boolean getBoolean(String key) {
         key = "prefs_key_" + key;
-        return get(key) != null && (Boolean) get(key);
+        Object value = get(key);
+        return value != null && (Boolean) value;
     }
 
 }

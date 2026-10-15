@@ -25,17 +25,16 @@ import android.os.Build;
 import android.util.Log;
 
 import com.sevtinge.hyperceiler.hook.module.base.BaseHook;
+import com.sevtinge.hyperceiler.hook.utils.prefs.PrefsUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 
 import de.robv.android.xposed.XC_MethodReplacement;
-import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 
 public class FlagSecure extends BaseHook {
@@ -45,37 +44,16 @@ public class FlagSecure extends BaseHook {
         findAndHookMethod("com.android.server.wm.WindowState", "isSecureLocked", XC_MethodReplacement.returnConstant(false));
     }*/
 
-    private static final Method deoptimizeMethod;
     private static Field captureSecureLayersField;
-
-    static {
-        Method m = null;
-        try {
-            m = XposedBridge.class.getDeclaredMethod("deoptimizeMethod", Member.class);
-        } catch (Throwable t) {
-            XposedBridge.log(t);
-        }
-        deoptimizeMethod = m;
-    }
 
     static void deoptimizeMethods(Class<?> clazz, String... names) throws InvocationTargetException, IllegalAccessException {
         var list = Arrays.asList(names);
         for (Method method : clazz.getDeclaredMethods()) {
-            if (deoptimizeMethod != null && list.contains(method.getName())) {
-                deoptimizeMethod.invoke(null, method);
+            if (list.contains(method.getName()) && PrefsUtils.deoptimizeMethod(method)) {
                 Log.d("HyperCeiler/FlagSecure", "Deoptimized " + method);
             }
         }
     }
-
-    /*static void deoptimizeConstructors(Class<?> clazz) throws InvocationTargetException, IllegalAccessException {
-        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
-            if (deoptimizeMethod != null) {
-                deoptimizeMethod.invoke(null, constructor);
-                Log.d("FlagSecure", "Deoptimized constructor " + constructor);
-            }
-        }
-    }*/
 
     @Override
     public void init() {

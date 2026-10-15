@@ -61,7 +61,7 @@ public class SharedPrefsProvider extends ContentProvider {
     @Override
     public boolean onCreate() {
         try {
-            prefs = PrefsUtils.getSharedPrefs(getContext(), true);
+            prefs = PrefsUtils.getSharedPrefs(getContext());
             return true;
         } catch (Throwable throwable) {
             return false;

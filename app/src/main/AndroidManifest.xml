@@ -79,6 +79,7 @@
         android:name=".Application"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:description="@string/xposed_description"
         android:requestLegacyExternalStorage="true"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"

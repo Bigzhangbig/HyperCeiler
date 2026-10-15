@@ -27,6 +27,7 @@
 -keep class * extends com.hchen.hooktool.HCBase
 
 -keep class com.sevtinge.hyperceiler.hook.XposedInit { *; }
+-keep class com.sevtinge.hyperceiler.hook.ModernXposedInit { *; }
 -keep class com.sevtinge.hyperceiler.hook.module.** { *; }
 -keep class com.sevtinge.hyperceiler.hook.module.base.dexkit.** { *; }
 -keep class com.sevtinge.hyperceiler.hook.module.base.BaseModule { *; }

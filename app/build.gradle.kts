@@ -75,7 +75,7 @@ android {
         applicationId = namespace
         minSdk = 34
         targetSdk = 36
-        versionCode = 4257
+        versionCode = 4258
         versionName = "2.6.161"
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
@@ -113,7 +113,11 @@ android {
 
     packaging {
         resources {
-            excludes += listOf("/META-INF/**", "/kotlin/**", "/*.txt", "/*.bin", "/*.json")
+            excludes += listOf(
+                "/META-INF/LICENSE*", "/META-INF/NOTICE*", "/META-INF/DEPENDENCIES",
+                "/META-INF/*.kotlin_module", "/META-INF/versions/**",
+                "/kotlin/**", "/*.txt", "/*.bin", "/*.json"
+            )
         }
         dex {
             useLegacyPackaging = true

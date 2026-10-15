@@ -44,8 +44,6 @@ public interface ActivityCallback {
 
     default void registerObserver(Context context) {
         PrefsUtils.registerOnSharedPreferenceChangeListener(context);
-        AppsTool.fixPermissionsAsync(context);
-        AppsTool.registerFileObserver(context);
     }
 
     default void applyGrayScaleFilter(Activity activity) {

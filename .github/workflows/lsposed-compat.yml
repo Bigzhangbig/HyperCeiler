@@ -2,7 +2,7 @@ name: LSPosed preference compatibility
 
 on:
   push:
-    branches: [fix/lsposed-preferences-compat]
+    branches: [a14_eol, fix/lsposed-preferences-compat]
   pull_request:
     branches: [a14_eol]
   workflow_dispatch:

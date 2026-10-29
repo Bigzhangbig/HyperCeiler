@@ -75,7 +75,7 @@ android {
         applicationId = namespace
         minSdk = 34
         targetSdk = 36
-        versionCode = 4258
+        versionCode = 4259
         versionName = "2.6.161"
 
         val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").apply {
@@ -173,7 +173,7 @@ android {
             buildConfigField("String", "GIT_HASH", "\"$gitHash\"")
             proguardFiles("proguard-log.pro")
 
-            versionNameSuffix = "_20250829"
+            versionNameSuffix = "_20261029_API101_Fork1"
             signingConfig = if (properties != null) {
                 signingConfigs["hasProperties"]
             } else {

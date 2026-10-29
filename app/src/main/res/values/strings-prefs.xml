@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="about_fork_update_title">Check for updates</string>
+    <string name="about_fork_update_summary">Open the latest release from the Bigzhangbig fork</string>
+    <string name="about_fork_source_summary">Source code for the Bigzhangbig fork (Android 14 branch)</string>
+    <string name="about_fork_releases_url" translatable="false">https://github.com/Bigzhangbig/HyperCeiler/releases/latest</string>
+    <string name="about_fork_source_url" translatable="false">https://github.com/Bigzhangbig/HyperCeiler/tree/a14_eol</string>
     <string name="prefs_framework_sync_failed">Settings are saved on this device but have not synchronized with LSPosed. Reopen HyperCeiler to retry.</string>
     <string name="prefs_legacy_migration_failed">Legacy settings could not be migrated. Grant root access, force stop HyperCeiler, then open it again. Existing settings have been kept.</string>
 </resources>

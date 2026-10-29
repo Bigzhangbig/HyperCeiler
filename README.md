@@ -10,6 +10,10 @@
 
 </div>
 
+> 本 fork 发布 Android 14（`a14_eol`）的 LSPosed API101 配置兼容修复，未包含 API102 原生迁移。
+> [下载本 fork 最新 Release](https://github.com/Bigzhangbig/HyperCeiler/releases/latest) · [兼容与迁移说明](docs/lsposed-api101-compatibility.md)。发布包使用独立的固定 fork 签名，安装前请先导出旧配置；无法直接覆盖上游正式版或之前的临时 CI 签名包。
+
+
 ## 当前支持的版本
 
 Android 14-15 的 HyperOS
